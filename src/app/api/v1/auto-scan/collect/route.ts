@@ -105,23 +105,244 @@ export async function POST(request: NextRequest) {
     const currentSpecs = (existingAsset?.specs as Record<string, any>) || {};
     const newSpecs = specs || {};
 
-    // 2. Hardware Change Detection
+    // =========================================================================
+    // 2. COMPREHENSIVE HARDWARE & SOFTWARE CHANGE DETECTION & AUDIT LOGGING
+    // =========================================================================
     let hasHardwareChange = false;
+    let hasSoftwareChange = false;
     const changeLogs: string[] = [];
+    const newChangeRecords: Array<{
+      id: string;
+      timestamp: string;
+      category: 'HARDWARE' | 'SOFTWARE';
+      action: 'ADDED' | 'REMOVED' | 'MODIFIED';
+      component: string;
+      oldValue: string;
+      newValue: string;
+      severity: 'INFO' | 'WARNING' | 'CRITICAL';
+      description: string;
+    }> = [];
+
+    const nowIso = new Date().toISOString();
 
     if (existingAsset) {
+      // --- 2.1 Hardware Comparison ---
+      // RAM
       if (currentSpecs.ram && newSpecs.ram && currentSpecs.ram !== newSpecs.ram) {
         hasHardwareChange = true;
-        changeLogs.push(`RAM thay đổi từ "${currentSpecs.ram}" sang "${newSpecs.ram}"`);
+        const msg = `RAM thay đổi từ "${currentSpecs.ram}" sang "${newSpecs.ram}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-ram`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'RAM',
+          oldValue: String(currentSpecs.ram),
+          newValue: String(newSpecs.ram),
+          severity: 'WARNING',
+          description: msg,
+        });
       }
+
+      // CPU
       if (currentSpecs.cpu && newSpecs.cpu && currentSpecs.cpu !== newSpecs.cpu) {
         hasHardwareChange = true;
-        changeLogs.push(`CPU thay đổi từ "${currentSpecs.cpu}" sang "${newSpecs.cpu}"`);
+        const msg = `CPU thay đổi từ "${currentSpecs.cpu}" sang "${newSpecs.cpu}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-cpu`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'CPU',
+          oldValue: String(currentSpecs.cpu),
+          newValue: String(newSpecs.cpu),
+          severity: 'CRITICAL',
+          description: msg,
+        });
       }
+
+      // Storage
       if (currentSpecs.storage && newSpecs.storage && currentSpecs.storage !== newSpecs.storage) {
         hasHardwareChange = true;
-        changeLogs.push(`Ổ cứng thay đổi từ "${currentSpecs.storage}" sang "${newSpecs.storage}"`);
+        const msg = `Ổ cứng lưu trữ thay đổi từ "${currentSpecs.storage}" sang "${newSpecs.storage}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-disk`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'Ổ cứng (Storage)',
+          oldValue: String(currentSpecs.storage),
+          newValue: String(newSpecs.storage),
+          severity: 'WARNING',
+          description: msg,
+        });
       }
+
+      // GPU (Card đồ họa)
+      if (currentSpecs.gpu && newSpecs.gpu && currentSpecs.gpu !== newSpecs.gpu) {
+        hasHardwareChange = true;
+        const msg = `Card đồ họa (GPU) thay đổi từ "${currentSpecs.gpu}" sang "${newSpecs.gpu}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-gpu`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'Card đồ họa (GPU)',
+          oldValue: String(currentSpecs.gpu),
+          newValue: String(newSpecs.gpu),
+          severity: 'WARNING',
+          description: msg,
+        });
+      }
+
+      // Motherboard (Bo mạch chủ)
+      const targetMotherboard =
+        detectedMotherboard ||
+        currentSpecs.motherboard ||
+        currentSpecs.mainboard ||
+        (DESKTOP_MOTHERBOARD_REGEX.test(existingAsset.model || '') ? existingAsset.model : '');
+
+      if (currentSpecs.motherboard && targetMotherboard && currentSpecs.motherboard !== targetMotherboard) {
+        hasHardwareChange = true;
+        const msg = `Bo mạch chủ (Mainboard) thay đổi từ "${currentSpecs.motherboard}" sang "${targetMotherboard}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-mb`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'Bo mạch chủ (Motherboard)',
+          oldValue: String(currentSpecs.motherboard),
+          newValue: String(targetMotherboard),
+          severity: 'CRITICAL',
+          description: msg,
+        });
+      }
+
+      // MAC Address
+      if (currentSpecs.macAddress && newSpecs.macAddress && currentSpecs.macAddress !== newSpecs.macAddress) {
+        hasHardwareChange = true;
+        const msg = `Địa chỉ MAC card mạng thay đổi từ "${currentSpecs.macAddress}" sang "${newSpecs.macAddress}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-mac`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'Card mạng (MAC Address)',
+          oldValue: String(currentSpecs.macAddress),
+          newValue: String(newSpecs.macAddress),
+          severity: 'INFO',
+          description: msg,
+        });
+      }
+
+      // Operating System
+      if (currentSpecs.os && newSpecs.os && currentSpecs.os !== newSpecs.os) {
+        const msg = `Hệ điều hành thay đổi/nâng cấp từ "${currentSpecs.os}" sang "${newSpecs.os}"`;
+        changeLogs.push(msg);
+        newChangeRecords.push({
+          id: `${Date.now()}-hw-os`,
+          timestamp: nowIso,
+          category: 'HARDWARE',
+          action: 'MODIFIED',
+          component: 'Hệ điều hành (OS)',
+          oldValue: String(currentSpecs.os),
+          newValue: String(newSpecs.os),
+          severity: 'INFO',
+          description: msg,
+        });
+      }
+
+      // --- 2.2 Software Change Comparison ---
+      const oldSoftwareList: Array<{ name: string; version?: string; publisher?: string; installDate?: string }> =
+        Array.isArray(currentSpecs.installedSoftware) ? currentSpecs.installedSoftware : [];
+      const newSoftwareList: Array<{ name: string; version?: string; publisher?: string; installDate?: string }> =
+        Array.isArray(installedSoftware) ? installedSoftware : [];
+
+      if (oldSoftwareList.length > 0 && newSoftwareList.length > 0) {
+        const normKey = (s: string) => (s || '').toLowerCase().replace(/[\s\-_]/g, '').trim();
+        const oldMap = new Map<string, { name: string; version?: string }>();
+        oldSoftwareList.forEach((app) => {
+          if (app.name) oldMap.set(normKey(app.name), { name: app.name, version: app.version });
+        });
+
+        const newMap = new Map<string, { name: string; version?: string }>();
+        newSoftwareList.forEach((app) => {
+          if (app.name) newMap.set(normKey(app.name), { name: app.name, version: app.version });
+        });
+
+        // Detect Added Software
+        for (const [key, newApp] of newMap.entries()) {
+          if (!oldMap.has(key)) {
+            hasSoftwareChange = true;
+            const desc = `Cài đặt phần mềm mới: ${newApp.name} ${newApp.version ? `(v${newApp.version})` : ''}`.trim();
+            changeLogs.push(desc);
+            newChangeRecords.push({
+              id: `${Date.now()}-sw-add-${Math.random().toString(36).substring(2, 7)}`,
+              timestamp: nowIso,
+              category: 'SOFTWARE',
+              action: 'ADDED',
+              component: newApp.name,
+              oldValue: 'Chưa cài đặt',
+              newValue: newApp.version || 'v1.0',
+              severity: 'INFO',
+              description: desc,
+            });
+          }
+        }
+
+        // Detect Removed Software
+        for (const [key, oldApp] of oldMap.entries()) {
+          if (!newMap.has(key)) {
+            hasSoftwareChange = true;
+            const desc = `Đã gỡ bỏ phần mềm: ${oldApp.name} ${oldApp.version ? `(v${oldApp.version})` : ''}`.trim();
+            changeLogs.push(desc);
+            newChangeRecords.push({
+              id: `${Date.now()}-sw-rem-${Math.random().toString(36).substring(2, 7)}`,
+              timestamp: nowIso,
+              category: 'SOFTWARE',
+              action: 'REMOVED',
+              component: oldApp.name,
+              oldValue: oldApp.version || 'v1.0',
+              newValue: 'Đã gỡ bỏ',
+              severity: 'WARNING',
+              description: desc,
+            });
+          }
+        }
+
+        // Detect Version Updates
+        for (const [key, newApp] of newMap.entries()) {
+          if (oldMap.has(key)) {
+            const oldApp = oldMap.get(key)!;
+            if (oldApp.version && newApp.version && oldApp.version.trim() !== newApp.version.trim()) {
+              hasSoftwareChange = true;
+              const desc = `Cập nhật phần mềm ${newApp.name}: v${oldApp.version} ➔ v${newApp.version}`;
+              changeLogs.push(desc);
+              newChangeRecords.push({
+                id: `${Date.now()}-sw-upd-${Math.random().toString(36).substring(2, 7)}`,
+                timestamp: nowIso,
+                category: 'SOFTWARE',
+                action: 'MODIFIED',
+                component: newApp.name,
+                oldValue: oldApp.version,
+                newValue: newApp.version,
+                severity: 'INFO',
+                description: desc,
+              });
+            }
+          }
+        }
+      }
+
+      // Preserve and append change history (cap at last 200 items)
+      const existingHistory = Array.isArray(currentSpecs.changeHistory) ? currentSpecs.changeHistory : [];
+      const updatedChangeHistory = [...newChangeRecords, ...existingHistory].slice(0, 200);
 
       // Reconcile licenses against warehouse without mutating assignments
       const targetSoftware = Array.isArray(installedSoftware) && installedSoftware.length > 0
@@ -129,12 +350,6 @@ export async function POST(request: NextRequest) {
         : (currentSpecs.installedSoftware || []);
 
       const reconciliation = await reconcileSoftwareLicenses(targetSoftware, existingAsset.id);
-
-      const targetMotherboard =
-        detectedMotherboard ||
-        currentSpecs.motherboard ||
-        currentSpecs.mainboard ||
-        (DESKTOP_MOTHERBOARD_REGEX.test(existingAsset.model || '') ? existingAsset.model : '');
 
       // Merge Specs
       const mergedSpecs = {
@@ -149,7 +364,10 @@ export async function POST(request: NextRequest) {
         unmanagedCommercialApps: reconciliation.unmanagedCommercialApps,
         lastScannedAt: scannedAt || new Date().toISOString(),
         lastScannedHost: cleanHostname,
-        hardwareChangeAlert: hasHardwareChange ? changeLogs.join('; ') : currentSpecs.hardwareChangeAlert,
+        hardwareChangeAlert: hasHardwareChange ? changeLogs.filter((l) => !l.startsWith('Cài đặt') && !l.startsWith('Đã gỡ') && !l.startsWith('Cập nhật')).join('; ') : currentSpecs.hardwareChangeAlert,
+        softwareChangeAlert: hasSoftwareChange ? changeLogs.filter((l) => l.startsWith('Cài đặt') || l.startsWith('Đã gỡ') || l.startsWith('Cập nhật')).slice(0, 5).join('; ') : currentSpecs.softwareChangeAlert,
+        changeHistory: updatedChangeHistory,
+        lastChangeDetectedAt: newChangeRecords.length > 0 ? nowIso : currentSpecs.lastChangeDetectedAt,
       };
 
       // Detect device type and resolve category
@@ -225,13 +443,50 @@ export async function POST(request: NextRequest) {
         statusNote += ' (⚠️ Cảnh báo: Phát hiện dấu hiệu crack/bẻ khóa)';
       }
 
+      // Write to AuditLog table if changes were detected
+      if (newChangeRecords.length > 0) {
+        try {
+          const adminUser = await prisma.user.findFirst({
+            where: { role: { name: { in: ['Super Admin', 'Admin'] } } },
+            select: { id: true },
+          });
+          const logUserId = existingAsset.assignments[0]?.userId || adminUser?.id;
+          if (logUserId) {
+            await prisma.auditLog.create({
+              data: {
+                userId: logUserId,
+                action: 'UPDATE',
+                entityType: 'ASSET_SPEC_CHANGE',
+                entityId: existingAsset.id,
+                changes: {
+                  assetTag: existingAsset.assetTag,
+                  assetName: existingAsset.name,
+                  hostname: cleanHostname,
+                  hasHardwareChange,
+                  hasSoftwareChange,
+                  changeCount: newChangeRecords.length,
+                  summary: changeLogs.join('; '),
+                  records: newChangeRecords,
+                },
+                ipAddress: ip,
+              },
+            });
+          }
+        } catch (auditErr) {
+          console.error('Failed to create audit log for asset changes:', auditErr);
+        }
+      }
+
       return NextResponse.json({
         success: true,
         message: `✅ Đã cập nhật thông số quét tự động cho thiết bị ${existingAsset.assetTag} (${cleanHostname})${statusNote}`,
         assetId: updated.id,
         assetTag: updated.assetTag,
         hasHardwareChange,
+        hasSoftwareChange,
         changeLogs,
+        changeCount: newChangeRecords.length,
+        newChanges: newChangeRecords,
         isNew: false,
         reconciliation: reconciliation.summary,
         crackDetection: crackDetection || null,

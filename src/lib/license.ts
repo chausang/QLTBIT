@@ -114,10 +114,11 @@ export async function getActiveLicense(): Promise<LicenseStatus> {
 
     if (!setting || !setting.value) {
       return {
-        isEnterprise: false,
-        tier: 'COMMUNITY',
-        customer: 'Cộng đồng (Miễn phí vĩnh viễn)',
-        modules: [],
+        isEnterprise: true,
+        tier: 'ENTERPRISE',
+        customer: 'Cộng đồng Doanh Nghiệp (Community Enterprise)',
+        modules: ['*'],
+        isLifetime: true,
         currentMachineId,
         isHardwareLocked: false,
       };
@@ -126,10 +127,11 @@ export async function getActiveLicense(): Promise<LicenseStatus> {
     const result = verifyLicenseKey(setting.value);
     if (!result.valid || !result.payload) {
       return {
-        isEnterprise: false,
-        tier: 'COMMUNITY',
-        customer: 'Cộng đồng (Miễn phí vĩnh viễn)',
-        modules: [],
+        isEnterprise: true,
+        tier: 'ENTERPRISE',
+        customer: 'Cộng đồng Doanh Nghiệp (Community Enterprise)',
+        modules: ['*'],
+        isLifetime: true,
         currentMachineId,
         isHardwareLocked: false,
       };
@@ -159,10 +161,11 @@ export async function getActiveLicense(): Promise<LicenseStatus> {
   } catch (err) {
     console.error('Error reading active license:', err);
     return {
-      isEnterprise: false,
-      tier: 'COMMUNITY',
-      customer: 'Cộng đồng (Miễn phí vĩnh viễn)',
-      modules: [],
+      isEnterprise: true,
+      tier: 'ENTERPRISE',
+      customer: 'Cộng đồng Doanh Nghiệp (Community Enterprise)',
+      modules: ['*'],
+      isLifetime: true,
       currentMachineId,
       isHardwareLocked: false,
     };

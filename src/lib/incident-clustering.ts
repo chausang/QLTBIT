@@ -110,26 +110,10 @@ export async function createIncidentFromSpikeCluster(
   customTitle?: string
 ) {
   const currentYear = new Date().getFullYear();
-  const prefix = `INC-${currentYear}-`;
+  let incidentNumber = `INC-${currentYear}-${Date.now().toString().slice(-4)}`;
 
-  const recentIncidents = await prisma.incident.findMany({
-    where: { incidentNumber: { startsWith: prefix } },
-    orderBy: { createdAt: 'desc' },
-    take: 50,
-    select: { incidentNumber: true },
-  });
-  let nextSeq = 1;
-  for (const inc of recentIncidents) {
-    if (inc.incidentNumber) {
-      const match = inc.incidentNumber.match(/^INC-\d{4}-(\d+)/);
-      if (match && match[1]) {
-        const parsed = parseInt(match[1], 10);
-        if (!isNaN(parsed) && parsed >= nextSeq) nextSeq = parsed + 1;
-      }
-    }
-  }
-
-  const incidentNumber = `${prefix}${String(nextSeq).padStart(4, '0')}`;
+  const count = await prisma.incident.count();
+  incidentNumber = `INC-${currentYear}-${String(count + 1).padStart(4, '0')}`;
 
   const title = customTitle || cluster.suggestedIncidentTitle;
   const description = `⚡ [SỰ CỐ DIỆN RỘNG PHÁT HIỆN TỰ ĐỘNG]

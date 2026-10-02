@@ -1360,33 +1360,8 @@ export default function FloorMapsPage() {
     );
   });
 
-  if (isEnterprise === false || (isEnterprise && !isModActive('FLOOR_MAPS'))) {
-    return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
-        <EnterpriseFeatureLock
-          previewType="floor_maps"
-          tier="ENTERPRISE"
-          icon="🗺️"
-          title="Sơ Đồ Mặt Bằng 2D & Định Vị Thiết Bị Trực Quan (Floor Plans & Rack Maps)"
-          titleEn="Interactive 2D Floor Plans & Data Center Rack Maps"
-          subtitle="Tải lên bản vẽ mặt bằng kiến trúc tòa nhà, phân tầng phòng ban và trực quan hóa vị trí thiết bị, tủ mạng Rack Unit thời gian thực"
-          subtitleEn="Upload architectural floor plan blueprints, map office room zones, and visually position IT assets and 42U rack cabinets"
-          bullets={[
-            'Quản lý sơ đồ mặt bằng nhiều tòa nhà, phân tầng (Floor 1 - Floor N) và khu vực phòng máy chủ (Server Room)',
-            'Ghim tọa độ thiết bị trực quan bằng kéo thả: Máy tính, Switch, Server, Camera giám sát, Bộ phát Wifi AP',
-            'Mô phỏng tủ rack mạng chuẩn quốc tế (12U, 24U, 42U), quản lý từng vị trí Rack Unit U1 - U42 và công suất điện Watts',
-            'Liên kết trực tiếp với dữ liệu tài sản trong kho, xem thông tin cấu hình, trạng thái hoạt động và địa chỉ IP khi nhấp chuột',
-          ]}
-          bulletsEn={[
-            'Multi-building, multi-floor layout management with specialized templates for IT offices and Data Centers',
-            'Interactive drag-and-drop marker positioning: PCs, Servers, Managed Switches, CCTV Cameras, and Access Points',
-            'Data Center Rack Visualizer (12U, 24U, 42U): slot device units, calculate power consumption, and cable routing',
-            'Deep integration with the IT Asset Register: instant lookup of asset specs, real-time status, and IP addresses',
-          ]}
-        />
-      </div>
-    );
-  }
+  // Fully enabled for local deployment
+  // Floor Plans & Rack Maps interactive visualizer
 
   return (
     <div className="space-y-4 pb-12">

@@ -1,0 +1,49 @@
+==============================================================================
+HƯỚNG DẪN CÀI ĐẶT & SỬ DỤNG AGENT GIÁM SÁT MÁY TRẠM (SIMPLY IT)
+==============================================================================
+
+I. GIỚI THIỆU
+Agent này dùng để tự động thu thập thông tin phần cứng (CPU, RAM, Ổ cứng, GPU,
+Mainboard, MAC, IP) và phần mềm trên máy trạm Windows, đồng thời cảnh báo khi có
+sự thay đổi linh kiện hoặc cài/gỡ phần mềm.
+Hoạt động xuyên suốt qua các VLAN trong mạng nội bộ công ty.
+
+------------------------------------------------------------------------------
+II. CÁCH 1: CÀI ĐẶT THỦ CÔNG (CHO TỪNG MÁY TRẠM / DÙNG USB)
+------------------------------------------------------------------------------
+1. Copy toàn bộ thư mục 'GOI_CAI_DAT_AGENT' sang máy trạm.
+2. Nhấp CHUỘT PHẢI vào file 'Install_Agent.bat' -> Chọn 'Run as administrator'.
+3. Màn hình sẽ yêu cầu nhập địa chỉ máy chủ SIMPLY IT:
+   Ví dụ: http://192.168.10.50:3001
+   (Thay bằng địa chỉ IP máy chủ thực tế trong mạng của bạn).
+4. Nhấn Enter. Hệ thống sẽ tự động:
+   - Lưu script vào C:\ProgramData\SimplyIT\agent.ps1
+   - Tạo tác vụ chạy ngầm định kỳ 15 phút/lần (Scheduled Task: SimplyIT_Audit).
+   - Chạy ngầm dưới quyền SYSTEM, không hiện cửa sổ làm phiền người dùng.
+   - Gửi dữ liệu lần đầu tiên về máy chủ ngay lập tức.
+
+------------------------------------------------------------------------------
+III. CÁCH 2: TRIỂN KHAI TỰ ĐỘNG HÀNG LOẠT QUA DOMAIN CONTROLLER (GPO)
+------------------------------------------------------------------------------
+1. Copy file 'agent.ps1' vào thư mục chia sẻ SYSVOL:
+   \\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1
+2. Mở Group Policy Management Console (gpmc.msc) trên Domain Controller.
+3. Tạo GPO mới: 'SIMPLY_IT_Agent_Deployment' và gán vào OU chứa máy tính.
+4. Chỉnh sửa GPO:
+   Computer Configuration -> Policies -> Windows Settings -> Scripts -> Startup
+5. Chọn tab 'PowerShell Scripts' -> Bấm 'Add':
+   - Script Name: \\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1
+   - Script Parameters: -ServerUrl "http://192.168.10.50:3001" -Mode Install
+6. Khi người dùng bật máy trạm, Agent sẽ tự động cài đặt ngầm trong 3 giây.
+
+------------------------------------------------------------------------------
+IV. CÁCH SỬ DỤNG & KIỂM TRA
+------------------------------------------------------------------------------
+1. Kiểm kê tức thì (không cần đợi 15 phút):
+   - Nhấp đúp vào file 'Run_Audit_Now.bat'. Dữ liệu sẽ được gửi về máy chủ ngay.
+2. Kiểm tra nhật ký hoạt động trên máy trạm:
+   - Mở file: C:\ProgramData\SimplyIT\SimplyIT-Agent.log
+3. Gỡ cài đặt hoàn toàn:
+   - Nhấp CHUỘT PHẢI vào 'Uninstall_Agent.bat' -> Chọn 'Run as administrator'.
+   - File sẽ tự hủy Scheduled Task và dọn dẹp sạch sẽ thư mục cài đặt.
+==============================================================================

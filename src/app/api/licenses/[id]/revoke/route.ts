@@ -47,22 +47,19 @@ export async function POST(
 
     const effectiveLicenseId = activeAssignments[0].licenseId || licenseId;
 
-    // Wrap revocation and usedSeats recount in atomic transaction
-    await prisma.$transaction(async (tx) => {
-      await tx.licenseAssignment.updateMany({
-        where: whereClause,
-        data: { revokedAt: new Date() },
-      });
+    await prisma.licenseAssignment.updateMany({
+      where: whereClause,
+      data: { revokedAt: new Date() },
+    });
 
-      // Recalculate used seats
-      const currentActiveCount = await tx.licenseAssignment.count({
-        where: { licenseId: effectiveLicenseId, revokedAt: null },
-      });
+    // Recalculate used seats
+    const currentActiveCount = await prisma.licenseAssignment.count({
+      where: { licenseId: effectiveLicenseId, revokedAt: null },
+    });
 
-      await tx.license.update({
-        where: { id: effectiveLicenseId },
-        data: { usedSeats: currentActiveCount },
-      });
+    await prisma.license.update({
+      where: { id: effectiveLicenseId },
+      data: { usedSeats: currentActiveCount },
     });
 
     await createAuditLog({

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser, invalidateUserActiveCache } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import {
   hasPermission,
@@ -8,7 +8,6 @@ import {
   isAdminOrAbove,
   canDeleteUser,
 } from '@/lib/permissions';
-import { invalidateAssetKpiCache } from '@/lib/asset-kpi-cache';
 
 export async function POST(
   req: NextRequest,
@@ -121,10 +120,6 @@ export async function POST(
       });
     }
 
-    if (revokedAssetsDetails.length > 0) {
-      invalidateAssetKpiCache();
-    }
-
     // 2. Thu hồi các bản quyền phần mềm được chọn (hoặc tất cả)
     const activeLicenseAssignments = await prisma.licenseAssignment.findMany({
       where: {
@@ -219,7 +214,6 @@ export async function POST(
         isActive: false,
       },
     });
-    invalidateUserActiveCache(id);
 
     // 5. Ghi nhận Audit Log
     await prisma.auditLog.create({

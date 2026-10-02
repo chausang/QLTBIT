@@ -37,6 +37,14 @@ import {
   Barcode,
   Printer,
   Activity,
+  History,
+  GitCompare,
+  ArrowUpRight,
+  ArrowDownRight,
+  Tag,
+  MinusCircle,
+  PlusCircle,
+  Package,
 } from 'lucide-react';
 import AssetHandoverModal from './asset-handover-modal';
 import { calculateAssetHealth } from '@/lib/asset-health';
@@ -109,39 +117,6 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   const [mainTab, setMainTab] = useState<'details' | 'timeline' | 'health'>('details');
   const [isHandoverModalOpen, setIsHandoverModalOpen] = useState(false);
   const [handoverMode, setHandoverMode] = useState<'HANDOVER' | 'RETURN'>('HANDOVER');
-  const [isCompletingMaintenance, setIsCompletingMaintenance] = useState(false);
-
-  const handleCompleteMaintenanceToAvailable = async () => {
-    if (!selectedDetailAsset || isCompletingMaintenance) return;
-    const confirmMsg = txt(
-      `Xác nhận hoàn tất bảo trì / vệ sinh và chuyển thiết bị [${selectedDetailAsset.assetTag}] về kho SẴN SÀNG (AVAILABLE)?`,
-      `Confirm completion of maintenance/cleaning and return [${selectedDetailAsset.assetTag}] to AVAILABLE stock?`,
-      `端末 [${selectedDetailAsset.assetTag}] の点検・清掃を完了し、在庫（利用可能）に戻しますか？`
-    );
-    if (!window.confirm(confirmMsg)) return;
-
-    try {
-      setIsCompletingMaintenance(true);
-      const res = await fetch(`/api/assets/${selectedDetailAsset.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: 'AVAILABLE',
-        }),
-      });
-      if (res.ok) {
-        setSelectedDetailAsset((prev: any) => ({ ...prev, status: 'AVAILABLE' }));
-        if (onReload) onReload();
-      } else {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || 'Cập nhật thất bại');
-      }
-    } catch {
-      alert('Lỗi kết nối khi cập nhật trạng thái');
-    } finally {
-      setIsCompletingMaintenance(false);
-    }
-  };
 
   const { language: ctxLang } = useLanguage();
   const activeLang = language || ctxLang || 'vi';
@@ -1072,6 +1047,105 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                         </div>
                       )}
 
+                      {/* 📦 CẢNH BÁO THAY ĐỔI PHẦN MỀM (NẾU CÓ) */}
+                      {rawSpecs.softwareChangeAlert && (
+                        <div className="p-4 bg-blue-50/80 border-2 border-blue-300 rounded-2xl space-y-1.5 animate-in fade-in">
+                          <div className="flex items-center gap-2 font-black text-xs text-blue-900 uppercase tracking-wider">
+                            <Package className="w-4 h-4 text-blue-600 shrink-0" />
+                            <span>{txt('Cảnh Báo Thay Đổi Phần Mềm / Ứng Dụng (Software Change Detected)', 'Software Change Detected Alert', 'ソフトウェア・アプリ変更警告')}</span>
+                          </div>
+                          <p className="text-xs font-bold text-blue-800 leading-relaxed">
+                            {rawSpecs.softwareChangeAlert}
+                          </p>
+                          <p className="text-[11px] text-blue-600">
+                            {txt('Phát hiện máy trạm vừa cài mới, gỡ bỏ hoặc cập nhật phiên bản phần mềm.', 'Detected newly installed, uninstalled, or updated applications on workstation.', '端末で新規インストール・アンインストール・更新されたアプリが検出されました。')}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* 📜 NHẬT KÝ LỊCH SỬ THAY ĐỔI CẤU HÌNH PHẦN CỨNG & PHẦN MỀM (AUDIT LOGS) */}
+                      {Array.isArray(rawSpecs.changeHistory) && rawSpecs.changeHistory.length > 0 && (
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 animate-in fade-in">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <History className="w-4 h-4 text-indigo-600" />
+                              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                                {txt('Lịch Sử Thay Đổi Phần Cứng & Phần Mềm', 'Hardware & Software Change History', 'ハードウェア・ソフトウェア変更履歴')}
+                              </h4>
+                              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">
+                                {rawSpecs.changeHistory.length} {txt('sự kiện', 'events', '件')}
+                              </span>
+                            </div>
+                            {rawSpecs.lastChangeDetectedAt && (
+                              <span className="text-[10px] text-slate-500 font-medium">
+                                {txt('Gần nhất:', 'Latest:', '最新:')} {new Date(rawSpecs.lastChangeDetectedAt).toLocaleDateString('vi-VN')}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="max-h-64 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                            {rawSpecs.changeHistory.map((chg: any, cIdx: number) => {
+                              const isHw = chg.category === 'HARDWARE';
+                              const isAdd = chg.action === 'ADDED';
+                              const isRem = chg.action === 'REMOVED';
+                              return (
+                                <div
+                                  key={chg.id || cIdx}
+                                  className="p-2.5 bg-white border border-slate-200/90 rounded-xl space-y-1.5 shadow-2xs hover:border-slate-300 transition-colors"
+                                >
+                                  <div className="flex items-center justify-between text-[11px] gap-2">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      {/* Category Badge */}
+                                      <span className={`px-2 py-0.5 rounded font-black text-[9.5px] uppercase ${
+                                        isHw ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                                      }`}>
+                                        {isHw ? txt('Phần cứng', 'Hardware', 'HW') : txt('Phần mềm', 'Software', 'SW')}
+                                      </span>
+
+                                      {/* Action Badge */}
+                                      <span className={`px-1.5 py-0.5 rounded font-extrabold text-[9.5px] flex items-center gap-1 ${
+                                        isAdd
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : isRem
+                                          ? 'bg-rose-100 text-rose-800'
+                                          : 'bg-amber-100 text-amber-800'
+                                      }`}>
+                                        {isAdd ? '+ Cài đặt' : isRem ? '- Gỡ bỏ' : '⚡ Thay đổi'}
+                                      </span>
+
+                                      <span className="font-bold text-slate-900 truncate max-w-[200px]" title={chg.component}>
+                                        {chg.component}
+                                      </span>
+                                    </div>
+
+                                    <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                                      {chg.timestamp ? new Date(chg.timestamp).toLocaleString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric'
+                                      }) : ''}
+                                    </span>
+                                  </div>
+
+                                  {/* Values diff */}
+                                  <div className="flex items-center gap-2 text-[10.5px] bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                    <span className="text-slate-500 line-through truncate max-w-[150px]" title={String(chg.oldValue || '-')}>
+                                      {String(chg.oldValue || '-')}
+                                    </span>
+                                    <span className="text-slate-400 font-bold">➔</span>
+                                    <span className="text-slate-900 font-bold truncate max-w-[180px]" title={String(chg.newValue || '-')}>
+                                      {String(chg.newValue || '-')}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* 🛡️ CẢNH BÁO AN NINH: PHÁT HIỆN CÔNG CỤ CRACK / BẺ KHÓA (NẾU CÓ) */}
                       {(crack?.hasSuspect || (Array.isArray(crack?.detectedTools) && crack.detectedTools.length > 0)) && (
                         <div className="p-4 bg-rose-50 border-2 border-rose-300 rounded-2xl space-y-2.5 animate-in fade-in">
@@ -1919,23 +1993,6 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                     <Wrench className="w-3.5 h-3.5 text-amber-600" />
                     <span>🛠️ {txt('Sửa Chữa / Nâng Cấp', 'Maintenance / Upgrade', '修理・点検')} ({selectedDetailAsset._count?.maintenanceLogs || 0})</span>
                   </button>
-
-                  {selectedDetailAsset.status === 'MAINTENANCE' && (
-                    <button
-                      type="button"
-                      onClick={handleCompleteMaintenanceToAvailable}
-                      disabled={isCompletingMaintenance}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs border border-emerald-500 animate-in fade-in"
-                      title={txt('Đưa máy về trạng thái sẵn sàng cấp phát cho nhân sự mới', 'Return asset to available stock for new assignment', '新規割当用に利用可能状態へ戻す')}
-                    >
-                      {isCompletingMaintenance ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-100" />
-                      )}
-                      <span>✅ {txt('Hoàn Tất & Nhập Kho Sẵn Sàng', 'Complete & Return to Stock', '点検完了・在庫へ戻す')}</span>
-                    </button>
-                  )}
 
                   <button
                     type="button"

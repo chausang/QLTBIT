@@ -5,9 +5,6 @@ import { verifyToken, ALL_COOKIE_NAMES, PRIMARY_COOKIE_NAME } from '@/lib/jwt';
 // Routes that don't require authentication
 const publicRoutes = [
   '/login',
-  '/scan',
-  '/api/scan',
-  '/api/upload',
   '/api/auth/login',
   '/api/auth/sso',
   '/api/license',
@@ -30,11 +27,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
     // Fall through to normal auth check below (requires logged-in user)
-  }
-
-  // 1-Click CSAT rating links from email (e.g. /api/tickets/[id]/rate)
-  if (pathname.startsWith('/api/tickets/') && pathname.endsWith('/rate')) {
-    return NextResponse.next();
   }
 
   // Allow public routes
@@ -90,22 +82,9 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // Protect cron routes: if internal secret was absent, only Admins are allowed to trigger manual cron runs
-  if (pathname.startsWith('/api/cron')) {
-    const roleLower = (payload.roleName || '').toLowerCase();
-    const isAdmin = roleLower.includes('admin');
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: 'Forbidden: Chỉ Quản trị viên mới có quyền kích hoạt tác vụ cron hệ thống' },
-        { status: 403 }
-      );
-    }
-  }
-
-  // Redirect Staff users to /portal when accessing root, dashboard, or tickets console
-  if (payload.roleName === 'Staff' && (pathname === '/' || pathname === '/dashboard' || pathname === '/tickets')) {
-    const search = request.nextUrl.search || '';
-    return NextResponse.redirect(new URL(`/portal${search}`, request.url));
+  // Redirect Staff users to /portal when accessing root or dashboard
+  if (payload.roleName === 'Staff' && (pathname === '/' || pathname === '/dashboard')) {
+    return NextResponse.redirect(new URL('/portal', request.url));
   }
 
   // For backup and restore streams, bypass header rewriting so Next.js does not buffer/truncate request body at 10MB

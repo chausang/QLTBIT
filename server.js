@@ -1,8 +1,8 @@
+try { require('dotenv').config(); } catch (e) {}
 const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const next = require('next');
 const selfsigned = require('selfsigned');
 
@@ -51,15 +51,10 @@ function serveUploadsDirect(req, res) {
     if (fs.existsSync(safePath) && fs.statSync(safePath).isFile()) {
       const ext = path.extname(safePath).toLowerCase();
       const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      const headers = {
+      res.writeHead(200, {
         'Content-Type': contentType,
         'Cache-Control': 'public, max-age=31536000, immutable',
-        'X-Content-Type-Options': 'nosniff',
-      };
-      if (ext === '.svg') {
-        headers['Content-Security-Policy'] = "default-src 'none'; style-src 'unsafe-inline'";
-      }
-      res.writeHead(200, headers);
+      });
       fs.createReadStream(safePath).pipe(res);
       return true;
     }
@@ -131,26 +126,12 @@ async function initServer() {
   const certPath = path.join(certDir, 'localhost.crt');
 
   let pems;
-  let isCertValid = false;
   if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
-    try {
-      const existingCert = fs.readFileSync(certPath, 'utf8');
-      const existingKey = fs.readFileSync(keyPath, 'utf8');
-      const x509 = new crypto.X509Certificate(existingCert);
-      const validTo = new Date(x509.validTo);
-      // Valid if remaining validity is at least 7 days
-      if (validTo.getTime() - Date.now() > 7 * 24 * 60 * 60 * 1000) {
-        pems = { private: existingKey, cert: existingCert };
-        isCertValid = true;
-      } else {
-        console.log('⚠️ [SSL] Chứng chỉ HTTPS đã hết hạn hoặc sắp hết hạn (< 7 ngày). Đang tự động làm mới...');
-      }
-    } catch (certCheckErr) {
-      console.warn('⚠️ [SSL] Không thể đọc chứng chỉ hiện tại, tiến hành tạo mới:', certCheckErr.message);
-    }
-  }
-
-  if (!isCertValid) {
+    pems = {
+      private: fs.readFileSync(keyPath, 'utf8'),
+      cert: fs.readFileSync(certPath, 'utf8'),
+    };
+  } else {
     console.log('🔐 Generating self-signed SSL certificate for HTTPS mobile camera...');
     const attrs = [{ name: 'commonName', value: '192.168.144.198' }];
     const pemsGen = await selfsigned.generate(attrs, {
@@ -399,40 +380,6 @@ async function initServer() {
   }
   setTimeout(triggerHealthOfflineCron, 45000);
   setInterval(triggerHealthOfflineCron, 5 * 60 * 1000);
-
-  // 10. Automated Ticket SLA Escalation & Breach Warning Engine (Runs every 10 minutes)
-  function triggerSlaEscalationCron() {
-    try {
-      const req = http.request(
-        `http://127.0.0.1:${HTTP_PORT}/api/tickets/sla-escalation`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-cron-secret': process.env.CRON_SECRET || 'simply-internal-cron',
-          },
-        },
-        (res) => {
-          let body = '';
-          res.on('data', (chunk) => { body += chunk; });
-          res.on('end', () => {
-            if (res.statusCode === 200) {
-              try {
-                const data = JSON.parse(body);
-                if (data.escalatedCount > 0) {
-                  console.log(`⚡ [SLA Escalation Engine] Auto-routed & alerted ${data.escalatedCount} ticket(s) at risk of breach.`);
-                }
-              } catch {}
-            }
-          });
-        }
-      );
-      req.on('error', () => {});
-      req.end();
-    } catch (e) {}
-  }
-  setTimeout(triggerSlaEscalationCron, 60000);
-  setInterval(triggerSlaEscalationCron, 10 * 60 * 1000);
 }
 
 initServer().catch((err) => {

@@ -33,11 +33,8 @@ import {
   ExternalLink,
   File,
   UploadCloud,
-  Pencil,
-  Ban,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
-import { formatNumberWithDots, numberToVietnameseWords } from '@/lib/utils';
 
 interface ApprovalRequest {
   id: string;
@@ -116,7 +113,6 @@ export default function ApprovalsPage() {
 
   // Modal states
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingApproval, setEditingApproval] = useState<ApprovalRequest | null>(null);
   const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -181,42 +177,16 @@ export default function ApprovalsPage() {
   }, []);
 
   const handleOpenCreate = () => {
-    setEditingApproval(null);
-    setFormTitle('');
-    setFormDesc('');
-    setFormJustification('');
-    setFormCost('');
-    setFormQty('1');
-    setAttachments([]);
+    setIsCreateOpen(true);
     setManagerSearch('');
     setIsManagerDropdownOpen(false);
+    setAttachments([]);
     loadUsers();
     if (currentUser?.managerId) {
       setFormManagerId(currentUser.managerId);
     } else {
       setFormManagerId('');
     }
-    setIsCreateOpen(true);
-  };
-
-  const handleOpenEdit = (approval: ApprovalRequest) => {
-    setEditingApproval(approval);
-    setFormType(approval.type || 'NEW_DEVICE');
-    setFormTitle(approval.title || '');
-    setFormJustification(approval.justification || '');
-    setFormCost(approval.estimatedCost ? String(approval.estimatedCost) : '');
-    setFormQty(String(approval.quantity || 1));
-    setFormManagerId(approval.managerId || '');
-    setManagerSearch('');
-    setIsManagerDropdownOpen(false);
-
-    const { cleanDesc, attachments: atts } = parseAttachments(approval.description);
-    setFormDesc(cleanDesc);
-    setAttachments(atts);
-
-    loadUsers();
-    setIsDetailOpen(false);
-    setIsCreateOpen(true);
   };
 
   // AI Quote Parsing
@@ -394,31 +364,24 @@ export default function ApprovalsPage() {
 
     setCreating(true);
     try {
-      const payload = {
-        type: formType,
-        title: formTitle.trim(),
-        description: formDesc.trim() || undefined,
-        justification: formJustification.trim() || undefined,
-        estimatedCost: formCost ? Number(String(formCost).replace(/\D/g, '')) : undefined,
-        quantity: Number(formQty) || 1,
-        managerId: formManagerId || undefined,
-        attachments: attachments.length > 0 ? attachments : undefined,
-      };
-
-      const url = editingApproval ? `/api/approvals/${editingApproval.id}` : '/api/approvals';
-      const method = editingApproval ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
+      const res = await fetch('/api/approvals', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          type: formType,
+          title: formTitle.trim(),
+          description: formDesc.trim() || undefined,
+          justification: formJustification.trim() || undefined,
+          estimatedCost: formCost ? Number(formCost) : undefined,
+          quantity: Number(formQty) || 1,
+          managerId: formManagerId || undefined,
+          attachments: attachments.length > 0 ? attachments : undefined,
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
         setIsCreateOpen(false);
-        const wasEditing = editingApproval;
-        setEditingApproval(null);
         // Reset form
         setFormTitle('');
         setFormDesc('');
@@ -426,74 +389,14 @@ export default function ApprovalsPage() {
         setFormCost('');
         setFormQty('1');
         setAttachments([]);
-
-        if (wasEditing && selectedApproval?.id === wasEditing.id) {
-          setSelectedApproval(data.approval || { ...selectedApproval, ...payload });
-        }
-
         loadApprovals();
       } else {
-        alert(data.error || (editingApproval ? (language === 'en' ? 'Failed to update request' : 'Cập nhật đề xuất thất bại') : (language === 'en' ? 'Failed to create request' : 'Tạo yêu cầu thất bại')));
+        alert(data.error || (language === 'en' ? 'Failed to create request' : 'Tạo yêu cầu thất bại'));
       }
     } catch (e: any) {
       alert(e.message || (language === 'en' ? 'Connection error' : 'Lỗi kết nối'));
     } finally {
       setCreating(false);
-    }
-  };
-
-  const handleCancelProposal = async (id: string) => {
-    const confirmMsg = language === 'en'
-      ? 'Are you sure you want to cancel / withdraw this approval proposal?'
-      : 'Bạn có chắc chắn muốn hủy / rút bỏ đề xuất này không? Đề xuất sẽ dừng quy trình xét duyệt.';
-    if (!confirm(confirmMsg)) return;
-
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/approvals/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'CANCELLED' }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        if (selectedApproval?.id === id) {
-          setSelectedApproval((prev) => prev ? { ...prev, status: 'CANCELLED' } : null);
-        }
-        loadApprovals();
-      } else {
-        alert(data.error || (language === 'en' ? 'Failed to cancel proposal' : 'Hủy đề xuất thất bại'));
-      }
-    } catch (e: any) {
-      alert(e.message || (language === 'en' ? 'Connection error' : 'Lỗi kết nối'));
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleDeletePermanently = async (id: string) => {
-    const confirmMsg = language === 'en'
-      ? 'Are you sure you want to permanently delete this proposal? This action cannot be undone.'
-      : 'Bạn có chắc chắn muốn xóa vĩnh viễn đề xuất này không? Thao tác này không thể hoàn tác.';
-    if (!confirm(confirmMsg)) return;
-
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/approvals/${id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (data.success) {
-        setIsDetailOpen(false);
-        setSelectedApproval(null);
-        loadApprovals();
-      } else {
-        alert(data.error || (language === 'en' ? 'Failed to delete proposal' : 'Xóa đề xuất thất bại'));
-      }
-    } catch (e: any) {
-      alert(e.message || (language === 'en' ? 'Connection error' : 'Lỗi kết nối'));
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -678,37 +581,6 @@ export default function ApprovalsPage() {
 
   const userRole = currentUser?.role?.name || currentUser?.roleName || '';
   const isAdmin = userRole === 'Super Admin' || userRole === 'Admin' || userRole === 'Asset Manager';
-
-  const currentUserId = currentUser?.id || currentUser?.userId;
-  const isRequester = Boolean(selectedApproval && currentUserId && selectedApproval.requesterId === currentUserId);
-  const isAssignedManager = Boolean(selectedApproval && currentUserId && selectedApproval.managerId === currentUserId);
-
-  const canApproveCurrentStep = useMemo(() => {
-    if (!selectedApproval || !currentUser) return false;
-
-    // Step 1: PENDING_MANAGER
-    if (selectedApproval.status === 'PENDING_MANAGER') {
-      if (isRequester && !isAdmin) return false;
-      return isAssignedManager || isAdmin;
-    }
-
-    // Step 2: PENDING_IT
-    if (selectedApproval.status === 'PENDING_IT') {
-      return isAdmin;
-    }
-
-    return false;
-  }, [selectedApproval, currentUser, isRequester, isAssignedManager, isAdmin]);
-
-  const canEditOrCancel = useMemo(() => {
-    if (!selectedApproval || !currentUser) return false;
-    const hasNoApprovals = !selectedApproval.managerApprovedAt && !selectedApproval.itApprovedAt;
-    const isPending =
-      selectedApproval.status === 'PENDING_MANAGER' ||
-      selectedApproval.status === 'PENDING_IT' ||
-      selectedApproval.status === 'DRAFT';
-    return (isRequester || isAdmin) && hasNoApprovals && isPending;
-  }, [selectedApproval, currentUser, isRequester, isAdmin]);
 
   // Manager combobox filtering & grouping
   const eligibleManagers = usersList.filter(
@@ -928,7 +800,7 @@ export default function ApprovalsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 self-end sm:self-center shrink-0">
+                    <div className="flex items-center gap-3 self-end sm:self-center shrink-0">
                       {/* Action pill indicator */}
                       {req.status === 'PENDING_MANAGER' && (
                         <span className="text-[11px] font-semibold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
@@ -940,35 +812,6 @@ export default function ApprovalsPage() {
                           {t('approvals.need_it_action', 'Cần IT Xác Nhận')}
                         </span>
                       )}
-
-                      {/* Quick Edit/Cancel actions if unapproved */}
-                      {((currentUserId && req.requesterId === currentUserId) || isAdmin) &&
-                        !req.managerApprovedAt &&
-                        !req.itApprovedAt &&
-                        (req.status === 'PENDING_MANAGER' || req.status === 'PENDING_IT' || req.status === 'DRAFT') && (
-                          <div
-                            className="flex items-center gap-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEdit(req)}
-                              title={language === 'en' ? 'Edit proposal' : 'Sửa đề xuất'}
-                              className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-colors cursor-pointer"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleCancelProposal(req.id)}
-                              title={language === 'en' ? 'Cancel proposal' : 'Bỏ / Hủy đề xuất'}
-                              className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-slate-200 hover:border-rose-300 transition-colors cursor-pointer"
-                            >
-                              <Ban className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
-
                       <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
                     </div>
                   </div>
@@ -1005,14 +848,12 @@ export default function ApprovalsPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
-                  {editingApproval ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                  <Plus className="w-5 h-5" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <h3 className="font-bold text-base sm:text-lg text-slate-900">
-                      {editingApproval
-                        ? (language === 'en' ? `Edit Proposal ${editingApproval.code}` : `Chỉnh Sửa Đề Xuất ${editingApproval.code}`)
-                        : t('approvals.modal_create_title', 'Tạo Yêu Cầu Phê Duyệt')}
+                      {t('approvals.modal_create_title', 'Tạo Yêu Cầu Phê Duyệt')}
                     </h3>
                     <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
                       <Sparkles className="w-3 h-3 text-indigo-500" />
@@ -1020,9 +861,7 @@ export default function ApprovalsPage() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">
-                    {editingApproval
-                      ? (language === 'en' ? 'Update proposal information before manager / IT approval' : 'Cập nhật lại thông tin đề xuất trước khi Cấp trên hoặc IT phê duyệt')
-                      : t('approvals.modal_create_sub', 'Gửi yêu cầu cấp phát thiết bị hoặc phần mềm bản quyền')}
+                    {t('approvals.modal_create_sub', 'Gửi yêu cầu cấp phát thiết bị hoặc phần mềm bản quyền')}
                   </p>
                 </div>
               </div>
@@ -1246,27 +1085,13 @@ export default function ApprovalsPage() {
                       <label className="block font-bold text-slate-700 mb-1.5">
                         {t('approvals.field_cost', 'Dự toán (VND)')}
                       </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="VD: 25.000.000"
-                          value={formatNumberWithDots(formCost)}
-                          onChange={(e) => {
-                            const raw = e.target.value.replace(/\D/g, '');
-                            setFormCost(raw);
-                          }}
-                          className="w-full px-3 py-2 pr-12 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-semibold text-slate-800"
-                        />
-                        <span className="absolute right-3 top-2 text-xs font-bold text-slate-400 pointer-events-none">
-                          VND
-                        </span>
-                      </div>
-                      {formCost && Number(formCost) > 0 && (
-                        <div className="mt-1.5 text-[11px] text-blue-700 bg-blue-50/90 border border-blue-200 rounded-lg px-2.5 py-1 flex items-start gap-1 font-medium animate-in fade-in">
-                          <span className="font-bold shrink-0">✍️ Bằng chữ:</span>
-                          <span className="italic">{numberToVietnameseWords(formCost)}</span>
-                        </div>
-                      )}
+                      <input
+                        type="number"
+                        placeholder="VD: 25000000"
+                        value={formCost}
+                        onChange={(e) => setFormCost(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-semibold text-slate-800"
+                      />
                     </div>
                   </div>
 
@@ -1569,11 +1394,7 @@ export default function ApprovalsPage() {
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-md shadow-blue-600/20 cursor-pointer flex items-center gap-2 transition-all"
                 >
                   {creating && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <span>
-                    {editingApproval
-                      ? (language === 'en' ? 'Save Changes' : 'Lưu Thay Đổi')
-                      : t('approvals.submit_btn', 'Gửi Yêu Cầu Phê Duyệt')}
-                  </span>
+                  <span>{t('approvals.submit_btn', 'Gửi Yêu Cầu Phê Duyệt')}</span>
                 </button>
               </div>
             </form>
@@ -1583,108 +1404,63 @@ export default function ApprovalsPage() {
 
       {/* MODAL: DETAIL / APPROVE / REJECT */}
       {isDetailOpen && selectedApproval && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl lg:max-w-4xl w-full p-6 sm:p-8 space-y-6 border border-slate-200 animate-in fade-in zoom-in-95 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
-              <div className="space-y-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-7 space-y-5 border border-slate-200 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono font-bold text-xs text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-md border border-blue-200/60">
+                  <span className="font-mono font-bold text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
                     {selectedApproval.code}
                   </span>
-                  <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${getStatusInfo(selectedApproval.status).badge}`}>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getStatusInfo(selectedApproval.status).badge}`}>
                     {getStatusInfo(selectedApproval.status).label}
                   </span>
                 </div>
-                <h3 className="font-bold text-lg sm:text-xl text-slate-900 mt-1 leading-snug">{selectedApproval.title}</h3>
+                <h3 className="font-bold text-base sm:text-lg text-slate-900 mt-1">{selectedApproval.title}</h3>
               </div>
-              <div className="flex items-center gap-2">
-                {canEditOrCancel && (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenEdit(selectedApproval)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-colors cursor-pointer shadow-2xs"
-                      title={language === 'en' ? 'Edit proposal details' : 'Chỉnh sửa thông tin đề xuất'}
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                      <span>{language === 'en' ? 'Edit' : 'Sửa đề xuất'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleCancelProposal(selectedApproval.id)}
-                      disabled={actionLoading}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-                      title={language === 'en' ? 'Cancel/withdraw this proposal' : 'Hủy bỏ đề xuất này'}
-                    >
-                      <Ban className="w-3.5 h-3.5" />
-                      <span>{language === 'en' ? 'Cancel' : 'Bỏ đề xuất'}</span>
-                    </button>
-                  </>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setIsDetailOpen(false)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsDetailOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Approval Stepper Timeline */}
-            <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-200/80 space-y-3">
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t('approvals.timeline_title', 'Tiến trình xét duyệt')}</p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-center">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('approvals.timeline_title', 'Tiến trình xét duyệt')}</p>
+              <div className="grid grid-cols-3 gap-2 text-xs text-center">
                 {/* Step 1 */}
-                <div className={`p-3 rounded-xl border text-left transition-all ${selectedApproval.managerApprovedAt || !selectedApproval.managerId ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-2xs' : selectedApproval.status === 'PENDING_MANAGER' ? 'bg-amber-50/90 border-amber-300 text-amber-900 ring-2 ring-amber-400/20 shadow-xs' : 'bg-white border-slate-200 text-slate-500'}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-xs">{t('approvals.step_manager', '1. Cấp Trên')}</span>
-                    {selectedApproval.managerApprovedAt ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Clock className="w-4 h-4 text-amber-600" />}
-                  </div>
-                  <p className="font-semibold text-xs truncate">
-                    {selectedApproval.manager?.fullName || (selectedApproval.managerId ? 'Cấp quản lý' : 'Gửi thẳng IT')}
-                  </p>
-                  <p className="text-[11px] mt-0.5 font-medium">
+                <div className={`p-2.5 rounded-xl border ${selectedApproval.managerApprovedAt || !selectedApproval.managerId ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                  <p className="font-bold text-[11px]">{t('approvals.step_manager', '1. Cấp Trên')}</p>
+                  <p className="text-[10px] mt-0.5 font-medium">
                     {selectedApproval.managerApprovedAt
                       ? (language === 'en' ? '✅ Approved' : '✅ Đã duyệt')
                       : selectedApproval.managerId
-                      ? (language === 'en' ? '⏳ Pending' : '⏳ Đang chờ duyệt')
+                      ? (language === 'en' ? '⏳ Pending' : '⏳ Chờ duyệt')
                       : (language === 'en' ? 'Skipped' : 'Bỏ qua')}
                   </p>
                 </div>
 
                 {/* Step 2 */}
-                <div className={`p-3 rounded-xl border text-left transition-all ${selectedApproval.itApprovedAt ? 'bg-emerald-50 border-emerald-300 text-emerald-900 shadow-2xs' : selectedApproval.status === 'PENDING_IT' ? 'bg-indigo-50/90 border-indigo-300 text-indigo-900 ring-2 ring-indigo-400/20 shadow-xs' : 'bg-white border-slate-200 text-slate-500'}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-xs">{t('approvals.step_it', '2. IT Admin')}</span>
-                    {selectedApproval.itApprovedAt ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <Clock className="w-4 h-4 text-indigo-600" />}
-                  </div>
-                  <p className="font-semibold text-xs truncate">
-                    {selectedApproval.itApprover?.fullName || 'Bộ phận IT'}
-                  </p>
-                  <p className="text-[11px] mt-0.5 font-medium">
+                <div className={`p-2.5 rounded-xl border ${selectedApproval.itApprovedAt ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : selectedApproval.status === 'PENDING_IT' ? 'bg-indigo-50 border-indigo-200 text-indigo-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                  <p className="font-bold text-[11px]">{t('approvals.step_it', '2. IT Admin')}</p>
+                  <p className="text-[10px] mt-0.5 font-medium">
                     {selectedApproval.itApprovedAt
                       ? (language === 'en' ? '✅ Approved' : '✅ Đã duyệt')
                       : selectedApproval.status === 'PENDING_IT'
-                      ? (language === 'en' ? '⏳ Pending IT' : '⏳ Đang chờ IT duyệt')
+                      ? (language === 'en' ? '⏳ Pending IT' : '⏳ Chờ IT duyệt')
                       : (language === 'en' ? 'Pending' : 'Chưa đến')}
                   </p>
                 </div>
 
                 {/* Step 3 */}
-                <div className={`p-3 rounded-xl border text-left transition-all ${selectedApproval.status === 'DELIVERED' ? 'bg-teal-50 border-teal-300 text-teal-900 shadow-2xs' : 'bg-white border-slate-200 text-slate-500'}`}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-xs">{t('approvals.step_delivery', '3. Bàn Giao')}</span>
-                    {selectedApproval.status === 'DELIVERED' ? <PackageCheck className="w-4 h-4 text-teal-600" /> : <Clock className="w-4 h-4 text-slate-400" />}
-                  </div>
-                  <p className="font-semibold text-xs truncate">
-                    {selectedApproval.status === 'DELIVERED' ? 'Đã hoàn tất' : 'Chờ hoàn tất duyệt'}
-                  </p>
-                  <p className="text-[11px] mt-0.5 font-medium">
+                <div className={`p-2.5 rounded-xl border ${selectedApproval.status === 'DELIVERED' ? 'bg-teal-50 border-teal-200 text-teal-800' : 'bg-white border-slate-200 text-slate-500'}`}>
+                  <p className="font-bold text-[11px]">{t('approvals.step_delivery', '3. Bàn Giao')}</p>
+                  <p className="text-[10px] mt-0.5 font-medium">
                     {selectedApproval.status === 'DELIVERED'
-                      ? (language === 'en' ? '✅ Completed' : '✅ Đã bàn giao')
+                      ? (language === 'en' ? '✅ Completed' : '✅ Hoàn tất')
                       : (language === 'en' ? 'Not yet delivered' : 'Chưa bàn giao')}
                   </p>
                 </div>
@@ -1692,66 +1468,26 @@ export default function ApprovalsPage() {
             </div>
 
             {/* Info details */}
-            <div className="space-y-4 text-xs sm:text-sm">
-              <div className="p-4 sm:p-5 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3.5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pb-3 border-b border-slate-200/60">
-                  <div>
-                    <span className="text-slate-500 text-xs block">{t('approvals.requester', 'Người yêu cầu')}:</span>
-                    <span className="font-bold text-slate-800 text-sm">{selectedApproval.requester?.fullName}</span>
-                    <span className="text-slate-500 text-xs block">{selectedApproval.requester?.email}</span>
-                  </div>
-
-                  <div>
-                    <span className="text-slate-500 text-xs block">{t('approvals.department', 'Phòng ban')}:</span>
-                    <span className="font-bold text-slate-800 text-sm">{selectedApproval.requester?.department || '—'}</span>
-                    {selectedApproval.requester?.position && (
-                      <span className="text-slate-500 text-xs block">{selectedApproval.requester.position}</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <span className="text-slate-500 text-xs block">{language === 'en' ? 'Approving Manager' : 'Cấp trên phê duyệt'}:</span>
-                    {selectedApproval.manager ? (
-                      <>
-                        <span className="font-bold text-slate-800 text-sm">{selectedApproval.manager.fullName}</span>
-                        <span className="text-slate-500 text-xs block">{selectedApproval.manager.email}</span>
-                      </>
-                    ) : (
-                      <span className="text-slate-500 italic text-xs">
-                        {language === 'en' ? 'Route directly to IT (Bypassed manager)' : 'Gửi thẳng IT (Không qua Cấp trên)'}
-                      </span>
-                    )}
-                  </div>
-
-                  <div>
-                    <span className="text-slate-500 text-xs block">{t('approvals.field_quantity', 'Số lượng')}:</span>
-                    <span className="font-bold text-slate-800 text-sm">{selectedApproval.quantity}</span>
-                  </div>
-                </div>
-
+            <div className="space-y-3 text-xs">
+              <div className="p-3.5 bg-slate-50 rounded-2xl space-y-1.5 border border-slate-100">
+                <p><strong>{t('approvals.requester', 'Người yêu cầu')}:</strong> {selectedApproval.requester?.fullName} ({selectedApproval.requester?.email})</p>
+                {selectedApproval.requester?.department && <p><strong>{t('approvals.department', 'Phòng ban')}:</strong> {selectedApproval.requester.department}</p>}
+                <p>
+                  <strong>{language === 'en' ? 'Approving Manager' : 'Cấp trên phê duyệt'}:</strong>{' '}
+                  {selectedApproval.manager ? (
+                    <span className="font-semibold text-slate-800">{selectedApproval.manager.fullName} ({selectedApproval.manager.email})</span>
+                  ) : (
+                    <span className="text-slate-500 italic">
+                      {language === 'en' ? 'Route directly to IT (Bypassed manager)' : 'Gửi thẳng IT (Không qua Cấp trên)'}
+                    </span>
+                  )}
+                </p>
+                <p><strong>{t('approvals.field_quantity', 'Số lượng')}:</strong> {selectedApproval.quantity}</p>
                 {selectedApproval.estimatedCost && (
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200/80">
-                    <span className="text-slate-500 text-xs block font-medium">{t('approvals.estimated_budget', 'Dự toán kinh phí')}:</span>
-                    <div className="flex items-baseline gap-2 flex-wrap mt-0.5">
-                      <span className="text-base sm:text-lg font-black text-blue-700 font-mono">
-                        {formatNumberWithDots(selectedApproval.estimatedCost)} {selectedApproval.currency}
-                      </span>
-                      {selectedApproval.currency === 'VND' && (
-                        <span className="text-xs text-slate-500 italic">
-                          (Bằng chữ: {numberToVietnameseWords(selectedApproval.estimatedCost)})
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <p><strong>{t('approvals.estimated_budget', 'Dự toán')}:</strong> {Number(selectedApproval.estimatedCost).toLocaleString(language === 'en' ? 'en-US' : 'vi-VN')} {selectedApproval.currency}</p>
                 )}
-
                 {selectedApproval.justification && (
-                  <div className="pt-1">
-                    <span className="text-slate-500 text-xs block font-bold mb-1">{t('approvals.reason', 'Lý do cần cấp phát')}:</span>
-                    <p className="text-slate-700 bg-white p-3.5 rounded-xl border border-slate-200/80 leading-relaxed text-xs sm:text-sm">
-                      {selectedApproval.justification}
-                    </p>
-                  </div>
+                  <p className="pt-1 text-slate-600"><strong>{t('approvals.reason', 'Lý do')}:</strong> {selectedApproval.justification}</p>
                 )}
               </div>
 
@@ -1909,141 +1645,58 @@ export default function ApprovalsPage() {
 
             {/* Action Buttons for Approver */}
             {(selectedApproval.status === 'PENDING_MANAGER' || selectedApproval.status === 'PENDING_IT') && (
-              canApproveCurrentStep ? (
-                <div className="pt-4 border-t border-slate-200 space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                      <span>{t('approvals.action_note_label', 'Ghi chú / Ý kiến phê duyệt hoặc Lý do từ chối:')}</span>
-                      <span className="text-xs text-slate-400 font-normal">
-                        {selectedApproval.status === 'PENDING_MANAGER' ? '(Cấp trên xét duyệt)' : '(IT Admin xét duyệt)'}
-                      </span>
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder={t('approvals.action_note_placeholder', 'Nhập ghi chú ý kiến chỉ đạo hoặc lý do nếu từ chối...')}
-                      value={actionNote}
-                      onChange={(e) => setActionNote(e.target.value)}
-                      className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 text-slate-800 resize-y transition-all"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 flex-wrap">
-                    {selectedApproval.status === 'PENDING_IT' && isAdmin && !isForwardOpen && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsForwardOpen(true);
-                          setForwardManagerId(selectedApproval.requester?.managerId || '');
-                        }}
-                        disabled={actionLoading}
-                        className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                      >
-                        <ArrowRight className="w-4 h-4 text-amber-600" />
-                        <span>{language === 'en' ? 'Forward to Manager' : 'Chuyển Cấp Trên Duyệt'}</span>
-                      </button>
-                    )}
-
-                    <div className="flex items-center gap-3 ml-auto">
-                      <button
-                        type="button"
-                        onClick={() => handleReject(selectedApproval.id)}
-                        disabled={actionLoading}
-                        className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                      >
-                        <X className="w-4 h-4" />
-                        <span>{t('approvals.reject_btn', 'Từ Chối')}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleApprove(selectedApproval.id)}
-                        disabled={actionLoading}
-                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-2"
-                      >
-                        {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        <span>{t('approvals.approve_btn', 'Phê Duyệt')}</span>
-                      </button>
-                    </div>
-                  </div>
+              <div className="pt-3 border-t border-slate-100 space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {t('approvals.action_note_label', 'Ghi chú / Ý kiến phê duyệt hoặc Lý do từ chối:')}
+                  </label>
+                  <input
+                    type="text"
+                    placeholder={t('approvals.action_note_placeholder', 'Nhập ghi chú hoặc lý do nếu từ chối...')}
+                    value={actionNote}
+                    onChange={(e) => setActionNote(e.target.value)}
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:bg-white focus:border-blue-500"
+                  />
                 </div>
-              ) : (
-                /* Information banner for requester or unauthorized user (HỆ THỐNG ẨN KHỐI PHÊ DUYỆT) */
-                <div className="p-4 bg-amber-50/80 border border-amber-200/90 rounded-2xl flex flex-col gap-3 text-xs sm:text-sm text-amber-900">
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <p className="font-bold">
-                        {selectedApproval.status === 'PENDING_MANAGER'
-                          ? (isRequester ? 'Yêu cầu của bạn đang chờ Cấp trên xét duyệt' : 'Yêu cầu đang chờ Cấp trên xét duyệt')
-                          : 'Yêu cầu đang chờ IT Admin thẩm định & phê duyệt'}
-                      </p>
-                      <p className="text-amber-800/90 text-xs">
-                        {selectedApproval.status === 'PENDING_MANAGER'
-                          ? (selectedApproval.manager
-                              ? `Đang chờ phản hồi từ: ${selectedApproval.manager.fullName} (${selectedApproval.manager.email}). Bạn sẽ nhận được thông báo ngay khi có kết quả.`
-                              : 'Đang chờ Cấp quản lý phê duyệt.')
-                          : 'Cấp trên đã duyệt. Bộ phận Quản trị IT đang tiến hành kiểm tra kho và phân bổ thiết bị.'}
-                      </p>
-                    </div>
-                  </div>
 
-                  {canEditOrCancel && (
-                    <div className="pt-2.5 border-t border-amber-200/70 flex items-center justify-between flex-wrap gap-2">
-                      <span className="text-xs text-amber-900 font-medium">
-                        💡 {language === 'en'
-                          ? 'This proposal has not been approved yet. You can edit or withdraw it:'
-                          : 'Đề xuất chưa có ai duyệt. Bạn có thể sửa đổi nội dung hoặc rút bỏ đề xuất nếu không còn nhu cầu:'}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(selectedApproval)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-700 bg-white hover:bg-blue-50 border border-blue-200 rounded-xl transition-colors cursor-pointer shadow-2xs"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                          <span>{language === 'en' ? 'Edit Proposal' : 'Sửa nội dung đề xuất'}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCancelProposal(selectedApproval.id)}
-                          disabled={actionLoading}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-white hover:bg-rose-50 border border-rose-200 rounded-xl transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-                        >
-                          <Ban className="w-3.5 h-3.5" />
-                          <span>{language === 'en' ? 'Withdraw Proposal' : 'Bỏ / Hủy đề xuất này'}</span>
-                        </button>
-                      </div>
-                    </div>
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  {selectedApproval.status === 'PENDING_IT' && isAdmin && !isForwardOpen && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsForwardOpen(true);
+                        setForwardManagerId(selectedApproval.requester?.managerId || '');
+                      }}
+                      disabled={actionLoading}
+                      className="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <ArrowRight className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{language === 'en' ? 'Forward to Manager' : 'Chuyển Cấp Trên Duyệt'}</span>
+                    </button>
                   )}
-                </div>
-              )
-            )}
 
-            {/* Proposal Cancelled Banner */}
-            {selectedApproval.status === 'CANCELLED' && (
-              <div className="p-4 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-between flex-wrap gap-3 text-xs sm:text-sm text-slate-600">
-                <div className="flex items-center gap-2.5">
-                  <XCircle className="w-5 h-5 text-slate-400 shrink-0" />
-                  <div>
-                    <p className="font-bold text-slate-800">
-                      {language === 'en' ? 'Proposal Cancelled' : 'Đề xuất đã bị hủy / rút bỏ'}
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      {language === 'en' ? 'The approval workflow has terminated for this request.' : 'Quy trình xét duyệt cho yêu cầu này đã dừng lại.'}
-                    </p>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      type="button"
+                      onClick={() => handleReject(selectedApproval.id)}
+                      disabled={actionLoading}
+                      className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>{t('approvals.reject_btn', 'Từ Chối')}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleApprove(selectedApproval.id)}
+                      disabled={actionLoading}
+                      className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all cursor-pointer flex items-center gap-1.5"
+                    >
+                      {actionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      <span>{t('approvals.approve_btn', 'Phê Duyệt')}</span>
+                    </button>
                   </div>
                 </div>
-                {(isRequester || isAdmin) && (
-                  <button
-                    type="button"
-                    onClick={() => handleDeletePermanently(selectedApproval.id)}
-                    disabled={actionLoading}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-700 bg-white hover:bg-rose-50 border border-rose-200 rounded-xl transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>{language === 'en' ? 'Delete Permanently' : 'Xóa vĩnh viễn'}</span>
-                  </button>
-                )}
               </div>
             )}
 

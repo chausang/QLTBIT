@@ -5,12 +5,6 @@ import { prisma } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit';
 import { AssetStatus, AssetCondition } from '@prisma/client';
 import { normalizeAssetTag, normalizeCompanyName } from '@/lib/normalize';
-import {
-  assetKpiCache,
-  MAX_KPI_CACHE_SIZE,
-  KPI_CACHE_TTL_MS,
-  invalidateAssetKpiCache,
-} from '@/lib/asset-kpi-cache';
 
 // GET /api/assets - List assets with filters & pagination
 export async function GET(request: NextRequest) {
@@ -95,62 +89,7 @@ export async function GET(request: NextRequest) {
     if (locationId) where.locationId = locationId;
     if (companyName) where.companyName = { equals: companyName, mode: 'insensitive' };
 
-    const cacheKey = JSON.stringify(where);
-    const cachedKpi = assetKpiCache.get(cacheKey);
-    const isCacheValid = Boolean(cachedKpi && Date.now() - cachedKpi.timestamp < KPI_CACHE_TTL_MS);
-
-    // Fast Path: When cache is valid (e.g. during pagination page > 1 or repeated filter views),
-    // skip the heavy table scan of deprecAssets and groupBys.
-    if (isCacheValid && cachedKpi) {
-      const [assets, total] = await Promise.all([
-        prisma.asset.findMany({
-          where,
-          include: {
-            category: { select: { id: true, name: true, icon: true } },
-            vendor: { select: { id: true, name: true } },
-            location: { select: { id: true, name: true } },
-            licenseAssignments: {
-              where: { revokedAt: null },
-              include: { license: { select: { id: true, name: true, licenseType: true, expiryDate: true, status: true } } },
-            },
-            assignments: {
-              where: { returnedAt: null },
-              include: { user: { select: { id: true, fullName: true, email: true, department: true } } },
-            },
-            _count: { select: { maintenanceLogs: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * pageSize,
-          take: pageSize,
-        }),
-        prisma.asset.count({ where }),
-      ]);
-
-      return NextResponse.json({
-        success: true,
-        data: assets,
-        pagination: {
-          page,
-          pageSize,
-          total,
-          totalPages: Math.ceil(total / pageSize),
-        },
-        summary: {
-          totalCount: total,
-          pendingCount: cachedKpi.pendingCount,
-          availableCount: cachedKpi.availableCount,
-          inUseCount: cachedKpi.inUseCount,
-          maintenanceCount: cachedKpi.maintenanceCount,
-          totalOriginalPrice: cachedKpi.totalOriginalPrice,
-          totalDepreciation: cachedKpi.totalDepreciation,
-          remainingValue: cachedKpi.remainingValue,
-          depreciationPercent: cachedKpi.depreciationPercent,
-          categoryCounts: cachedKpi.categoryCountsMap,
-        },
-      });
-    }
-
-    const [assets, total, countsByStatus, deprecAssets, categoryCounts, curSetting] = await Promise.all([
+    const [assets, total, countsByStatus, deprecAssets, categoryCounts] = await Promise.all([
       prisma.asset.findMany({
         where,
         include: {
@@ -189,46 +128,15 @@ export async function GET(request: NextRequest) {
         by: ['categoryId'],
         _count: { _all: true },
       }),
-      prisma.systemSetting.findUnique({
-        where: { key: 'currency.list' },
-      }).catch(() => null),
     ]);
 
-    // Financial KPI Metrics (Linear Depreciation with Multi-Currency Normalization to Base VND)
+    // Financial KPI Metrics (Linear Depreciation)
     const now = new Date();
     let totalOriginalPrice = 0;
     let totalDepreciation = 0;
 
-    const exchangeRatesMap: Record<string, number> = {
-      VND: 1,
-      USD: 25400,
-      EUR: 27500,
-      JPY: 165,
-      SGD: 19200,
-      GBP: 32500,
-      AUD: 16400,
-      CNY: 3500,
-    };
-    if (curSetting?.value) {
-      try {
-        const parsed = JSON.parse(curSetting.value);
-        if (Array.isArray(parsed)) {
-          parsed.forEach((c: any) => {
-            if (c?.code && typeof c?.rate === 'number' && c.rate > 0) {
-              exchangeRatesMap[c.code.toUpperCase()] = c.rate;
-            }
-          });
-        }
-      } catch {}
-    }
-
     deprecAssets.forEach((asset) => {
-      const rawPrice = Number(asset.purchasePrice) || 0;
-      const cur = (asset.purchaseCurrency || 'VND').toUpperCase();
-      const customRate = Number((asset.specs as any)?.exchangeRate);
-      const rate = customRate > 0 ? customRate : (exchangeRatesMap[cur] || 1);
-      const price = rawPrice * rate;
-
+      const price = Number(asset.purchasePrice) || 0;
       totalOriginalPrice += price;
       if (price > 0) {
         const catName = (asset.category?.name || '').toLowerCase();
@@ -265,24 +173,6 @@ export async function GET(request: NextRequest) {
     const categoryCountsMap: Record<string, number> = {};
     categoryCounts.forEach((c) => {
       categoryCountsMap[c.categoryId] = c._count._all;
-    });
-
-    // Save to server-side LRU cache
-    if (assetKpiCache.size >= MAX_KPI_CACHE_SIZE) {
-      const oldestKey = assetKpiCache.keys().next().value;
-      if (oldestKey) assetKpiCache.delete(oldestKey);
-    }
-    assetKpiCache.set(cacheKey, {
-      totalOriginalPrice,
-      totalDepreciation,
-      remainingValue,
-      depreciationPercent,
-      categoryCountsMap,
-      pendingCount,
-      availableCount,
-      inUseCount,
-      maintenanceCount,
-      timestamp: Date.now(),
     });
 
     return NextResponse.json({
@@ -362,20 +252,17 @@ export async function POST(request: NextRequest) {
     // Auto-generate asset tag if not provided
     let assetTag = customAssetTag ? normalizeAssetTag(customAssetTag) : undefined;
     if (!assetTag) {
-      const recentAssets = await prisma.asset.findMany({
+      const latestAsset = await prisma.asset.findFirst({
         where: { assetTag: { startsWith: 'IT-AST-' } },
-        orderBy: { createdAt: 'desc' },
-        take: 50,
+        orderBy: { assetTag: 'desc' },
         select: { assetTag: true },
       });
       let nextSeq = 1;
-      for (const a of recentAssets) {
-        if (a.assetTag) {
-          const match = a.assetTag.match(/^IT-AST-(\d+)/);
-          if (match && match[1]) {
-            const parsed = parseInt(match[1], 10);
-            if (!isNaN(parsed) && parsed >= nextSeq) nextSeq = parsed + 1;
-          }
+      if (latestAsset?.assetTag) {
+        const match = latestAsset.assetTag.match(/^IT-AST-(\d+)/);
+        if (match && match[1]) {
+          const parsed = parseInt(match[1], 10);
+          if (!isNaN(parsed)) nextSeq = parsed + 1;
         }
       }
       assetTag = `IT-AST-${String(nextSeq).padStart(4, '0')}`;
@@ -488,8 +375,6 @@ export async function POST(request: NextRequest) {
       userId: currentUser.userId,
       changes: { assetTag: asset.assetTag, name: asset.name },
     });
-
-    invalidateAssetKpiCache();
 
     return NextResponse.json({ success: true, data: asset }, { status: 201 });
   } catch (error) {

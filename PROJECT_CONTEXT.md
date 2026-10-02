@@ -41,6 +41,15 @@
 ### 👥 2.4. Quy Trình Nghỉ Việc (Offboarding)
 - Khi nhân viên nghỉ việc: Thu hồi toàn bộ máy tính về trạng thái `AVAILABLE`, thu hồi các bản quyền phần mềm (`revokedAt`), khóa tài khoản đăng nhập (`isActive = false`) và từ chối đăng nhập (HTTP 403).
 
+### 📦 2.5. Trình Cài Đặt Trọn Gói 1-Click (Setup Wizard & PostgreSQL Portable)
+- **File thực thi:** `SimplyIT_Setup.exe` (và `Cai_Dat_SimplyIT.exe`).
+- **3 Chế độ cài đặt:**
+  1. Cài đặt CẢ HAI: Server & Agent (Máy quản trị viên).
+  2. Chỉ cài đặt Máy Chủ (SIMPLY IT Central Server).
+  3. Chỉ cài đặt Agent Giám Sát (Client Workstation).
+- **Zero-Setup Database:** Đi kèm PostgreSQL 17 Portable trong thư mục `pgsql`, tự động tạo dữ liệu và kết nối `127.0.0.1:5432` mà không cần cài đặt rườm rà.
+- **Tường lửa & Task Scheduler:** Tự động mở Inbound Port 3001 & 3443, tự động đăng ký tác vụ `SimplyIT_Audit` chạy ngầm định kỳ 15 phút.
+
 ---
 
 ## 3. Cấu Trúc Mã Nguồn Quan Trọng

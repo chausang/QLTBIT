@@ -263,6 +263,14 @@ export function Sidebar({
       permission: 'portal.view',
     },
     {
+      label: t('nav.my_tickets', 'Yêu cầu hỗ trợ của tôi'),
+      href: '/tickets',
+      icon: LifeBuoy,
+      badge: notifSummary.ticketsTotal > 0 ? String(notifSummary.ticketsTotal) : undefined,
+      badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+      permission: ['tickets.view', 'tickets.create'],
+    },
+    {
       label: t('nav.kb', 'Hướng dẫn sử dụng IT'),
       href: '/kb',
       icon: BookOpen,
@@ -297,7 +305,7 @@ export function Sidebar({
           icon: LifeBuoy,
           badge: notifSummary.ticketsTotal > 0 ? String(notifSummary.ticketsTotal) : undefined,
           badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-          permission: ['tickets.update', 'tickets.assign'],
+          permission: ['tickets.view', 'tickets.create'],
         },
         {
           label: t('nav.approvals', 'Yêu cầu & Phê duyệt'),
@@ -321,15 +329,9 @@ export function Sidebar({
       permission: 'assets.view',
       children: [
         { label: t('nav.assets_list', 'Danh sách Thiết bị'), href: '/assets', icon: Laptop, permission: 'assets.view' },
-        ...(isModActive('AUDIT') ? [
-          { label: t('nav.assets_audit', 'Kiểm kê Tài sản'), href: '/assets/audit', icon: ClipboardCheck, permission: 'assets.view' },
-        ] : []),
-        ...(isModActive('DISCOVERY') ? [
-          { label: t('nav.assets_scan', 'Scan Thiết bị'), href: '/discovery', icon: ScanLine, permission: 'assets.view' },
-        ] : []),
-        ...(isModActive('FLOOR_MAPS') ? [
-          { label: t('nav.floor_maps', 'Sơ đồ Mặt bằng 2D'), href: '/floor-maps', icon: Map, permission: 'assets.view' },
-        ] : []),
+        { label: t('nav.assets_audit', 'Kiểm kê Tài sản'), href: '/assets/audit', icon: ClipboardCheck, permission: 'assets.view' },
+        { label: t('nav.assets_scan', 'Scan Thiết bị / Quét LAN'), href: '/discovery', icon: ScanLine, permission: 'assets.view' },
+        { label: t('nav.floor_maps', 'Sơ đồ Mặt bằng 2D'), href: '/floor-maps', icon: Map, permission: 'assets.view' },
         { label: t('nav.spare_parts', 'Kho Phụ tùng & Linh kiện'), href: '/spare-parts', icon: Boxes, permission: 'assets.view' },
       ],
     },

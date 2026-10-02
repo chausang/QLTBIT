@@ -22,10 +22,18 @@
 
 # binaries
 *.exe
+!SimplyIT_Setup.exe
+!SimplyIT_Server.exe
+!Cai_Dat_SimplyIT.exe
+
+# portable database
+pgsql/
 
 # AI & IDE metadata
 .agent/
 .gemini/
+__pycache__/
+machine_id_temp.html
 
 # misc
 .DS_Store

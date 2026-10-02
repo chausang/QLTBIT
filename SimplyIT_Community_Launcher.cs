@@ -45,6 +45,7 @@ namespace SimplyITCommunityLauncher
         private Button btnStopExit;
         private NotifyIcon trayIcon;
         private Process serverProcess;
+        private Process pgProcess;
         private System.Windows.Forms.Timer pollTimer;
         private string appDir;
         private string targetUrl = "http://localhost:3001";
@@ -57,7 +58,9 @@ namespace SimplyITCommunityLauncher
         {
             InitializeComponent();
             LocateAppDir();
-            StartCompleteStack();
+            this.Shown += (s, e) => {
+                StartCompleteStack();
+            };
         }
 
         private void InitializeComponent()
@@ -74,11 +77,11 @@ namespace SimplyITCommunityLauncher
             string icoPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
             if (!File.Exists(icoPath))
             {
-                icoPath = @"F:\OneDrive - GELEX\Documents\GitHub\Simply-it-community\app.ico";
+                icoPath = @"D:\QLTBIT\app.ico";
             }
             if (!File.Exists(icoPath))
             {
-                icoPath = @"C:\Users\kien.ta-trung\.gemini\antigravity\scratch\simply-it-community\app.ico";
+                icoPath = Path.Combine(Directory.GetCurrentDirectory(), "app.ico");
             }
             if (File.Exists(icoPath))
             {
@@ -287,13 +290,6 @@ namespace SimplyITCommunityLauncher
 
         private void LocateAppDir()
         {
-            string scratch = @"C:\Users\kien.ta-trung\.gemini\antigravity\scratch\simply-it-community";
-            if (Directory.Exists(scratch) && File.Exists(Path.Combine(scratch, "package.json")))
-            {
-                appDir = scratch;
-                return;
-            }
-
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             if (File.Exists(Path.Combine(baseDir, "package.json")))
             {
@@ -301,10 +297,24 @@ namespace SimplyITCommunityLauncher
                 return;
             }
 
-            string userRepo = @"F:\OneDrive - GELEX\Documents\GitHub\Simply-it-community";
-            if (Directory.Exists(userRepo) && File.Exists(Path.Combine(userRepo, "package.json")))
+            string qltbit = @"D:\QLTBIT";
+            if (Directory.Exists(qltbit) && File.Exists(Path.Combine(qltbit, "package.json")))
             {
-                appDir = userRepo;
+                appDir = qltbit;
+                return;
+            }
+
+            string antigravity = @"D:\Antigravity\QLTBIT";
+            if (Directory.Exists(antigravity) && File.Exists(Path.Combine(antigravity, "package.json")))
+            {
+                appDir = antigravity;
+                return;
+            }
+
+            string cur = Directory.GetCurrentDirectory();
+            if (File.Exists(Path.Combine(cur, "package.json")))
+            {
+                appDir = cur;
                 return;
             }
 
@@ -313,6 +323,13 @@ namespace SimplyITCommunityLauncher
 
         private void AppendLog(string message)
         {
+            try
+            {
+                string logFile = Path.Combine(appDir ?? AppDomain.CurrentDomain.BaseDirectory, "launcher_diag.log");
+                File.AppendAllText(logFile, string.Format("[{0}] {1}\r\n", DateTime.Now.ToString("HH:mm:ss"), message));
+            }
+            catch {}
+
             if (this.IsDisposed) return;
             if (this.InvokeRequired)
             {
@@ -327,6 +344,8 @@ namespace SimplyITCommunityLauncher
                 txtLogs.Text = txtLogs.Text.Substring(10000);
             }
             txtLogs.AppendText(string.Format("[{0}] {1}\r\n", time, message));
+            txtLogs.SelectionStart = txtLogs.TextLength;
+            txtLogs.ScrollToCaret();
         }
 
         private void UpdateStatusText(string text)
@@ -416,8 +435,40 @@ namespace SimplyITCommunityLauncher
                     return;
                 }
 
-                // Try starting common service names
-                string[] serviceNames = new string[] { "postgresql-x64-18", "postgresql-x64-16", "postgresql-x64-15", "postgresql" };
+                // 1. Check portable/embedded PostgreSQL first
+                string portablePg = Path.Combine(appDir, @"pgsql\bin\postgres.exe");
+                string portableData = Path.Combine(appDir, @"pgsql\data");
+                if (File.Exists(portablePg) && Directory.Exists(portableData))
+                {
+                    AppendLog("🔄 Đang khởi động Cơ sở dữ liệu PostgreSQL tích hợp...");
+                    try
+                    {
+                        ProcessStartInfo psiPg = new ProcessStartInfo();
+                        psiPg.FileName = portablePg;
+                        psiPg.Arguments = "-D \"" + portableData + "\"";
+                        psiPg.WorkingDirectory = Path.Combine(appDir, "pgsql");
+                        psiPg.UseShellExecute = false;
+                        psiPg.CreateNoWindow = true;
+                        pgProcess = Process.Start(psiPg);
+
+                        for (int i = 0; i < 20; i++)
+                        {
+                            Thread.Sleep(500);
+                            if (IsPortOpen(5432))
+                            {
+                                AppendLog("✅ PostgreSQL tích hợp đã sẵn sàng trên cổng 5432!");
+                                return;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AppendLog("Khởi động PostgreSQL tích hợp: " + ex.Message);
+                    }
+                }
+
+                // 2. Try starting common Windows service names
+                string[] serviceNames = new string[] { "postgresql-x64-18", "postgresql-x64-17", "postgresql-x64-16", "postgresql-x64-15", "postgresql" };
                 foreach (string svc in serviceNames)
                 {
                     try
@@ -455,24 +506,78 @@ namespace SimplyITCommunityLauncher
                 AppendLog("🚀 [2/3] Bắt đầu chạy Web Server Production...");
 
                 ProcessStartInfo psi = new ProcessStartInfo();
-                string nodePath = @"C:\Program Files\nodejs\node.exe";
-                if (File.Exists(nodePath))
+                string[] candidateNodes = new string[] {
+                    @"C:\Program Files\nodejs\node.exe",
+                    @"C:\Program Files (x86)\nodejs\node.exe",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\nodejs\node.exe"),
+                    Path.Combine(appDir, @"node\node.exe"),
+                    Path.Combine(appDir, @"bin\node.exe")
+                };
+                string nodePath = "node";
+                bool nodeFound = false;
+                foreach (string candidate in candidateNodes)
                 {
-                    psi.FileName = nodePath;
+                    if (File.Exists(candidate))
+                    {
+                        nodePath = candidate;
+                        nodeFound = true;
+                        break;
+                    }
                 }
-                else
+
+                if (!nodeFound)
                 {
-                    psi.FileName = "node";
+                    // Check PATH environment variable
+                    string envPath = Environment.GetEnvironmentVariable("PATH");
+                    if (!string.IsNullOrEmpty(envPath))
+                    {
+                        foreach (string p in envPath.Split(';'))
+                        {
+                            string trimmed = p.Trim();
+                            if (string.IsNullOrEmpty(trimmed)) continue;
+                            string testNode = Path.Combine(trimmed, "node.exe");
+                            if (File.Exists(testNode))
+                            {
+                                nodePath = testNode;
+                                nodeFound = true;
+                                break;
+                            }
+                        }
+                    }
                 }
+
+                if (!nodeFound && !File.Exists(nodePath))
+                {
+                    UpdateStatusText("❌ [Thiếu Node.js] Chưa phát hiện Node.js trên máy tính!");
+                    AppendLog("❌ LỖI: Không tìm thấy node.exe trên máy tính!");
+                    AppendLog("👉 Vui lòng chạy SimplyIT_Setup.exe để hệ thống tự động cài đặt Node.js LTS.");
+                    return;
+                }
+
+                psi.FileName = nodePath;
                 psi.Arguments = "--max-old-space-size=4096 server.js";
                 psi.WorkingDirectory = appDir;
                 psi.UseShellExecute = false;
                 psi.CreateNoWindow = true;
                 psi.RedirectStandardOutput = true;
                 psi.RedirectStandardError = true;
+                string nodeDir = Path.GetDirectoryName(nodePath);
+                string currentPath = Environment.GetEnvironmentVariable("PATH");
+                if (!string.IsNullOrEmpty(nodeDir) && (currentPath == null || !currentPath.Contains(nodeDir)))
+                {
+                    psi.EnvironmentVariables["PATH"] = nodeDir + ";" + (currentPath ?? "");
+                }
+                psi.EnvironmentVariables["DATABASE_URL"] = "postgresql://postgres@127.0.0.1:5432/it_asset_db?schema=public";
+                psi.EnvironmentVariables["PORT"] = targetPort.ToString();
+                psi.EnvironmentVariables["HTTPS_PORT"] = "3443";
+                psi.EnvironmentVariables["NODE_ENV"] = "production";
 
                 serverProcess = new Process();
                 serverProcess.StartInfo = psi;
+                serverProcess.EnableRaisingEvents = true;
+                serverProcess.Exited += (s, e) => {
+                    AppendLog("ℹ️ Tiến trình Web Server đã dừng lại.");
+                };
                 serverProcess.OutputDataReceived += (s, e) => {
                     if (!string.IsNullOrEmpty(e.Data))
                     {
@@ -584,6 +689,19 @@ namespace SimplyITCommunityLauncher
                     }
                     catch {}
                     serverProcess = null;
+                }
+                if (pgProcess != null && !pgProcess.HasExited)
+                {
+                    try
+                    {
+                        Process kp = Process.Start(new ProcessStartInfo("taskkill", "/F /T /PID " + pgProcess.Id) {
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        if (kp != null) kp.WaitForExit(2000);
+                    }
+                    catch {}
+                    pgProcess = null;
                 }
                 CleanupPortProcess(targetPort);
             }
