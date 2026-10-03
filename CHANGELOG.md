@@ -29,7 +29,20 @@ Bản cập nhật **v1.0.5** giải quyết triệt để vấn đề cài đ�
   - Tự động khởi động PostgreSQL tích hợp (`pgsql\bin\postgres.exe`) nếu máy chưa có dịch vụ database ngoài.
   - Tự động cuộn nhật ký theo thời gian thực (Auto-scroll) và hiển thị thông báo chẩn đoán bằng tiếng Việt dễ hiểu.
 
+#### C. Dọn Dẹp Cấu Trúc Dự Án & Tạo Tài Liệu Word Cho Người Không Chuyên
+- **Tối ưu hóa thư mục gốc (Project Cleanup)**:
+  - Gom toàn bộ 13 file markdown/PDF kỹ thuật cũ và file tạm ở thư mục gốc vào thư mục mới: `archive/` (`archive/tai_lieu_cu/` và `archive/temp/`).
+  - Thư mục gốc dự án trở nên gọn gàng, sạch sẽ, chỉ giữ lại các thành phần thực thi và tài liệu cốt lõi.
+- **Tài Liệu Hướng Dẫn Word Trực Quan (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**:
+  - Biên soạn tài liệu Microsoft Word chuyên nghiệp, định dạng đẹp mắt với màu sắc chuẩn doanh nghiệp, bảng biểu, hộp lưu ý nổi bật.
+  - Văn phong "cầm tay chỉ việc", trực quan, dễ hiểu 100% dành riêng cho người không rành công nghệ, kế toán, văn phòng, quản lý kho.
+  - Hướng dẫn cài đặt 1-Click bằng chuột (cho Server và Agent máy trạm), kèm hướng dẫn sử dụng 8 nghiệp vụ thực tế hằng ngày (kiểm kê, cảnh báo tháo trộm RAM, bàn giao, thu hồi khi nghỉ việc, quét QR điện thoại, sơ đồ 2D).
+- **Cập nhật Bảng Điều Khiển (`qltbit_manager.py`)**:
+  - Bổ sung phím tắt `[7] 📖 Mở Tài Liệu Hướng Dẫn Chi Tiết (File Word: Cài đặt & Sử dụng)` để mở file Word trực tiếp.
+
 ---
+
+
 
 ## [v1.0.4] - 20/09/2026
 

@@ -50,7 +50,13 @@
 - **Zero-Setup Database:** Đi kèm PostgreSQL 17 Portable trong thư mục `pgsql`, tự động tạo dữ liệu và kết nối `127.0.0.1:5432` mà không cần cài đặt rườm rà.
 - **Tường lửa & Task Scheduler:** Tự động mở Inbound Port 3001 & 3443, tự động đăng ký tác vụ `SimplyIT_Audit` chạy ngầm định kỳ 15 phút.
 
+### 📚 2.6. Tinh Gọn Cấu Trúc Dự Án & Tài Liệu Word Cho Người Không Chuyên
+- **Thư mục lưu trữ `archive/`**: Chứa toàn bộ 13 file markdown/PDF kỹ thuật cũ và file tạm (`archive/tai_lieu_cu/` và `archive/temp/`). Thư mục gốc dự án sạch sẽ và chuyên nghiệp.
+- **Tài liệu Word (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**: Tài liệu chuẩn Microsoft Word định dạng đẹp mắt, bố cục bảng biểu và hộp lưu ý trực quan, hướng dẫn từng bước dành riêng cho người không rành công nghệ cài đặt 1-Click và sử dụng 8 nghiệp vụ hằng ngày.
+- **Tích hợp Bảng Điều Khiển**: `qltbit_manager.py` phím tắt `[7]` mở file Word trực tiếp.
+
 ---
+
 
 ## 3. Cấu Trúc Mã Nguồn Quan Trọng
 - `src/lib/trash.ts`: Thư viện xử lý Thùng rác, snapshot dữ liệu, tính ngày hết hạn và khôi phục.

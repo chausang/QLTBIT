@@ -9,10 +9,11 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 
-[English Overview](#english-overview) • [Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [📖 **Hướng Dẫn Cài Đặt Chi Tiết Từ A-Z (Tiếng Việt)**](./HUONG_DAN_CAI_DAT.md)
+[English Overview](#english-overview) • [Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [📖 **Tài Liệu Hướng Dẫn Word (.docx)**](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx) • [📦 Thư Mục Lưu Trữ Cũ](./archive/)
 
 > 💡 **Bạn mới làm quen hoặc không rành về kỹ thuật?**  
-> 👉 Xem ngay tài liệu hướng dẫn từng bước từ A đến Z cực kỳ dễ hiểu tại: **[HUONG_DAN_CAI_DAT.md](./HUONG_DAN_CAI_DAT.md)** *(Bao gồm Windows .exe, Windows Docker Desktop và Ubuntu Linux)*.
+> 👉 Mở ngay tài liệu Microsoft Word chi tiết, trực quan tại: **[HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)** *(Dành riêng cho người không chuyên: Cài đặt 1-Click bằng chuột và hướng dẫn sử dụng từng tính năng)*.
+
 
 ---
 

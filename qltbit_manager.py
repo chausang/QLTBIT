@@ -110,6 +110,20 @@ def launch_installer():
     else:
         check_env()
 
+def open_word_guide():
+    doc_path = os.path.join(PROJECT_DIR, "HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx")
+    if os.path.exists(doc_path):
+        print("\n[*] Đang mở Tài liệu Hướng dẫn Sử dụng (Word)...")
+        if os.name == 'nt':
+            os.startfile(doc_path)
+    else:
+        print("\n[!] Đang khởi tạo lại tài liệu Word...")
+        gen_script = os.path.join(PROJECT_DIR, "scripts", "generate_docx_guide.py")
+        if os.path.exists(gen_script):
+            subprocess.run([sys.executable, gen_script], cwd=PROJECT_DIR)
+            if os.path.exists(doc_path) and os.name == 'nt':
+                os.startfile(doc_path)
+
 def open_project_folder():
     if os.name == 'nt':
         os.startfile(PROJECT_DIR)
@@ -124,12 +138,13 @@ def main_menu():
         print("  [4] 📦 Tạo Gói cài đặt Agent cho Máy trạm (Đóng gói gửi qua GPO / USB)")
         print("  [5] 🌐 Mở Trang Quản trị trên Trình duyệt (http://localhost:3001)")
         print("  [6] 🛠️  Mở Trình Cài Đặt Trọn Gói (SimplyIT_Setup.exe - Cài Server & Agent)")
-        print("  [7] 📂 Mở Thư mục dự án trong Windows Explorer")
+        print("  [7] 📖 Mở Tài Liệu Hướng Dẫn Chi Tiết (File Word: Cài đặt & Sử dụng)")
+        print("  [8] 📂 Mở Thư mục dự án trong Windows Explorer")
         print()
         print("  [0] ❌ Thoát")
         print()
         print("=" * 78)
-        choice = input("👉 Chọn một chức năng [0-7]: ").strip()
+        choice = input("👉 Chọn một chức năng [0-8]: ").strip()
 
         if choice == '1':
             start_server()
@@ -144,6 +159,8 @@ def main_menu():
         elif choice == '6':
             launch_installer()
         elif choice == '7':
+            open_word_guide()
+        elif choice == '8':
             open_project_folder()
         elif choice == '0':
             print("\nTạm biệt!")
@@ -151,6 +168,7 @@ def main_menu():
         else:
             print("[!] Lựa chọn không hợp lệ!")
             time.sleep(1)
+
 
 if __name__ == "__main__":
     main_menu()
