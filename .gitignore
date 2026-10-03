@@ -73,4 +73,5 @@ scripts/license_private_key.pem
 *.log
 backups/
 scripts/scripts/
+*.xlsx
 

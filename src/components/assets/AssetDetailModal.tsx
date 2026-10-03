@@ -1031,6 +1031,40 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                         )}
                       </div>
 
+                      {/* KHỐI THÔNG TIN MÀN HÌNH ĐI KÈM */}
+                      {(rawSpecs.monitorBrand || rawSpecs.monitorModel || rawSpecs.monitorSerial || rawSpecs.monitorYear) && (
+                        <div className="bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                              <Laptop className="w-4 h-4 text-indigo-600" />
+                              <span>{txt('Thông tin Màn hình đi kèm (Monitor)', 'Attached Monitor Details', '付属モニター情報')}</span>
+                            </h4>
+                            <span className="text-[10px] font-bold text-indigo-700 bg-white border border-indigo-200 px-2 py-0.5 rounded-full">
+                              {rawSpecs.monitorBrand || 'Màn hình'} {rawSpecs.monitorModel ? `• ${rawSpecs.monitorModel}` : ''}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div className="p-3 bg-white border border-indigo-100 rounded-xl space-y-0.5">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{txt('Hãng sản xuất', 'Brand', 'メーカー')}</span>
+                              <p className="text-xs font-bold text-slate-900">{rawSpecs.monitorBrand || '—'}</p>
+                            </div>
+                            <div className="p-3 bg-white border border-indigo-100 rounded-xl space-y-0.5">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{txt('Năm sản xuất', 'Year', '製造年')}</span>
+                              <p className="text-xs font-bold text-slate-900">{rawSpecs.monitorYear || '—'}</p>
+                            </div>
+                            <div className="p-3 bg-white border border-indigo-100 rounded-xl space-y-0.5">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{txt('Model / Dòng máy', 'Model', '型番')}</span>
+                              <p className="text-xs font-bold text-slate-900">{rawSpecs.monitorModel || '—'}</p>
+                            </div>
+                            <div className="p-3 bg-white border border-indigo-100 rounded-xl space-y-0.5">
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{txt('Số Seri (SN)', 'Serial Number', 'シリアル番号')}</span>
+                              <p className="text-xs font-bold font-mono text-indigo-700">{rawSpecs.monitorSerial || '—'}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
                       {/* ⚠️ CẢNH BÁO THAY ĐỔI CẤU HÌNH PHẦN CỨNG (NẾU CÓ) */}
                       {hwAlert && (
                         <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl space-y-1.5 animate-in fade-in">

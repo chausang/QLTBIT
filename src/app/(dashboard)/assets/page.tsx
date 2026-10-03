@@ -9,8 +9,15 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/context';
 import { fetchWithSwr, invalidateClientCache, useAutoRefresh, triggerDataRefresh } from '@/lib/client-cache';
 import { getStoredBaseCurrency, getStoredCurrencies, convertCurrencyAmount } from '@/lib/currency-store';
-import { formatAssetSpecsForExport, formatDeviceNameAndModel } from '@/lib/asset-formatter';
 import {
+  formatAssetSpecsForExport,
+  formatDeviceNameAndModel,
+  getAssetHardwareComponents,
+  getAssetMonitorInfo,
+  getAssetExtraHospitalFields,
+} from '@/lib/asset-formatter';
+import {
+  BarChart3,
   Sparkles,
   Plus,
   Search,
@@ -1984,147 +1991,178 @@ export default function AssetsPage() {
 
       const ExcelJS = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
-      const sheet = workbook.addWorksheet('Danh Sách Tài Sản IT', {
+      const sheet = workbook.addWorksheet('Danh Sách Thiết Bị', {
         views: [{ showGridLines: true }],
       });
 
-      // Title
-      sheet.mergeCells('A1:O1');
+      // Hàng 1: Tiêu đề Bảng
+      sheet.mergeCells('A1:U1');
       const titleCell = sheet.getCell('A1');
-      titleCell.value = 'DANH SÁCH TÀI SẢN & THIẾT BỊ CÔNG NGHỆ THÔNG TIN';
-      titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.value = 'DANH SÁCH THIẾT BỊ & TÀI SẢN CÔNG NGHỆ THÔNG TIN';
+      titleCell.font = { name: 'Times New Roman', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
       titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
       titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
-      sheet.getRow(1).height = 35;
+      sheet.getRow(1).height = 30;
 
-      // Subtitle
-      sheet.mergeCells('A2:O2');
-      const subCell = sheet.getCell('A2');
-      const filterCompanyText = selectedCompany ? ` | Công ty: ${selectedCompany}` : '';
-      const filterCatText = selectedCategory ? ` | Danh mục: ${categories.find((c) => c.id === selectedCategory)?.name || ''}` : '';
-      const deviceCountText = isEn ? (exportItems.length === 1 ? 'device' : 'devices') : 'thiết bị';
-      subCell.value = `Thời gian xuất: ${new Date().toLocaleString('vi-VN')} | Tổng số lượng: ${exportItems.length} ${deviceCountText} lọc${filterCompanyText}${filterCatText}`;
-      subCell.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF475569' } };
-      subCell.alignment = { vertical: 'middle', horizontal: 'center' };
-      sheet.getRow(2).height = 20;
-
-      sheet.addRow([]);
-
-      // Headers
-      const headers = [
-        'STT',
-        'Mã Tài Sản',
-        'Tên Thiết Bị & Model',
-        'Danh Mục',
-        'Số Serial',
-        'Trạng Thái',
-        'Tình Trạng',
-        'Công Ty Quản Lý',
-        'Người Đang Giữ / Sử Dụng',
-        'Phòng Ban Người Dùng',
-        'Vị Trí / Kho',
-        'Nguyên Giá Mua (VND)',
-        'Hạn Bảo Hành',
-        'Số Hợp Đồng / Hóa Đơn',
-        'Cấu Hình Chi Tiết (Specs)',
+      // Hàng 2: Hàng Header chính
+      const row2 = sheet.getRow(2);
+      row2.values = [
+        'STT',              // A
+        'QR',               // B
+        'Tên khoa phòng',   // C
+        'Tên loại thiết bị',// D
+        'Mã thiết bị',      // E
+        'Tên thiết bị',     // F
+        'Tên hãng sản xuất',// G
+        'Năm sản xuất',     // H
+        'Model',            // I
+        'Số seri',          // J
+        'CPU',              // K
+        'RAM',              // L
+        'HDD',              // M
+        'Màn hình',         // N
+        '',                 // O
+        '',                 // P
+        '',                 // Q
+        'Tình trạng',       // R
+        'Mã thiết bị cũ',   // S
+        'Tính cấp lại',     // T
+        'Ghi chú',          // U
       ];
+      row2.height = 24;
 
-      const headerRow = sheet.addRow(headers);
-      headerRow.height = 26;
-      headerRow.eachCell((cell) => {
-        cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
-        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
-        cell.border = {
-          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-          bottom: { style: 'medium', color: { argb: 'FF1E3A8A' } },
-        };
+      // Hàng 3: Hàng Sub-Header
+      const row3 = sheet.getRow(3);
+      row3.values = [
+        '', '', '', '', '', '', '', '', '', '', '', '', '',
+        'Hãng sx',  // N
+        'Năm sx',   // O
+        'Model',    // P
+        'Số seri',  // Q
+        '', '', '', '',
+      ];
+      row3.height = 22;
+
+      // Merge các cột đơn giữa hàng 2 và hàng 3
+      sheet.mergeCells('A2:A3');
+      sheet.mergeCells('B2:B3');
+      sheet.mergeCells('C2:C3');
+      sheet.mergeCells('D2:D3');
+      sheet.mergeCells('E2:E3');
+      sheet.mergeCells('F2:F3');
+      sheet.mergeCells('G2:G3');
+      sheet.mergeCells('H2:H3');
+      sheet.mergeCells('I2:I3');
+      sheet.mergeCells('J2:J3');
+      sheet.mergeCells('K2:K3');
+      sheet.mergeCells('L2:L3');
+      sheet.mergeCells('M2:M3');
+      sheet.mergeCells('N2:Q2'); // Merge ngang "Màn hình"
+      sheet.mergeCells('R2:R3');
+      sheet.mergeCells('S2:S3');
+      sheet.mergeCells('T2:T3');
+      sheet.mergeCells('U2:U3');
+
+      // Định dạng style cho cả 2 hàng Header (Row 2 & Row 3)
+      [row2, row3].forEach((r) => {
+        r.eachCell((cell) => {
+          cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FF000000' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE2E8F0' } };
+          cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FF000000' } },
+            left: { style: 'thin', color: { argb: 'FF000000' } },
+            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+            right: { style: 'thin', color: { argb: 'FF000000' } },
+          };
+        });
       });
 
-      const statusMap: Record<string, string> = {
-        AVAILABLE: 'Sẵn sàng trong kho',
-        IN_USE: 'Đang sử dụng',
-        MAINTENANCE: 'Đang bảo trì',
-        RETIRED: 'Đã thanh lý',
-        LOST: 'Thất lạc / Mất',
-      };
-
-      const conditionMap: Record<string, string> = {
-        NEW: 'Mới 100%',
-        GOOD: 'Tốt (Đang dùng tốt)',
-        FAIR: 'Trung bình (Cũ)',
-        POOR: 'Kém (Cần sửa/nâng cấp)',
-        BROKEN: 'Hỏng hóc',
-      };
-
+      // Điền dữ liệu các thiết bị
       exportItems.forEach((asset: any, index: number) => {
         const assignedUser = asset.assignments?.[0]?.user;
-        const holderName = assignedUser ? assignedUser.fullName : 'Sẵn sàng trong kho';
-        const holderDept = assignedUser?.department || (assignedUser ? 'Nhân sự' : 'Kho IT');
+        const locationName = asset.location?.name || assignedUser?.department || 'Kho IT';
+        const categoryName = asset.category?.name || 'Máy tính';
+        const hw = getAssetHardwareComponents(asset.specs);
+        const monitor = getAssetMonitorInfo(asset.specs);
+        const extraHospital = getAssetExtraHospitalFields(asset.specs, asset);
 
-        const specsText = formatAssetSpecsForExport(asset.specs);
-        const nameAndModel = formatDeviceNameAndModel(asset.name, asset.brand, asset.model);
-
-        const contractInvoice = [asset.contractNumber, asset.invoiceNumber].filter(Boolean).join(' / ') || '—';
-
-        let warrantyText = 'Không có BH';
-        if (asset.warrantyExpiry) {
-          warrantyText = new Date(asset.warrantyExpiry).toLocaleDateString('vi-VN');
+        // Tình trạng: "D" nếu đang sử dụng tốt hoặc tình trạng thực tế
+        let conditionText = 'D';
+        if (asset.condition === 'BROKEN' || asset.status === 'MAINTENANCE') {
+          conditionText = 'H'; // Hỏng / Bảo trì
+        } else if (asset.condition === 'NEW') {
+          conditionText = 'M'; // Mới 100%
+        } else {
+          conditionText = 'D'; // Đang dùng tốt (như trong ảnh mẫu)
         }
 
-        const row = sheet.addRow([
-          index + 1,
-          asset.assetTag,
-          nameAndModel,
-          asset.category?.name || 'Chưa phân loại',
-          asset.serialNumber || '—',
-          statusMap[asset.status] || asset.status,
-          conditionMap[asset.condition] || asset.condition,
-          asset.companyName || '—',
-          holderName,
-          holderDept,
-          asset.location?.name || 'Kho IT',
-          asset.purchasePrice ? Number(asset.purchasePrice) : 0,
-          warrantyText,
-          contractInvoice,
-          specsText || '—',
+        const dataRow = sheet.addRow([
+          index + 1,                                  // A: STT
+          'In',                                       // B: QR
+          locationName,                               // C: Tên khoa phòng
+          categoryName,                               // D: Tên loại thiết bị
+          asset.assetTag,                             // E: Mã thiết bị
+          asset.name,                                 // F: Tên thiết bị
+          asset.brand || '—',                         // G: Tên hãng sản xuất
+          extraHospital.manufacturingYear || '—',     // H: Năm sản xuất
+          asset.model || '—',                         // I: Model
+          asset.serialNumber || '—',                  // J: Số seri
+          hw.cpu !== '—' ? hw.cpu : '',               // K: CPU
+          hw.ram !== '—' ? hw.ram : '',               // L: RAM
+          hw.hdd !== '—' ? hw.hdd : '',               // M: HDD
+          monitor.brand || '',                        // N: Màn hình - Hãng sx
+          monitor.year || '',                         // O: Màn hình - Năm sx
+          monitor.model || '',                        // P: Màn hình - Model
+          monitor.serial || '',                       // Q: Màn hình - Số seri
+          conditionText,                              // R: Tình trạng
+          extraHospital.oldAssetCode || '',           // S: Mã thiết bị cũ
+          extraHospital.reissueStatus || '0',         // T: Tính cấp lại
+          asset.notes || '',                          // U: Ghi chú
         ]);
 
-        row.height = 24;
-        row.alignment = { vertical: 'middle' };
-        row.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(2).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(3).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
-        row.getCell(5).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(6).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(7).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(12).numFmt = '#,##0 "₫"';
-        row.getCell(13).alignment = { vertical: 'middle', horizontal: 'center' };
-        row.getCell(15).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+        dataRow.height = 22;
+        dataRow.eachCell((cell, colNum) => {
+          cell.font = { name: 'Times New Roman', size: 10 };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+            left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+            bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+            right: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+          };
 
-        if (index % 2 === 1) {
-          row.eachCell((c) => {
-            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-          });
-        }
+          // Căn giữa cho các cột ngắn: STT, QR, Mã, Năm, Model, SN, RAM, Màn hình, Tình trạng, Cấp lại
+          if ([1, 2, 5, 8, 10, 12, 15, 17, 18, 19, 20].includes(colNum)) {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
+          }
+        });
       });
 
+      // Độ rộng các cột chuẩn A đến U
       sheet.columns = [
-        { width: 6 },  // STT
-        { width: 15 }, // Tag
-        { width: 36 }, // Tên & Model
-        { width: 18 }, // Danh mục
-        { width: 18 }, // Serial
-        { width: 20 }, // Trạng thái
-        { width: 18 }, // Tình trạng
-        { width: 25 }, // Công ty quản lý
-        { width: 24 }, // Người đang giữ
-        { width: 22 }, // Phòng ban người dùng
-        { width: 20 }, // Vị trí
-        { width: 18 }, // Giá mua
-        { width: 16 }, // Bảo hành
-        { width: 22 }, // HĐ / Hóa đơn
-        { width: 55 }, // Specs
+        { width: 6 },  // A: STT
+        { width: 6 },  // B: QR
+        { width: 22 }, // C: Tên khoa phòng
+        { width: 16 }, // D: Tên loại thiết bị
+        { width: 15 }, // E: Mã thiết bị
+        { width: 20 }, // F: Tên thiết bị
+        { width: 14 }, // G: Tên hãng sản xuất
+        { width: 12 }, // H: Năm sản xuất
+        { width: 18 }, // I: Model
+        { width: 18 }, // J: Số seri
+        { width: 14 }, // K: CPU
+        { width: 10 }, // L: RAM
+        { width: 15 }, // M: HDD
+        { width: 14 }, // N: Màn hình Hãng sx
+        { width: 12 }, // O: Màn hình Năm sx
+        { width: 16 }, // P: Màn hình Model
+        { width: 18 }, // Q: Màn hình Số seri
+        { width: 12 }, // R: Tình trạng
+        { width: 14 }, // S: Mã thiết bị cũ
+        { width: 12 }, // T: Tính cấp lại
+        { width: 20 }, // U: Ghi chú
       ];
 
       const buffer = await workbook.xlsx.writeBuffer();
@@ -2300,10 +2338,20 @@ export default function AssetsPage() {
             type="button"
             onClick={handleExportExcel}
             className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all shrink-0 cursor-pointer"
+            title="Xuất bảng kê Excel theo mẫu 21 cột chuẩn cơ quan / bệnh viện"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>{t('assets.export_excel', 'Xuất Excel')}</span>
           </button>
+
+          {/* REPORTS & STATISTICS */}
+          <Link
+            href="/assets/reports"
+            className="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-semibold rounded-xl shadow-2xs transition-all border border-purple-200 shrink-0 cursor-pointer"
+          >
+            <BarChart3 className="w-3.5 h-3.5 text-purple-600" />
+            <span>{isEn ? 'Reports & Stats' : 'Báo Cáo Thống Kê'}</span>
+          </Link>
 
           {/* ADD NEW ASSET BUTTON */}
           <button
@@ -2864,6 +2912,25 @@ export default function AssetsPage() {
                               {asset.model && <span>• {asset.model} </span>}
                               {asset.serialNumber && <span className="font-mono text-slate-500">• SN: {asset.serialNumber}</span>}
                             </div>
+                            {(asset.specs?.monitorBrand || asset.specs?.manufacturingYear || asset.specs?.oldAssetCode) && (
+                              <div className="flex flex-wrap items-center gap-1 mt-1 text-[8.5px]">
+                                {asset.specs?.manufacturingYear && (
+                                  <span className="px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                    Năm: {asset.specs.manufacturingYear}
+                                  </span>
+                                )}
+                                {(asset.specs?.monitorBrand || asset.specs?.monitorModel) && (
+                                  <span className="px-1 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 truncate max-w-[130px]" title={`Màn hình: ${asset.specs.monitorBrand || ''} ${asset.specs.monitorModel || ''} ${asset.specs.monitorSerial ? `(SN: ${asset.specs.monitorSerial})` : ''}`}>
+                                    🖥️ {asset.specs.monitorBrand || ''} {asset.specs.monitorModel || ''}
+                                  </span>
+                                )}
+                                {asset.specs?.oldAssetCode && (
+                                  <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                    Cũ: {asset.specs.oldAssetCode}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </td>
 
                           {/* CÔNG TY & VỊ TRÍ (2 DÒNG GỌN GÀNG) */}

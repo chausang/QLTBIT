@@ -39,6 +39,7 @@ import {
   FileText,
   SlidersHorizontal,
   FileSpreadsheet,
+  BarChart3,
 } from 'lucide-react';
 
 interface SparePart {
@@ -715,6 +716,15 @@ export default function SparePartsPage() {
             )}
             <span>{isExportingExcel ? (isEn ? 'Exporting...' : 'Đang xuất...') : (isEn ? 'Export Excel' : 'Xuất Excel')}</span>
           </button>
+
+          <Link
+            href="/assets/reports?tab=parts"
+            className="px-3.5 py-2.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-purple-50 hover:bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+            title="Xem báo cáo thống kê số lượng & giá trị kho linh kiện"
+          >
+            <BarChart3 className="w-4 h-4 text-purple-600" />
+            <span>{isEn ? 'Reports & Stats' : 'Báo Cáo Thống Kê'}</span>
+          </Link>
 
           <button
             type="button"

@@ -125,3 +125,98 @@ export function formatDeviceNameAndModel(
 
   return `${cleanName} (${extraStr})`;
 }
+
+export function parseSpecsObject(rawSpecs: any): Record<string, any> {
+  if (!rawSpecs) return {};
+  if (typeof rawSpecs === 'string') {
+    try {
+      return JSON.parse(rawSpecs);
+    } catch {
+      return {};
+    }
+  }
+  if (typeof rawSpecs === 'object') return rawSpecs;
+  return {};
+}
+
+/**
+ * Trích xuất riêng CPU, RAM, HDD từ specs để điền vào các cột riêng của Excel
+ */
+export function getAssetHardwareComponents(rawSpecs: any): { cpu: string; ram: string; hdd: string } {
+  const specs = parseSpecsObject(rawSpecs);
+
+  const cpu = (specs.cpu || specs.processor || specs.chip || '').trim();
+  let ram = specs.ram || specs.memory || '';
+  if (typeof ram === 'number') ram = `${ram}GB`;
+  else if (typeof ram === 'string') ram = ram.trim();
+
+  const hdd = (specs.storage || specs.disk || specs.ssd || specs.hdd || '').trim();
+
+  return {
+    cpu: cpu || '—',
+    ram: ram || '—',
+    hdd: hdd || '—',
+  };
+}
+
+/**
+ * Trích xuất thông tin màn hình đi kèm từ specs (Hãng SX, Năm SX, Model, Số seri)
+ */
+export function getAssetMonitorInfo(rawSpecs: any): {
+  brand: string;
+  year: string;
+  model: string;
+  serial: string;
+} {
+  const specs = parseSpecsObject(rawSpecs);
+
+  return {
+    brand: (specs.monitorBrand || specs.monitor_brand || specs.displayBrand || '').trim() || '',
+    year: String(specs.monitorYear || specs.monitor_year || specs.displayYear || '').trim() || '',
+    model: (specs.monitorModel || specs.monitor_model || specs.displayModel || '').trim() || '',
+    serial: (specs.monitorSerial || specs.monitor_serial || specs.displaySerial || '').trim() || '',
+  };
+}
+
+/**
+ * Trích xuất các trường mở rộng (Năm sản xuất, Mã thiết bị cũ, Tính cấp lại)
+ */
+export function getAssetExtraHospitalFields(rawSpecs: any, asset?: any): {
+  manufacturingYear: string;
+  oldAssetCode: string;
+  reissueStatus: string;
+} {
+  const specs = parseSpecsObject(rawSpecs);
+
+  const manufacturingYear = String(
+    specs.manufacturingYear ||
+    specs.manufacturing_year ||
+    specs.yearOfManufacture ||
+    (asset?.purchaseDate ? new Date(asset.purchaseDate).getFullYear() : '')
+  ).trim();
+
+  const oldAssetCode = (
+    specs.oldAssetCode ||
+    specs.old_asset_code ||
+    specs.legacyCode ||
+    specs.oldTag ||
+    ''
+  ).trim();
+
+  const reissueStatus = String(
+    specs.reissueStatus !== undefined
+      ? specs.reissueStatus
+      : specs.reissue_status !== undefined
+      ? specs.reissue_status
+      : specs.reissueCount !== undefined
+      ? specs.reissueCount
+      : '0'
+  ).trim();
+
+  return {
+    manufacturingYear: manufacturingYear || '',
+    oldAssetCode: oldAssetCode || '',
+    reissueStatus: reissueStatus || '0',
+  };
+}
+

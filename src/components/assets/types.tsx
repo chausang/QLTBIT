@@ -95,8 +95,16 @@ export function getFriendlySpecLabel(rawKey: string, categoryId?: string, catego
     ports: 'Cổng kết nối',
     paneltype: 'Loại tấm nền',
     printspeed: 'Tốc độ in',
-    papersize: 'Khổ giấy in',
     bandwidth: 'Băng thông',
+    manufacturingyear: 'Năm sản xuất',
+    yearofmanufacture: 'Năm sản xuất',
+    monitorbrand: 'Màn hình - Hãng SX',
+    monitoryear: 'Màn hình - Năm SX',
+    monitormodel: 'Màn hình - Model',
+    monitorserial: 'Màn hình - Số Seri',
+    oldassetcode: 'Mã thiết bị cũ',
+    reissuestatus: 'Tính cấp lại',
+    reissuecount: 'Tính cấp lại',
   };
 
   if (DICTIONARY[cleanKey]) return DICTIONARY[cleanKey];

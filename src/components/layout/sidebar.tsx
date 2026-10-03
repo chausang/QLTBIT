@@ -333,6 +333,7 @@ export function Sidebar({
         { label: t('nav.assets_scan', 'Scan Thiết bị / Quét LAN'), href: '/discovery', icon: ScanLine, permission: 'assets.view' },
         { label: t('nav.floor_maps', 'Sơ đồ Mặt bằng 2D'), href: '/floor-maps', icon: Map, permission: 'assets.view' },
         { label: t('nav.spare_parts', 'Kho Phụ tùng & Linh kiện'), href: '/spare-parts', icon: Boxes, permission: 'assets.view' },
+        { label: t('nav.assets_reports', 'Báo cáo & Thống kê'), href: '/assets/reports', icon: BarChart3, permission: 'assets.view' },
       ],
     },
     {

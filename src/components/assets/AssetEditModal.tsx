@@ -788,6 +788,63 @@ export const AssetEditModal: React.FC<AssetEditModalProps> = ({
                       </select>
                     </div>
                   </div>
+
+                  {/* THÔNG TIN BỔ SUNG THEO MẪU BỆNH VIỆN / CƠ QUAN */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {txt('Năm sản xuất', 'Manufacturing Year', '製造年')}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="2020, 2022..."
+                        value={editFormData.specs?.manufacturingYear || ''}
+                        onChange={(e) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            specs: { ...prev.specs, manufacturingYear: e.target.value },
+                          }))
+                        }
+                        className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {txt('Mã thiết bị cũ', 'Old / Legacy Asset Code', '旧資産コード')}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="PC-OLD-01, MABC123..."
+                        value={editFormData.specs?.oldAssetCode || ''}
+                        onChange={(e) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            specs: { ...prev.specs, oldAssetCode: e.target.value },
+                          }))
+                        }
+                        className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {txt('Tính cấp lại', 'Reissue Status / Count', '再支給区分・回数')}
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="0 (chưa cấp lại), 1, 2..."
+                        value={editFormData.specs?.reissueStatus ?? '0'}
+                        onChange={(e) =>
+                          setEditFormData((prev: any) => ({
+                            ...prev,
+                            specs: { ...prev.specs, reissueStatus: e.target.value },
+                          }))
+                        }
+                        className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -976,6 +1033,88 @@ export const AssetEditModal: React.FC<AssetEditModalProps> = ({
                         }
                         className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs outline-none"
                       />
+                    </div>
+                  </div>
+
+                  {/* KHỐI THÔNG TIN MÀN HÌNH ĐI KÈM */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
+                    <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+                      <Laptop className="w-4 h-4 text-indigo-600" />
+                      <span>{txt('THÔNG TIN MÀN HÌNH ĐI KÈM (MONITOR SPECS)', 'ATTACHED MONITOR SPECIFICATIONS', '付属モニター仕様')}</span>
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {txt('Màn hình - Hãng SX', 'Monitor Brand', 'モニターメーカー')}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="HP, Dell, Philip, AOC..."
+                          value={editFormData.specs?.monitorBrand || ''}
+                          onChange={(e) =>
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              specs: { ...prev.specs, monitorBrand: e.target.value },
+                            }))
+                          }
+                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {txt('Màn hình - Năm SX', 'Monitor Year', 'モニター製造年')}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="2021, 2023..."
+                          value={editFormData.specs?.monitorYear || ''}
+                          onChange={(e) =>
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              specs: { ...prev.specs, monitorYear: e.target.value },
+                            }))
+                          }
+                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {txt('Màn hình - Model', 'Monitor Model', 'モニター型番')}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="HP V190, 190V4L..."
+                          value={editFormData.specs?.monitorModel || ''}
+                          onChange={(e) =>
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              specs: { ...prev.specs, monitorModel: e.target.value },
+                            }))
+                          }
+                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                          {txt('Màn hình - Số Seri', 'Monitor Serial Number', 'モニターSN')}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="3CQ60118YQ..."
+                          value={editFormData.specs?.monitorSerial || ''}
+                          onChange={(e) =>
+                            setEditFormData((prev: any) => ({
+                              ...prev,
+                              specs: { ...prev.specs, monitorSerial: e.target.value },
+                            }))
+                          }
+                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
+                        />
+                      </div>
                     </div>
                   </div>
 
