@@ -937,6 +937,15 @@ export function GeneralSettingsTab({
               ))}
             </div>
           </div>
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>{saved ? (isEn ? '✅ Saved!' : '✅ Đã lưu cài đặt!') : (isEn ? 'Save Branding' : 'Lưu giao diện & thương hiệu')}</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -967,7 +976,7 @@ export function GeneralSettingsTab({
                 ? 'Server Address / LAN IP & Port (e.g. http://192.168.1.15:3000 or https://it.mycompany.com)'
                 : 'Địa chỉ Server / IP Mạng LAN & Port (VD: http://192.168.1.15:3000 hoặc https://it.mycompany.com)'}
             </label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <input
                 type="text"
                 placeholder="http://192.168.1.100:3000"
@@ -975,6 +984,13 @@ export function GeneralSettingsTab({
                 onChange={(e) => handleChange('app.server_url', e.target.value)}
                 className="flex-1 p-2.5 border border-slate-300 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-indigo-500"
               />
+              <button
+                type="submit"
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition-all cursor-pointer shrink-0 active:scale-95"
+              >
+                <Save className="w-4 h-4" />
+                <span>{saved ? (isEn ? '✅ Saved!' : '✅ Đã lưu cấu hình!') : (isEn ? 'Save Server IP' : 'Lưu cấu hình Server IP')}</span>
+              </button>
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
               {isEn ? (
@@ -1030,6 +1046,16 @@ export function GeneralSettingsTab({
               className="w-full p-2.5 border border-slate-300 rounded-xl text-sm outline-none font-mono"
             />
           </div>
+        </div>
+
+        <div className="pt-2 flex justify-end">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer shrink-0 active:scale-95"
+          >
+            <Save className="w-3.5 h-3.5" />
+            <span>{saved ? (isEn ? '✅ Saved!' : '✅ Đã lưu!') : (isEn ? 'Save Reminders' : 'Lưu cấu hình nhắc hạn')}</span>
+          </button>
         </div>
       </div>
 

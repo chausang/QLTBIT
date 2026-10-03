@@ -348,14 +348,17 @@ Mở file này bằng Notepad, bạn sẽ thấy lịch sử gửi dữ liệu:
 
 ---
 
-### 5.4 Thử nghiệm cảnh báo thay đổi phần cứng & phần mềm
-Để kiểm chứng tính năng giám sát thông minh:
-1. **Thử nghiệm phần mềm:** Cài thử một ứng dụng mới (ví dụ: Google Chrome, Notepad++, hoặc phần mềm lạ). Chờ 15 phút (hoặc chạy `Run_Audit_Now.bat`).
-   * ➔ Vào Web Server mở chi tiết máy trạm: Hệ thống sẽ hiển thị mục **Cài đặt phần mềm mới: [Tên phần mềm] (Action: ADDED)**.
-2. **Thử nghiệm gỡ phần mềm:** Gỡ một ứng dụng ra khỏi máy.
-   * ➔ Hệ thống ghi nhận cảnh báo màu đỏ: **Gỡ bỏ phần mềm: [Tên phần mềm] (Action: REMOVED)**.
-3. **Thử nghiệm phần cứng:** Tháo bớt thanh RAM hoặc cắm thêm USB Wi-Fi:
-   * ➔ Hệ thống lập tức hiện **Cảnh báo Thay Đổi Cấu Hình Phần Cứng (Hardware Tamper)** trên Dashboard quản trị!
+### 5.4 Xem và Thử nghiệm cảnh báo thay đổi phần cứng & phần mềm lạ
+#### Cách mở tính năng trên giao diện Web:
+1. Vào menu **Tài sản & Thiết bị** (`/assets`) trên thanh điều hướng bên trái.
+2. Nhấp chuột vào tên thiết bị máy tính cần xem để mở cửa sổ popup **"Chi Tiết Thiết Bị" (`AssetDetailModal`)**.
+3. Chuyển sang Tab: **"Cấu hình Phần cứng & Kiểm kê"** (nằm ngay cạnh tab Thông tin chung).
+4. **Hệ thống cảnh báo động thông minh**:
+   - Nếu máy tính bình thường: Hiển thị bảng thông số cấu hình sạch màu xanh.
+   - **⚠️ Khung màu cam nổi bật**: `⚠️ Cảnh Báo Thay Đổi Linh Kiện Phần Cứng (Hardware Tamper / Change)` ➔ Hiển thị ngay lập tức khi phát hiện RAM bị tháo, ổ cứng bị hoán đổi, hoặc CPU thay đổi.
+   - **🛡️ Khung màu đỏ an ninh**: `🛡️ Cảnh Báo An Ninh: Phát Hiện Công Cụ Bẻ Khóa / Crack / KMS` ➔ Liệt kê chính xác công cụ lậu như `KMSAuto`, `KMSPico`, `AutoKMS`...
+   - **📜 Khung nhật ký lịch sử**: `📜 Lịch Sử Thay Đổi Phần Cứng & Phần Mềm` ➔ Ghi nhận chi tiết từng sự kiện thay đổi (`16GB ➔ 8GB`, phần mềm mới cài, phần mềm bị gỡ bỏ).
+   - Ngoài ra, trên bảng danh sách tài sản `/assets`, các máy có cảnh báo sẽ tự động gắn huy hiệu màu cam nổi bật để Quản trị viên phát hiện ngay mà không cần mở từng máy.
 
 ---
 
@@ -367,10 +370,35 @@ Khi thu hồi máy hoặc không muốn giám sát nữa:
 
 ---
 
-## 6. BẢNG XỬ LÝ SỰ CỐ THƯỜNG GẶP (TROUBLESHOOTING)
+## 6. HƯỚNG DẪN CẬP NHẬT KHI CÓ THAY ĐỔI VỀ CODE (UPDATE SERVER & AGENT)
+
+### ❓ Câu hỏi: Khi có code mới thì có cần cài lại phần mềm không?
+👉 **TRẢ LỜI: HOÀN TOÀN KHÔNG CẦN CÀI LẠI!**
+Toàn bộ cơ sở dữ liệu PostgreSQL (35+ bảng), kho tài liệu ảnh chứng từ (`public/uploads`) và cấu hình hệ thống (`.env`) của bạn được bảo toàn nguyên vẹn 100%.
+
+### 🏢 A. Quy trình cập nhật ở Máy Chủ (Server)
+Khi có phiên bản mới trên GitHub hoặc có code mới từ nhà phát triển:
+1. **Bước 1**: Tắt máy chủ Simply IT (Nhấp chuột phải vào icon ở khay Taskbar ➔ Chọn **Thoát / Exit**).
+2. **Bước 2**: Nhấp đúp vào file **`update.bat`** tại thư mục dự án `D:\QLTBIT`.
+   - File script sẽ tự động kéo code mới nhất (`git pull`), cài thêm thư viện (`npm install`), nâng cấp cấu trúc cơ sở dữ liệu (`npx prisma db push`), và biên dịch bản chạy tối ưu (`npm run build`).
+3. **Bước 3**: Khởi động lại máy chủ bằng `SimplyIT_Server.exe` hoặc file `start_qltbit.bat` ➔ Hoàn tất 100%!
+
+### 💻 B. Quy trình cập nhật ở Máy Trạm (Agent)
+👉 **99% trường hợp: BẠN KHÔNG CẦN LÀM BẤT KỲ ĐIỀU GÌ Ở MÁY TRẠM!**
+* **Lý do**: Agent trên máy trạm chỉ là một tác vụ ngầm định kỳ 15 phút đẩy thông số cấu hình về máy chủ.
+* Toàn bộ logic phát hiện tháo trộm linh kiện, phân tích RAM bị giảm, đối chiếu bẻ khóa KMS lậu... đều chạy tập trung trên **Máy Chủ (Server)**. Do đó, khi Server cập nhật tính năng mới, tất cả các máy trạm tự động được áp dụng tính năng đó ngay lập tức mà Quản trị viên không cần đến từng máy khách.
+* **Trường hợp duy nhất cần cập nhật Agent**: Khi có bản cập nhật script thu thập mới (`agent.ps1`) hoặc khi cơ quan thay đổi địa chỉ IP của máy chủ. Khi đó bạn chỉ cần:
+  - Copy file `agent.ps1` trong thư mục `GOI_CAI_DAT_AGENT` đè vào `C:\ProgramData\SimplyIT\agent.ps1` trên máy trạm (hoặc chạy lại `Install_Agent.bat`).
+  - Hoặc triển khai cập nhật hàng loạt qua Group Policy (GPO) trong mạng Active Directory.
+
+---
+
+## 7. BẢNG XỬ LÝ SỰ CỐ THƯỜNG GẶP (TROUBLESHOOTING)
 
 | Vấn đề gặp phải | Nguyên nhân | Cách khắc phục triệt để |
 | :--- | :--- | :--- |
+| **Không thấy nút Lưu trong phần Cấu hình Server IP / Quét QR** | Nút lưu trước đây nằm ở thanh nổi cuối trang khiến khó nhìn. | Hiện đã có nút **`[ 💾 Lưu cấu hình Server IP ]`** màu xanh nổi bật nằm ngay bên phải ô nhập URL. Bấm là lưu ngay! |
+| **Không thấy khung Cảnh Báo Tháo Trộm Linh Kiện** | Máy tính đang xem không có sự cố hoặc đang ở tab Thông tin chung. | Vào chi tiết máy tính ➔ Chuyển sang Tab **"Cấu hình Phần cứng & Kiểm kê"**. Khung cảnh báo chỉ hiện ra KHI CÓ BẤT THƯỜNG (RAM bị tháo, ổ cứng bị đổi, hoặc cài phần mềm crack). |
 | **Máy trạm báo lỗi "Chưa chạy quyền Administrator" khi cài đặt** | Người dùng nhấp đúp trực tiếp vào file thay vì chạy quyền Admin. | Nhấp **chuột phải** vào `Install_Agent.bat` ➔ chọn **Run as administrator**. |
 | **Agent gửi dữ liệu nhưng báo lỗi HTTP 404 hoặc Connection Refused** | Địa chỉ IP máy chủ bị sai hoặc Web Server SIMPLY IT chưa được bật. | Kiểm tra máy chủ SIMPLY IT đã bật `SimplyIT_Server.exe` chưa. Đảm bảo IP máy chủ cấu hình trong Agent là đúng (ví dụ: `http://192.168.10.50:3001`). |
 | **Máy trạm ở VLAN khác không kết nối được tới máy chủ** | Tường lửa Windows hoặc Router chặn luồng Inter-VLAN. | 1. Mở cổng 3001 và 3443 trên tường lửa máy chủ (xem mục 2.5).<br>2. Kiểm tra rule định tuyến giữa các VLAN trên Switch L3 / Firewall. |

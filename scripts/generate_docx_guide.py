@@ -379,10 +379,12 @@ def main():
     add_bullet_p(doc, "Ghi lại rõ ai là người đã từng sử dụng máy tính này từ trước đến nay.", "- Tab Lịch sử: ")
 
     add_heading_2(doc, "5.3. Xem Cảnh Báo 'Tháo Trộm Linh Kiện' & Phần Mềm Lạ")
+    add_body_p(doc, "Cách mở trên giao diện Web: Vào menu 'Tài sản' (Assets) ➔ Nhấp chuột vào thiết bị cần kiểm tra ➔ Chuyển sang Tab: 'Cấu hình Phần cứng & Kiểm kê'.")
     add_body_p(doc, "Đây là tính năng độc quyền cực kỳ thông minh của SIMPLY IT:")
+    add_bullet_p(doc, "Cảnh báo động thông minh: Khung cảnh báo chỉ hiện ra KHI THỰC SỰ CÓ BẤT THƯỜNG. Nếu máy tính hoạt động ổn định, hệ thống hiển thị bảng cấu hình sạch màu xanh.")
     add_bullet_p(doc, "Nếu có ai đó tháo bớt 1 thanh RAM hoặc tráo đổi ổ cứng sang máy khác, trên chi tiết thiết bị sẽ lập tức hiện một khung màu cam nổi bật: '⚠️ PHÁT HIỆN THAY ĐỔI CẤU HÌNH PHẦN CỨNG!'.")
-    add_bullet_p(doc, "Mục 'Nhật ký thay đổi' bên dưới sẽ ghi rõ: Ngày 03/10/2026, RAM giảm từ 16GB xuống còn 8GB. Nhờ đó bạn phát hiện ngay ai đã can thiệp vào máy.")
-    add_bullet_p(doc, "Tự động phát hiện các phần mềm bẻ khóa độc hại nguy hiểm (như KMSAuto, KMSPico...) để cảnh báo quản trị viên xử lý sớm.")
+    add_bullet_p(doc, "Mục 'Nhật ký thay đổi' bên dưới sẽ ghi rõ: Ngày 03/10/2026, RAM giảm từ 16GB xuống còn 8GB (hoặc ổ cứng bị hoán đổi). Nhờ đó bạn phát hiện ngay ai đã can thiệp vào máy.")
+    add_bullet_p(doc, "Tự động phát hiện các phần mềm bẻ khóa độc hại nguy hiểm (như KMSAuto, KMSPico...) để cảnh báo quản trị viên xử lý sớm qua khung màu đỏ vi phạm chính sách.")
 
     add_heading_2(doc, "5.4. Quy trình Bàn Giao Thiết Bị Cho Nhân Viên Mới")
     add_bullet_p(doc, "Bước 1: Vào menu 'Tài sản', chọn máy tính cần giao.")
@@ -412,6 +414,13 @@ def main():
 
     add_heading_2(doc, "5.8. Xem Vị Trí Thiết Bị Trên Sơ Đồ Phòng Ban (Sơ Đồ 2D)")
     add_body_p(doc, "Vào menu 'Sơ đồ mặt bằng' để xem bản vẽ các phòng ban trong cơ quan. Bạn có thể kéo thả biểu tượng máy tính vào đúng bàn làm việc thực tế của nhân viên. Khi cần tìm máy tính của ai đang ở tầng mấy, phòng nào, bạn chỉ cần liếc nhìn sơ đồ là biết ngay.")
+
+    add_heading_2(doc, "5.9. Hướng Dẫn Cập Nhật Phần Mềm Khi Có Code Mới (Update Server & Agent)")
+    add_body_p(doc, "Khi hệ thống SIMPLY IT có phiên bản mới hoặc thay đổi về mã nguồn:")
+    add_bullet_p(doc, "CÓ CẦN CÀI LẠI KHÔNG? -> HOÀN TOÀN KHÔNG CẦN CÀI LẠI! Toàn bộ cơ sở dữ liệu PostgreSQL và hình ảnh/chứng từ của bạn được giữ nguyên vẹn 100%.")
+    add_bullet_p(doc, "CẬP NHẬT Ở MÁY CHỦ (SERVER): Chỉ cần 1-Click! Thoát ứng dụng Simply IT ➔ Nhấp đúp chuột vào file 'update.bat' tại thư mục dự án. Hệ thống sẽ tự động cập nhật code mới, nâng cấp CSDL và biên dịch hoàn toàn tự động. Xong bấm bật lại SimplyIT_Server.exe là xong.", "- Bước 1: ")
+    add_bullet_p(doc, "CẬP NHẬT Ở MÁY TRẠM (AGENT): 99% trường hợp KHÔNG CẦN LÀM GÌ CẢ! Do Agent chỉ là tác vụ ngầm định kỳ gửi thông tin phần cứng về máy chủ, mọi logic so sánh tháo trộm linh kiện hay phát hiện phần mềm crack đều do Server xử lý. Khi Server có tính năng mới, tất cả máy trạm tự động hưởng lợi ngay mà IT không cần đến từng máy.", "- Bước 2: ")
+    add_bullet_p(doc, "KHI NÀO MỚI CẦN CẬP NHẬT AGENT? Chỉ khi có bản cập nhật file script thu thập mới hoặc khi cơ quan thay đổi địa chỉ IP của máy chủ. Khi đó chỉ cần copy file 'agent.ps1' trong thư mục GOI_CAI_DAT_AGENT đè sang máy trạm hoặc chạy lại Install_Agent.bat.", "- Lưu ý: ")
 
     # ==================== PHẦN 6 ====================
     add_heading_1(doc, "PHẦN 6: BẢNG HỎI ĐÁP & XỬ LÝ LỖI ĐƠN GIẢN (TROUBLESHOOTING)")
