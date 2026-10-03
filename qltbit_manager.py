@@ -128,6 +128,10 @@ def open_project_folder():
     if os.name == 'nt':
         os.startfile(PROJECT_DIR)
 
+def launch_backup_restore():
+    bk_script = os.path.join(PROJECT_DIR, "tools", "backup_restore.py")
+    subprocess.run([sys.executable, bk_script], cwd=PROJECT_DIR)
+
 def main_menu():
     while True:
         clear_screen()
@@ -139,12 +143,13 @@ def main_menu():
         print("  [5] 🌐 Mở Trang Quản trị trên Trình duyệt (http://localhost:3001)")
         print("  [6] 🛠️  Mở Trình Cài Đặt Trọn Gói (SimplyIT_Setup.exe - Cài Server & Agent)")
         print("  [7] 📖 Mở Tài Liệu Hướng Dẫn Chi Tiết (File Word: Cài đặt & Sử dụng)")
-        print("  [8] 📂 Mở Thư mục dự án trong Windows Explorer")
+        print("  [8] 💾 Sao Lưu & Phục Hồi Dữ Liệu (Backup/Restore chuyển máy, lỗi Win)")
+        print("  [9] 📂 Mở Thư mục dự án trong Windows Explorer")
         print()
         print("  [0] ❌ Thoát")
         print()
         print("=" * 78)
-        choice = input("👉 Chọn một chức năng [0-8]: ").strip()
+        choice = input("👉 Chọn một chức năng [0-9]: ").strip()
 
         if choice == '1':
             start_server()
@@ -161,6 +166,8 @@ def main_menu():
         elif choice == '7':
             open_word_guide()
         elif choice == '8':
+            launch_backup_restore()
+        elif choice == '9':
             open_project_folder()
         elif choice == '0':
             print("\nTạm biệt!")

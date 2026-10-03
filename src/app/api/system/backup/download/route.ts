@@ -57,6 +57,10 @@ export async function GET(request: NextRequest) {
     // 1. Create SQL Database Dump
     let hasSqlDump = false;
     const pgDumpPaths = [
+      path.join(process.cwd(), 'pgsql', 'bin', 'pg_dump.exe'),
+      path.join(process.cwd(), '..', 'pgsql', 'bin', 'pg_dump.exe'),
+      'D:\\Antigravity\\QLTBIT\\pgsql\\bin\\pg_dump.exe',
+      'D:\\QLTBIT\\pgsql\\bin\\pg_dump.exe',
       'C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe',
       'C:\\Program Files\\PostgreSQL\\17\\bin\\pg_dump.exe',
       'C:\\Program Files\\PostgreSQL\\16\\bin\\pg_dump.exe',

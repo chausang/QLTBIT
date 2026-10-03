@@ -18,14 +18,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden: Missing admin permissions' }, { status: 403 });
     }
 
-    const formData = await req.formData();
-    const file = formData.get('file') as File | null;
-    if (!file) {
-      return NextResponse.json({ error: 'Vui lòng chọn tệp .ZIP để phục hồi' }, { status: 400 });
-    }
+    const contentType = req.headers.get('content-type') || '';
+    let buffer: Buffer;
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      const file = formData.get('file') as File | null;
+      if (!file) {
+        return NextResponse.json({ error: 'Vui lòng chọn tệp .ZIP để phục hồi' }, { status: 400 });
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      buffer = Buffer.from(arrayBuffer);
+    } else {
+      const arrayBuffer = await req.arrayBuffer();
+      if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+        return NextResponse.json({ error: 'Không nhận được dữ liệu tệp .ZIP để phục hồi' }, { status: 400 });
+      }
+      buffer = Buffer.from(arrayBuffer);
+    }
 
     const result = await restoreZipBackupBuffer(buffer, currentUser);
     return NextResponse.json(result);

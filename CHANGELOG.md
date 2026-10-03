@@ -1,5 +1,23 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.6] - 03/10/2026
+
+Bản cập nhật **v1.0.6** bổ sung toàn diện hệ sinh thái **Sao Lưu & Phục Hồi Dữ Liệu (Full System Backup & Disaster Recovery)**:
+- **Công cụ 1-Click Sao lưu & Phục hồi (`Sao_Luu_Du_Lieu.bat` & `Phuc_Hoi_Du_Lieu.bat`)**:
+  - Tự động xuất CSDL PostgreSQL qua `pg_dump.exe` an toàn tuyệt đối, triệt tiêu 100% lỗi khóa file `pg_internal.init`.
+  - Tự động nhận diện ổ đĩa USB đang cắm ngoài để sao lưu 1-Click trực tiếp ra USB.
+  - Tự động gom toàn bộ kho ảnh hiện trạng, biên bản bàn giao, hóa đơn VAT (`public/uploads`) và cấu hình hệ thống `.env` vào gói nén ZIP tiêu chuẩn.
+  - Phục hồi 1-Click khi di chuyển sang máy tính mới hoặc sau khi cài lại hệ điều hành Windows.
+- **Tích hợp Menu Quản Trị Trung Tâm (`qltbit_manager.py`)**:
+  - Bổ sung tùy chọn `[8] 💾 Sao Lưu & Phục Hồi Dữ Liệu` hỗ trợ đầy đủ thao tác trực quan.
+- **Nâng cấp API Sao lưu & Phục hồi Web (`/api/system/backup/*`)**:
+  - Hỗ trợ tải gói ZIP hoàn chỉnh chứa cả SQL Dump (`database_backup.sql`) lẫn JSON Snapshot 35 bảng.
+  - Nhận diện linh hoạt định dạng tải lên `multipart/form-data` và binary stream, đảm bảo phục hồi trên giao diện Web trơn tru 100%.
+- **Tài liệu Hướng dẫn Chuyên sâu (`HUONG_DAN_SAO_LUU_VA_PHUC_HOI_DU_LIEU.md`)**:
+  - Hướng dẫn chi tiết quy trình chuyển đổi máy chủ, phục hồi sau thảm họa hỏng Windows, giải thích nguyên nhân và cách phòng tránh lỗi file cache `pg_internal.init`.
+
+---
+
 ## [v1.0.5] - 02/10/2026
 
 Bản cập nhật **v1.0.5** giải quyết triệt để vấn đề cài đặt và triển khai hệ thống SIMPLY IT: Đóng gói thành công Trình cài đặt tự động 1-Click (`SimplyIT_Setup.exe` / `Cai_Dat_SimplyIT.exe`), tích hợp trọn gói Cơ sở dữ liệu PostgreSQL Portable, khắc phục lỗi khởi động Web Server, cho phép tùy chọn cài Máy Chủ, Agent hoặc cả hai trên cùng một máy tính.
