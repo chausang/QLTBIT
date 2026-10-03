@@ -387,7 +387,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    let { ipStart, ipEnd } = body;
 
     // Detect local server interface info, preferring physical Wi-Fi/Ethernet
     const ifaces = os.networkInterfaces();
@@ -411,53 +410,66 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!ipStart || !ipStart.includes('.')) ipStart = `${defaultBase}.1`;
-    if (!ipEnd || !ipEnd.includes('.')) ipEnd = `${defaultBase}.254`;
+    // Support Multi-VLAN scanning
+    const requestedVlans: Array<{ id?: string; name?: string; subnet?: string; ipStart?: string; ipEnd?: string }> =
+      Array.isArray(body.vlans) && body.vlans.length > 0 ? body.vlans : [];
 
-    const startParts = ipStart.split('.');
-    const endParts = ipEnd.split('.');
-    const baseOctets = `${startParts[0]}.${startParts[1]}.${startParts[2]}`;
+    const vlanConfigs: Array<{ id: string; name: string; subnet: string; ipStart: string; ipEnd: string }> = [];
 
-    const startNum = Math.max(1, parseInt(startParts[3] || '1', 10));
-    const endNum = Math.min(254, Math.max(startNum, parseInt(endParts[3] || '254', 10)));
+    if (requestedVlans.length > 0) {
+      requestedVlans.forEach((v, idx) => {
+        let vStart = (v.ipStart || '').trim();
+        let vEnd = (v.ipEnd || '').trim();
+        let vSub = (v.subnet || '').trim();
+        const vName = (v.name || `VLAN ${idx + 1}`).trim();
 
-    // Generate IP list (max 254 IPs per sweep for speed & stability)
-    const targetIps: string[] = [];
-    for (let i = startNum; i <= endNum; i++) {
-      targetIps.push(`${baseOctets}.${i}`);
+        if (!vStart || !vStart.includes('.')) {
+          if (vSub && vSub.includes('.')) {
+            const p = vSub.split('/')[0].split('.');
+            vStart = `${p[0]}.${p[1]}.${p[2]}.1`;
+          } else {
+            vStart = `${defaultBase}.1`;
+          }
+        }
+
+        if (!vEnd || !vEnd.includes('.')) {
+          const p = vStart.split('.');
+          vEnd = `${p[0]}.${p[1]}.${p[2]}.254`;
+        }
+
+        if (!vSub) {
+          const p = vStart.split('.');
+          vSub = `${p[0]}.${p[1]}.${p[2]}.0/24`;
+        }
+
+        vlanConfigs.push({
+          id: v.id || `vlan_${idx + 1}`,
+          name: vName,
+          subnet: vSub,
+          ipStart: vStart,
+          ipEnd: vEnd,
+        });
+      });
+    } else {
+      let singleStart = body.ipStart;
+      let singleEnd = body.ipEnd;
+      if (!singleStart || !singleStart.includes('.')) singleStart = `${defaultBase}.1`;
+      if (!singleEnd || !singleEnd.includes('.')) singleEnd = `${defaultBase}.254`;
+      const sParts = singleStart.split('.');
+      const sBase = `${sParts[0]}.${sParts[1]}.${sParts[2]}`;
+
+      vlanConfigs.push({
+        id: 'vlan_default',
+        name: body.vlanName || 'VLAN Mặc Định',
+        subnet: body.subnet || `${sBase}.0/24`,
+        ipStart: singleStart,
+        ipEnd: singleEnd,
+      });
     }
 
     const tStart = Date.now();
 
-    // 1. Parallel Ping Sweep across the IP range
-    const alivePingIps = await pingSweep(targetIps, 50);
-
-    // 2. Query OS ARP table for real MAC addresses
-    const arpTable = getSystemArpTable();
-
-    // 3. Assemble active IP set
-    const discoveredIpSet = new Set<string>();
-    alivePingIps.forEach((ip) => discoveredIpSet.add(ip));
-
-    // Also include any dynamic entries within target range from ARP
-    for (const arpIp of arpTable.keys()) {
-      if (arpIp.startsWith(baseOctets + '.')) {
-        const lastOctet = parseInt(arpIp.split('.')[3], 10);
-        if (lastOctet >= startNum && lastOctet <= endNum) {
-          discoveredIpSet.add(arpIp);
-        }
-      }
-    }
-
-    // Always include local host if in range
-    if (localHostIp && localHostIp.startsWith(baseOctets + '.')) {
-      const localLast = parseInt(localHostIp.split('.')[3], 10);
-      if (localLast >= startNum && localLast <= endNum) {
-        discoveredIpSet.add(localHostIp);
-      }
-    }
-
-    // Load existing database assets for cross-referencing
+    // Load existing database assets for cross-referencing with Department, Location, Assignee
     const existingAssets = await prisma.asset.findMany({
       select: {
         id: true,
@@ -468,6 +480,30 @@ export async function POST(request: NextRequest) {
         serialNumber: true,
         specs: true,
         status: true,
+        condition: true,
+        category: {
+          select: { id: true, name: true, icon: true },
+        },
+        location: {
+          select: { id: true, name: true, building: true, floor: true },
+        },
+        assignments: {
+          where: { returnedAt: null },
+          take: 1,
+          select: {
+            assignedAt: true,
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                department: true,
+                email: true,
+                phone: true,
+                position: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -480,91 +516,168 @@ export async function POST(request: NextRequest) {
       if (sp.ipAddress) knownIpMap.set(String(sp.ipAddress), a);
     });
 
-    // 4. Inspect each discovered host (Ports, Hostname, Vendor, Device Type)
     const discoveredDevices: any[] = [];
-    const sortedLiveIps = Array.from(discoveredIpSet).sort((a, b) => {
-      return parseInt(a.split('.')[3], 10) - parseInt(b.split('.')[3], 10);
-    });
+    const scannedSubnets: string[] = [];
 
-    for (const ip of sortedLiveIps) {
-      const isLocalHost = ip === localHostIp;
-      const isGateway = ip.endsWith('.1');
-      const mac = isLocalHost ? (localHostMac || 'LOCAL') : (arpTable.get(ip) || '');
+    // Process each VLAN configuration
+    for (const vlan of vlanConfigs) {
+      scannedSubnets.push(vlan.subnet);
+      const startParts = vlan.ipStart.split('.');
+      const endParts = vlan.ipEnd.split('.');
+      const baseOctets = `${startParts[0]}.${startParts[1]}.${startParts[2]}`;
 
-      // Resolve Vendor
-      const { vendor, isPrivate } = resolveVendor(mac);
+      const startNum = Math.max(1, parseInt(startParts[3] || '1', 10));
+      const endNum = Math.min(254, Math.max(startNum, parseInt(endParts[3] || '254', 10)));
 
-      // Probe Ports
-      let openPorts: number[] = [];
-      if (isLocalHost) {
-        openPorts = [135, 445, 3000];
-      } else {
-        openPorts = await scanHostPorts(ip);
+      // Generate target IP list
+      const targetIps: string[] = [];
+      for (let i = startNum; i <= endNum; i++) {
+        targetIps.push(`${baseOctets}.${i}`);
       }
 
-      // Reverse DNS / Hostname lookup
-      let hostname = isLocalHost ? os.hostname() : '';
-      if (!hostname) {
-        try {
-          const names = await new Promise<string[]>((res) => {
-            dns.reverse(ip, (err, h) => res(err ? [] : h));
-          });
-          if (names && names.length > 0) hostname = names[0];
-        } catch (e) {}
+      // 1. Parallel Ping Sweep across this VLAN
+      const alivePingIps = await pingSweep(targetIps, 40);
+
+      // 2. Query OS ARP table for real MAC addresses
+      const arpTable = getSystemArpTable();
+
+      // 3. Assemble active IP set
+      const discoveredIpSet = new Set<string>();
+      alivePingIps.forEach((ip) => discoveredIpSet.add(ip));
+
+      // Also include dynamic entries within target range from ARP
+      for (const arpIp of arpTable.keys()) {
+        if (arpIp.startsWith(baseOctets + '.')) {
+          const lastOctet = parseInt(arpIp.split('.')[3], 10);
+          if (lastOctet >= startNum && lastOctet <= endNum) {
+            discoveredIpSet.add(arpIp);
+          }
+        }
       }
 
-      // If port 80 or 443 is open, try banner grab
-      let httpBanner: string | null = null;
-      if (openPorts.includes(80)) {
-        httpBanner = await fetchHttpBanner(ip, 80);
-      } else if (openPorts.includes(443)) {
-        httpBanner = await fetchHttpBanner(ip, 443);
+      // Always include local host if in range
+      if (localHostIp && localHostIp.startsWith(baseOctets + '.')) {
+        const localLast = parseInt(localHostIp.split('.')[3], 10);
+        if (localLast >= startNum && localLast <= endNum) {
+          discoveredIpSet.add(localHostIp);
+        }
       }
 
-      if (!hostname && httpBanner) {
-        hostname = httpBanner.slice(0, 30);
-      }
-
-      // Classify device
-      const classification = classifyDevice({
-        ip,
-        vendor: isLocalHost ? 'Lenovo' : vendor,
-        isPrivate,
-        openPorts,
-        hostname: hostname || '',
-        isGateway,
-        isLocalHost,
+      const sortedLiveIps = Array.from(discoveredIpSet).sort((a, b) => {
+        return parseInt(a.split('.')[3], 10) - parseInt(b.split('.')[3], 10);
       });
 
-      // Match with database assets
-      let matchedAsset = knownIpMap.get(ip) || (mac && mac !== 'LOCAL' ? knownMacMap.get(mac) : null);
-      if (!matchedAsset && hostname) {
-        matchedAsset = existingAssets.find((a) =>
-          a.name.toLowerCase().includes(hostname.toLowerCase())
-        );
-      }
+      // 4. Inspect each discovered host in this VLAN
+      for (const ip of sortedLiveIps) {
+        // Prevent duplicate IP if already scanned
+        if (discoveredDevices.some((d) => d.ipAddress === ip)) continue;
 
-      discoveredDevices.push({
-        ipAddress: ip,
-        macAddress: mac || 'N/A',
-        hostname: hostname || (isGateway ? 'Router-Gateway' : (isPrivate ? 'Thiết bị Di động' : `Host-${ip.split('.')[3]}`)),
-        vendor: isLocalHost ? 'Lenovo' : vendor,
-        model: classification.modelGuess || '',
-        os: isLocalHost ? 'Windows 11' : (openPorts.includes(135) ? 'Windows OS' : 'Embedded / Linux'),
-        openPorts,
-        deviceType: classification.deviceType,
-        responseTimeMs: isLocalHost ? 0 : Math.floor(Math.random() * 8) + 1,
-        status: 'ONLINE',
-        lastSeen: new Date().toISOString(),
-        matchedAsset: matchedAsset
-          ? {
-              id: matchedAsset.id,
-              assetTag: matchedAsset.assetTag,
-              name: matchedAsset.name,
-              status: matchedAsset.status,
-            }
-          : null,
-      });
+        const isLocalHost = ip === localHostIp;
+        const isGateway = ip.endsWith('.1');
+        const mac = isLocalHost ? (localHostMac || 'LOCAL') : (arpTable.get(ip) || '');
+
+        // Resolve Vendor
+        const { vendor, isPrivate } = resolveVendor(mac);
+
+        // Probe Ports
+        let openPorts: number[] = [];
+        if (isLocalHost) {
+          openPorts = [135, 445, 3000];
+        } else {
+          openPorts = await scanHostPorts(ip);
+        }
+
+        // Reverse DNS / Hostname lookup
+        let hostname = isLocalHost ? os.hostname() : '';
+        if (!hostname) {
+          try {
+            const names = await new Promise<string[]>((res) => {
+              dns.reverse(ip, (err, h) => res(err ? [] : h));
+            });
+            if (names && names.length > 0) hostname = names[0];
+          } catch (e) {}
+        }
+
+        // If port 80 or 443 is open, try banner grab
+        let httpBanner: string | null = null;
+        if (openPorts.includes(80)) {
+          httpBanner = await fetchHttpBanner(ip, 80);
+        } else if (openPorts.includes(443)) {
+          httpBanner = await fetchHttpBanner(ip, 443);
+        }
+
+        if (!hostname && httpBanner) {
+          hostname = httpBanner.slice(0, 30);
+        }
+
+        // Classify device
+        const classification = classifyDevice({
+          ip,
+          vendor: isLocalHost ? 'Lenovo' : vendor,
+          isPrivate,
+          openPorts,
+          hostname: hostname || '',
+          isGateway,
+          isLocalHost,
+        });
+
+        // Match with database assets
+        let matchedAsset = knownIpMap.get(ip) || (mac && mac !== 'LOCAL' ? knownMacMap.get(mac) : null);
+        if (!matchedAsset && hostname) {
+          matchedAsset = existingAssets.find((a) =>
+            a.name.toLowerCase().includes(hostname.toLowerCase())
+          );
+        }
+
+        let matchedAssetPayload = null;
+        if (matchedAsset) {
+          const assignee = matchedAsset.assignments?.[0]?.user || null;
+          const buildingFloor = [matchedAsset.location?.building, matchedAsset.location?.floor]
+            .filter(Boolean)
+            .join(' - ');
+          const locationFull = matchedAsset.location
+            ? (matchedAsset.location.name + (buildingFloor ? ` (${buildingFloor})` : '')).trim()
+            : 'Chưa gán vị trí';
+
+          matchedAssetPayload = {
+            id: matchedAsset.id,
+            assetTag: matchedAsset.assetTag,
+            name: matchedAsset.name,
+            status: matchedAsset.status,
+            condition: matchedAsset.condition,
+            brand: matchedAsset.brand || '',
+            model: matchedAsset.model || '',
+            serialNumber: matchedAsset.serialNumber || '',
+            categoryName: matchedAsset.category?.name || 'Thiết bị IT',
+            locationName: locationFull,
+            department: assignee?.department || 'Chưa gán khoa phòng',
+            assignedTo: assignee?.fullName || 'Chưa cấp phát',
+            assignedUserEmail: assignee?.email || '',
+            assignedUserPhone: assignee?.phone || '',
+            assignedUserPosition: assignee?.position || '',
+            assignedAt: matchedAsset.assignments?.[0]?.assignedAt || null,
+            specs: matchedAsset.specs,
+          };
+        }
+
+        discoveredDevices.push({
+          ipAddress: ip,
+          macAddress: mac || 'N/A',
+          hostname: hostname || (isGateway ? 'Router-Gateway' : (isPrivate ? 'Thiết bị Di động' : `Host-${ip.split('.')[3]}`)),
+          vendor: isLocalHost ? 'Lenovo' : vendor,
+          model: classification.modelGuess || '',
+          os: isLocalHost ? 'Windows 11' : (openPorts.includes(135) ? 'Windows OS' : 'Embedded / Linux'),
+          openPorts,
+          deviceType: classification.deviceType,
+          responseTimeMs: isLocalHost ? 0 : Math.floor(Math.random() * 8) + 1,
+          status: 'ONLINE',
+          lastSeen: new Date().toISOString(),
+          vlanId: vlan.id,
+          vlanName: vlan.name,
+          subnet: vlan.subnet,
+          matchedAsset: matchedAssetPayload,
+        });
+      }
     }
 
     const durationMs = Date.now() - tStart;
@@ -572,11 +685,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       count: discoveredDevices.length,
-      message: `Đã quét thực tế dải mạng (${targetIps.length} IP) trong ${Math.round(durationMs / 100) / 10}s. Tìm thấy ${discoveredDevices.length} thiết bị thực tế đang trực tuyến.`,
+      message: `Đã quét hoàn tất ${vlanConfigs.length} dải VLAN trong ${Math.round(durationMs / 100) / 10}s. Tìm thấy ${discoveredDevices.length} thiết bị thực tế đang trực tuyến.`,
       data: {
-        subnet: `${baseOctets}.0/24`,
-        ipStart,
-        ipEnd,
+        vlansScanned: vlanConfigs,
         durationMs,
         devices: discoveredDevices,
       },

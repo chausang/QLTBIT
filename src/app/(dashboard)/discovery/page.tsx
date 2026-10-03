@@ -38,8 +38,33 @@ import {
   ShieldAlert,
   Key,
   Check,
+  FileSpreadsheet,
+  Building2,
+  User as UserIcon,
+  MapPin,
+  Tag,
+  Calendar,
+  Info,
+  CheckSquare,
+  Square,
+  SlidersHorizontal,
+  Settings2,
+  Trash2,
 } from 'lucide-react';
 import { HealthOverviewTab } from '@/components/discovery/HealthOverviewTab';
+import { useQuickViewStore } from '@/lib/quick-view-store';
+import ExcelJS from 'exceljs';
+
+export interface VlanConfig {
+  id: string;
+  name: string;
+  subnet: string;
+  ipStart: string;
+  ipEnd: string;
+  description?: string;
+  enabled: boolean;
+  isDefault?: boolean;
+}
 
 interface DiscoveredDevice {
   ipAddress: string;
@@ -53,11 +78,27 @@ interface DiscoveredDevice {
   responseTimeMs: number;
   status: string;
   lastSeen: string;
+  vlanId?: string;
+  vlanName?: string;
+  subnet?: string;
   matchedAsset?: {
     id: string;
     assetTag: string;
     name: string;
     status: string;
+    condition?: string;
+    brand?: string;
+    model?: string;
+    serialNumber?: string;
+    categoryName?: string;
+    locationName?: string;
+    department?: string;
+    assignedTo?: string;
+    assignedUserEmail?: string;
+    assignedUserPhone?: string;
+    assignedUserPosition?: string;
+    assignedAt?: string | null;
+    specs?: any;
   } | null;
 }
 
@@ -159,7 +200,9 @@ export default function DiscoveryPage() {
   const [activeTab, setActiveTab] = useState<'SCAN' | 'HEALTH' | 'AI_ENRICH' | 'GUIDE'>('SCAN');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // TAB 1: Network Scanner State
+  // TAB 1: Network Scanner State & Multi-VLAN Management
+  const { openQuickView } = useQuickViewStore();
+  const [scanMode, setScanMode] = useState<'SINGLE' | 'MULTI_VLAN'>('MULTI_VLAN');
   const [subnetInput, setSubnetInput] = useState('192.168.1.0/24');
   const [ipStart, setIpStart] = useState('192.168.1.1');
   const [ipEnd, setIpEnd] = useState('192.168.1.254');
@@ -167,8 +210,92 @@ export default function DiscoveryPage() {
   const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
   const [searchDevice, setSearchDevice] = useState('');
   const [filterType, setFilterType] = useState('ALL');
+  const [selectedVlanFilter, setSelectedVlanFilter] = useState('ALL');
   const [detectedInterface, setDetectedInterface] = useState<any>(null);
   const [availableInterfaces, setAvailableInterfaces] = useState<any[]>([]);
+
+  // Default VLAN list
+  const DEFAULT_VLANS: VlanConfig[] = [
+    { id: 'vlan_1', name: 'VLAN 1 - Mạng Trụ Sở & Văn Phòng', subnet: '192.168.1.0/24', ipStart: '192.168.1.1', ipEnd: '192.168.1.254', description: 'Máy trạm văn phòng, kế toán, ban giám đốc', enabled: true },
+    { id: 'vlan_10', name: 'VLAN 10 - Khoa Khám Bệnh & Cấp Cứu', subnet: '192.168.10.0/24', ipStart: '192.168.10.1', ipEnd: '192.168.10.254', description: 'Máy tính khu khám bệnh, tiếp đón bệnh nhân', enabled: true },
+    { id: 'vlan_20', name: 'VLAN 20 - Máy In & Ngoại Vi', subnet: '192.168.20.0/24', ipStart: '192.168.20.1', ipEnd: '192.168.20.254', description: 'Máy in Canon/HP, máy quét mã vạch, POS', enabled: false },
+    { id: 'vlan_30', name: 'VLAN 30 - Camera An Ninh & IoT', subnet: '192.168.30.0/24', ipStart: '192.168.30.1', ipEnd: '192.168.30.254', description: 'Hệ thống camera Dahua/Hikvision, IoT', enabled: false },
+    { id: 'vlan_50', name: 'VLAN 50 - Máy Chủ & Thiết Bị Mạng', subnet: '10.0.1.0/24', ipStart: '10.0.1.1', ipEnd: '10.0.1.254', description: 'Máy chủ dữ liệu, Router, Firewall, Core Switch', enabled: false },
+  ];
+
+  const [vlanList, setVlanList] = useState<VlanConfig[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('simply_it_discovery_vlans');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return DEFAULT_VLANS;
+  });
+
+  const [isVlanModalOpen, setIsVlanModalOpen] = useState(false);
+  const [newVlanForm, setNewVlanForm] = useState({
+    name: '',
+    subnet: '192.168.100.0/24',
+    ipStart: '192.168.100.1',
+    ipEnd: '192.168.100.254',
+    description: '',
+  });
+
+  const [quickViewDevice, setQuickViewDevice] = useState<DiscoveredDevice | null>(null);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+
+  const saveVlanList = (list: VlanConfig[]) => {
+    setVlanList(list);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('simply_it_discovery_vlans', JSON.stringify(list));
+    }
+  };
+
+  const handleToggleVlan = (id: string) => {
+    const updated = vlanList.map((v) => (v.id === id ? { ...v, enabled: !v.enabled } : v));
+    saveVlanList(updated);
+  };
+
+  const handleSelectAllVlans = (select: boolean) => {
+    const updated = vlanList.map((v) => ({ ...v, enabled: select }));
+    saveVlanList(updated);
+  };
+
+  const handleDeleteVlan = (id: string) => {
+    if (confirm('Bạn có chắc muốn xóa cấu hình VLAN này?')) {
+      const updated = vlanList.filter((v) => v.id !== id);
+      saveVlanList(updated);
+      showToast('Đã xóa VLAN khỏi danh sách');
+    }
+  };
+
+  const handleAddVlan = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVlanForm.name.trim() || !newVlanForm.subnet.trim()) {
+      showToast('Vui lòng nhập đầy đủ tên và dải subnet');
+      return;
+    }
+    const newVlan: VlanConfig = {
+      id: `vlan_custom_${Date.now()}`,
+      name: newVlanForm.name.trim(),
+      subnet: newVlanForm.subnet.trim(),
+      ipStart: newVlanForm.ipStart.trim(),
+      ipEnd: newVlanForm.ipEnd.trim(),
+      description: newVlanForm.description.trim() || 'VLAN cấu hình tùy chỉnh',
+      enabled: true,
+    };
+    saveVlanList([...vlanList, newVlan]);
+    setIsVlanModalOpen(false);
+    setNewVlanForm({
+      name: '',
+      subnet: '192.168.100.0/24',
+      ipStart: '192.168.100.1',
+      ipEnd: '192.168.100.254',
+      description: '',
+    });
+    showToast(`✅ Đã thêm ${newVlan.name} vào danh sách quét!`);
+  };
 
   // TAB 2: Agent Reports State
   const [agentReports, setAgentReports] = useState<AgentReport[]>([]);
@@ -236,13 +363,15 @@ export default function DiscoveryPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isAddAssetModalOpen) setIsAddAssetModalOpen(false);
+        if (quickViewDevice) setQuickViewDevice(null);
+        else if (isVlanModalOpen) setIsVlanModalOpen(false);
+        else if (isAddAssetModalOpen) setIsAddAssetModalOpen(false);
         else if (selectedAgent) setSelectedAgent(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAddAssetModalOpen, selectedAgent]);
+  }, [isAddAssetModalOpen, selectedAgent, quickViewDevice, isVlanModalOpen]);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -275,6 +404,31 @@ export default function DiscoveryPage() {
           setSubnetInput(iface.subnet);
           setIpStart(iface.ipStart);
           setIpEnd(iface.ipEnd);
+
+          // Auto-sync physical interface to VLAN list if not exists
+          setVlanList((prev) => {
+            const exists = prev.some((v) => v.subnet === iface.subnet);
+            if (!exists) {
+              const updated = [
+                {
+                  id: `vlan_server_${Date.now()}`,
+                  name: `VLAN Card Mạng Máy Chủ (${iface.name})`,
+                  subnet: iface.subnet,
+                  ipStart: iface.ipStart,
+                  ipEnd: iface.ipEnd,
+                  description: `Dải mạng card mạng thực tế máy chủ ${iface.name} IP ${iface.ip}`,
+                  enabled: true,
+                  isDefault: true,
+                },
+                ...prev,
+              ];
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('simply_it_discovery_vlans', JSON.stringify(updated));
+              }
+              return updated;
+            }
+            return prev;
+          });
         }
         if (json.data.interfaces) {
           setAvailableInterfaces(json.data.interfaces);
@@ -314,18 +468,40 @@ export default function DiscoveryPage() {
     loadNetworkConfig();
   }, []);
 
-  // Run Network Discovery Scan
+  // Run Network Discovery Scan (Multi-VLAN or Single)
   const handleStartScan = async () => {
     setScanning(true);
     try {
-      const res = await fetch('/api/discovery/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let bodyPayload: any = {};
+      if (scanMode === 'MULTI_VLAN') {
+        const activeVlans = vlanList.filter((v) => v.enabled);
+        if (activeVlans.length === 0) {
+          showToast('⚠️ Vui lòng tích chọn ít nhất 1 VLAN để quét!');
+          setScanning(false);
+          return;
+        }
+        bodyPayload = {
+          vlans: activeVlans.map((v) => ({
+            id: v.id,
+            name: v.name,
+            subnet: v.subnet,
+            ipStart: v.ipStart,
+            ipEnd: v.ipEnd,
+          })),
+        };
+      } else {
+        bodyPayload = {
           subnet: subnetInput,
           ipStart,
           ipEnd,
-        }),
+          vlanName: 'Dải Mạng Hiện Tại',
+        };
+      }
+
+      const res = await fetch('/api/discovery/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyPayload),
       });
       const json = await res.json();
       if (json.success && json.data) {
@@ -463,21 +639,213 @@ export default function DiscoveryPage() {
     showToast('📋 Đã sao chép lệnh PowerShell vào Clipboard!');
   };
 
-  // Filtered devices
+  // Filtered devices with VLAN and text search
   const filteredDevices = devices.filter((d) => {
     const matchSearch =
       !searchDevice ||
       d.ipAddress.includes(searchDevice) ||
       d.hostname.toLowerCase().includes(searchDevice.toLowerCase()) ||
       d.vendor.toLowerCase().includes(searchDevice.toLowerCase()) ||
-      d.macAddress.toLowerCase().includes(searchDevice.toLowerCase());
+      d.macAddress.toLowerCase().includes(searchDevice.toLowerCase()) ||
+      (d.matchedAsset?.name || '').toLowerCase().includes(searchDevice.toLowerCase()) ||
+      (d.matchedAsset?.assetTag || '').toLowerCase().includes(searchDevice.toLowerCase()) ||
+      (d.matchedAsset?.department || '').toLowerCase().includes(searchDevice.toLowerCase());
 
     if (!matchSearch) return false;
+
+    // Filter by VLAN
+    if (selectedVlanFilter !== 'ALL') {
+      const matchVlan =
+        d.vlanId === selectedVlanFilter ||
+        d.vlanName === selectedVlanFilter ||
+        d.subnet === selectedVlanFilter;
+      if (!matchVlan) return false;
+    }
+
     if (filterType === 'ALL') return true;
     if (filterType === 'NEW') return d.matchedAsset === null;
     if (filterType === 'MATCHED') return d.matchedAsset !== null;
     return d.deviceType === filterType;
   });
+
+  // Export Discovered Devices to Excel
+  const handleExportExcel = async (exportScope: 'CURRENT_FILTER' | 'ALL_VLANS') => {
+    const listToExport = exportScope === 'CURRENT_FILTER' ? filteredDevices : devices;
+    if (listToExport.length === 0) {
+      showToast('⚠️ Không có thiết bị nào để xuất Excel!');
+      return;
+    }
+
+    setIsExportingExcel(true);
+    try {
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'Simply IT Asset Management';
+      workbook.created = new Date();
+
+      const sheet = workbook.addWorksheet('Thiết Bị Khám Phá Mạng', {
+        views: [{ showGridLines: true }],
+      });
+
+      // Dòng 1: Tiêu đề lớn
+      sheet.mergeCells('A1:Q1');
+      const titleCell = sheet.getCell('A1');
+      const vlanInfo =
+        selectedVlanFilter !== 'ALL' && exportScope === 'CURRENT_FILTER'
+          ? ` - THEO VLAN: ${selectedVlanFilter.toUpperCase()}`
+          : ' - TOÀN BỘ CÁC VLAN';
+      titleCell.value = `DANH SÁCH THIẾT BỊ KHÁM PHÁ MẠNG & THÔNG TIN QUẢN LÝ TÀI SẢN CNTT${vlanInfo}`;
+      titleCell.font = { name: 'Times New Roman', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } };
+      titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      sheet.getRow(1).height = 34;
+
+      // Dòng 2: Phụ đề thống kê
+      sheet.mergeCells('A2:Q2');
+      const subCell = sheet.getCell('A2');
+      const matchedCount = listToExport.filter((d) => d.matchedAsset).length;
+      const newCount = listToExport.length - matchedCount;
+      subCell.value = `Ngày xuất: ${new Date().toLocaleString('vi-VN')} | Tổng thiết bị: ${listToExport.length} | Đã quản lý: ${matchedCount} | Thiết bị mới: ${newCount}`;
+      subCell.font = { name: 'Times New Roman', size: 10, italic: true, color: { argb: 'FF334155' } };
+      subCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      sheet.getRow(2).height = 20;
+
+      // Dòng 3: Header cột
+      const headerRow = sheet.getRow(3);
+      headerRow.values = [
+        'STT',
+        'VLAN / Phân Đoạn',
+        'Dải Subnet',
+        'Địa Chỉ IP',
+        'Tên Máy (Hostname)',
+        'Địa Chỉ MAC',
+        'Hãng Sản Xuất (OUI)',
+        'Model / Hệ Điều Hành',
+        'Loại Thiết Bị',
+        'Cổng Mở (Open Ports)',
+        'Trạng Thái Hệ Thống',
+        'Mã Tài Sản (Asset Tag)',
+        'Tên Tài Sản Quản Lý',
+        'KHOA / PHÒNG QUẢN LÝ',
+        'NGƯỜI PHỤ TRÁCH / SỬ DỤNG',
+        'VỊ TRÍ THIẾT BỊ',
+        'Tình Trạng Thiết Bị',
+      ];
+      headerRow.height = 28;
+      headerRow.eachCell((cell) => {
+        cell.font = { name: 'Times New Roman', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2563EB' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+
+      // Điền dữ liệu
+      listToExport.forEach((dev, idx) => {
+        const row = sheet.addRow([
+          idx + 1,
+          dev.vlanName || 'VLAN Mặc Định',
+          dev.subnet || 'N/A',
+          dev.ipAddress,
+          dev.hostname,
+          dev.macAddress,
+          dev.vendor,
+          dev.model || dev.os || 'N/A',
+          dev.deviceType,
+          dev.openPorts.map((p) => ':' + p).join(' '),
+          dev.matchedAsset ? 'ĐÃ QUẢN LÝ' : 'THIẾT BỊ MỚI',
+          dev.matchedAsset?.assetTag || '',
+          dev.matchedAsset?.name || '',
+          dev.matchedAsset?.department || 'Chưa gán khoa phòng',
+          dev.matchedAsset?.assignedTo || 'Chưa cấp phát',
+          dev.matchedAsset?.locationName || 'Chưa gán vị trí',
+          dev.matchedAsset?.condition || 'Mới',
+        ]);
+        row.height = 22;
+
+        const isMatched = !!dev.matchedAsset;
+        row.eachCell((cell, colNum) => {
+          cell.font = { name: 'Times New Roman', size: 10 };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+
+          if ([1, 4, 6, 9, 10, 11, 12].includes(colNum)) {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          }
+
+          // Highlight KHOA / PHÒNG QUẢN LÝ (cột 14)
+          if (colNum === 14 && isMatched) {
+            cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FF1E40AF' } };
+          }
+
+          // Highlight Trạng Thái (cột 11)
+          if (colNum === 11) {
+            if (isMatched) {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+              cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FF166534' } };
+            } else {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+              cell.font = { name: 'Times New Roman', size: 10, bold: true, color: { argb: 'FF92400E' } };
+            }
+          }
+        });
+      });
+
+      sheet.columns = [
+        { width: 6 },  // STT
+        { width: 30 }, // VLAN
+        { width: 16 }, // Subnet
+        { width: 16 }, // IP
+        { width: 22 }, // Hostname
+        { width: 18 }, // MAC
+        { width: 20 }, // Vendor
+        { width: 24 }, // Model
+        { width: 14 }, // Loại
+        { width: 18 }, // Cổng
+        { width: 16 }, // Trạng Thái
+        { width: 16 }, // Tag
+        { width: 26 }, // Tên
+        { width: 26 }, // Khoa/Phòng
+        { width: 22 }, // Phụ Trách
+        { width: 22 }, // Vị Trí
+        { width: 14 }, // Tình Trạng
+      ];
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const scopeSlug =
+        exportScope === 'CURRENT_FILTER' && selectedVlanFilter !== 'ALL'
+          ? `-${selectedVlanFilter.replace(/[\s/]/g, '-')}`
+          : '-Tat-Ca-VLAN';
+      link.download = `Danh-Sach-Thiet-Bi-Kham-Pha${scopeSlug}-${dateStr}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast('✅ Đã xuất file Excel danh sách thiết bị thành công!');
+    } catch (err: any) {
+      console.error('Export Excel error:', err);
+      showToast('❌ Lỗi khi xuất file Excel');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
 
   // Pagination state with localStorage persistence
   const [pageSize, setPageSize] = useState<number>(() => {
@@ -659,17 +1027,17 @@ export default function DiscoveryPage() {
       </div>
 
       {/* ======================================================== */}
-      {/* TAB 1: NETWORK SUBNET SCANNER */}
+      {/* TAB 1: NETWORK SUBNET & MULTI-VLAN SCANNER */}
       {/* ======================================================== */}
       {activeTab === 'SCAN' && (
         <div className="space-y-4">
           {/* Scan Control Panel */}
-          <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
             {/* Real Network Adapter Bar */}
             {detectedInterface && (
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-indigo-50/70 border border-indigo-100 rounded-2xl px-3.5 py-2 text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-indigo-50/70 border border-indigo-100 rounded-2xl px-3.5 py-2.5 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                   <span className="font-semibold text-slate-700">Card mạng máy chủ:</span>
                   <span className="font-bold text-indigo-700 bg-white px-2 py-0.5 rounded-lg border border-indigo-200">
                     {detectedInterface.name} ({detectedInterface.ip})
@@ -707,100 +1075,306 @@ export default function DiscoveryPage() {
                 </div>
               </div>
             )}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-wrap flex-1">
-                <div className="w-48">
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">Dải Mạng (Subnet):</label>
-                  <input
-                    type="text"
-                    value={subnetInput}
-                    onChange={(e) => setSubnetInput(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
-                    placeholder="192.168.1.0/24"
-                  />
+
+            {/* Mode Switcher: Single Subnet vs Multi-VLAN */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-700">Chế độ quét mạng:</span>
+                <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setScanMode('MULTI_VLAN')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      scanMode === 'MULTI_VLAN'
+                        ? 'bg-white text-indigo-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Layers className="w-3.5 h-3.5" />
+                    <span>Quét Nhiều VLAN ({vlanList.filter((v) => v.enabled).length}/{vlanList.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScanMode('SINGLE')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      scanMode === 'SINGLE'
+                        ? 'bg-white text-indigo-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
+                    <span>Quét Dải Mạng Đơn</span>
+                  </button>
+                </div>
+              </div>
+
+              {scanMode === 'MULTI_VLAN' && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAllVlans(true)}
+                    className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-bold cursor-pointer transition-all"
+                  >
+                    ✓ Chọn Tất Cả
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAllVlans(false)}
+                    className="px-2.5 py-1 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-[11px] font-bold cursor-pointer transition-all"
+                  >
+                    ✕ Bỏ Chọn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsVlanModalOpen(true)}
+                    className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Thêm VLAN Mới</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* MODE 1: MULTI-VLAN LIST CONFIGURATION */}
+            {scanMode === 'MULTI_VLAN' ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {vlanList.map((vlan) => (
+                    <div
+                      key={vlan.id}
+                      onClick={() => handleToggleVlan(vlan.id)}
+                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
+                        vlan.enabled
+                          ? 'bg-indigo-50/50 border-indigo-300 shadow-xs'
+                          : 'bg-slate-50/60 border-slate-200 hover:border-slate-300 opacity-70'
+                      }`}
+                    >
+                      <div className="pt-0.5">
+                        {vlan.enabled ? (
+                          <div className="w-4 h-4 rounded-md bg-indigo-600 text-white flex items-center justify-center">
+                            <Check className="w-3 h-3 stroke-[3]" />
+                          </div>
+                        ) : (
+                          <div className="w-4 h-4 rounded-md border-2 border-slate-300 bg-white" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="font-bold text-xs text-slate-900 truncate">{vlan.name}</span>
+                          {!vlan.isDefault && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteVlan(vlan.id);
+                              }}
+                              className="text-slate-400 hover:text-red-600 p-0.5 transition-colors"
+                              title="Xóa VLAN"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-center gap-2 text-[11px]">
+                          <span className="font-mono font-bold text-indigo-700 bg-white px-1.5 py-0.5 rounded border border-indigo-100">
+                            {vlan.subnet}
+                          </span>
+                          <span className="font-mono text-slate-500">
+                            {vlan.ipStart.split('.')[3]} → {vlan.ipEnd.split('.')[3]}
+                          </span>
+                        </div>
+                        {vlan.description && (
+                          <p className="text-[10.5px] text-slate-500 mt-1 truncate">{vlan.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="w-36">
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">IP Bắt Đầu:</label>
-                  <input
-                    type="text"
-                    value={ipStart}
-                    onChange={(e) => setIpStart(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
-                  />
-                </div>
-
-                <div className="w-36">
-                  <label className="block text-[11px] font-bold text-slate-500 mb-1">IP Kết Thúc:</label>
-                  <input
-                    type="text"
-                    value={ipEnd}
-                    onChange={(e) => setIpEnd(e.target.value)}
-                    className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
-                  />
-                </div>
-
-                <div className="pt-4">
+                <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="text-xs text-slate-500">
+                    Đã chọn <strong className="text-indigo-700">{vlanList.filter((v) => v.enabled).length}</strong> VLAN để quét đồng thời.
+                  </div>
                   <button
                     type="button"
                     onClick={handleStartScan}
-                    disabled={scanning}
-                    className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                    disabled={scanning || vlanList.filter((v) => v.enabled).length === 0}
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {scanning ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Đang Quét Dải IP...</span>
+                        <span>Đang Quét {vlanList.filter((v) => v.enabled).length} VLAN...</span>
                       </>
                     ) : (
                       <>
                         <Search className="w-4 h-4" />
-                        <span>Bắt Đầu Quét Mạng</span>
+                        <span>Bắt Đầu Quét {vlanList.filter((v) => v.enabled).length} VLAN Đã Chọn</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
+            ) : (
+              /* MODE 2: SINGLE SUBNET CONFIGURATION */
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3 flex-wrap flex-1">
+                  <div className="w-48">
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">Dải Mạng (Subnet):</label>
+                    <input
+                      type="text"
+                      value={subnetInput}
+                      onChange={(e) => setSubnetInput(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
+                      placeholder="192.168.1.0/24"
+                    />
+                  </div>
 
-              {/* Quick Filters */}
-              <div className="flex items-center gap-1.5 self-end sm:self-center">
+                  <div className="w-36">
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">IP Bắt Đầu:</label>
+                    <input
+                      type="text"
+                      value={ipStart}
+                      onChange={(e) => setIpStart(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
+                    />
+                  </div>
+
+                  <div className="w-36">
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">IP Kết Thúc:</label>
+                    <input
+                      type="text"
+                      value={ipEnd}
+                      onChange={(e) => setIpEnd(e.target.value)}
+                      className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 outline-none"
+                    />
+                  </div>
+
+                  <div className="pt-4">
+                    <button
+                      type="button"
+                      onClick={handleStartScan}
+                      disabled={scanning}
+                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      {scanning ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Đang Quét Dải IP...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4" />
+                          <span>Bắt Đầu Quét Mạng</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Results Table Section */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+            {/* Toolbar: Title, Filters & Excel Export */}
+            <div className="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Radio className="w-4 h-4 text-indigo-600 animate-pulse shrink-0" />
+                <h3 className="font-bold text-xs text-slate-900 uppercase tracking-wider">
+                  Danh Sách Thiết Bị Khám Phá ({filteredDevices.length})
+                </h3>
+                {selectedVlanFilter !== 'ALL' && (
+                  <span className="px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-bold">
+                    VLAN: {selectedVlanFilter}
+                  </span>
+                )}
+              </div>
+
+              {/* Filters & Export Excel */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* VLAN Filter */}
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] font-bold text-slate-500 hidden sm:inline">VLAN:</span>
+                  <select
+                    value={selectedVlanFilter}
+                    onChange={(e) => setSelectedVlanFilter(e.target.value)}
+                    className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
+                  >
+                    <option value="ALL">🌐 Tất Cả VLAN</option>
+                    {Array.from(new Set(devices.map((d) => d.vlanName).filter(Boolean))).map((vName, idx) => (
+                      <option key={idx} value={vName}>
+                        {vName}
+                      </option>
+                    ))}
+                    {/* Fallback to vlanList if no scanned devices yet */}
+                    {devices.length === 0 &&
+                      vlanList.map((v) => (
+                        <option key={v.id} value={v.name}>
+                          {v.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {/* Device Type Filter */}
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
+                  className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none"
                 >
-                  <option value="ALL">Tất cả thiết bị</option>
+                  <option value="ALL">Tất cả trạng thái</option>
+                  <option value="MATCHED">🟢 Đã quản lý trong hệ thống</option>
                   <option value="NEW">🟡 Chỉ thiết bị mới (Chưa có trong kho)</option>
-                  <option value="MATCHED">🟢 Đã có trong hệ thống</option>
                   <option value="LAPTOP">💻 Máy tính / Laptop</option>
-                  <option value="SWITCH">🔌 Switch / Mạng</option>
                   <option value="PRINTER">🖨️ Máy in</option>
                   <option value="CAMERA">📷 Camera</option>
                   <option value="SERVER">🖥️ Máy chủ</option>
+                  <option value="SWITCH">🔌 Switch / Router</option>
                 </select>
+
+                {/* Export Excel Buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={isExportingExcel || filteredDevices.length === 0}
+                    onClick={() => handleExportExcel('CURRENT_FILTER')}
+                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                    title="Xuất Excel theo bộ lọc / VLAN đang chọn"
+                  >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    <span>{selectedVlanFilter !== 'ALL' ? 'Xuất VLAN Đang Chọn' : 'Xuất Excel Danh Sách'}</span>
+                  </button>
+
+                  {devices.length > 0 && selectedVlanFilter !== 'ALL' && (
+                    <button
+                      type="button"
+                      disabled={isExportingExcel || devices.length === 0}
+                      onClick={() => handleExportExcel('ALL_VLANS')}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      title="Xuất toàn bộ thiết bị thuộc tất cả các VLAN"
+                    >
+                      <Download className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Xuất Tất Cả</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Search within scanned */}
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm kết quả quét theo IP, Hostname, MAC Address, Hãng sản xuất..."
-                value={searchDevice}
-                onChange={(e) => setSearchDevice(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium outline-none text-slate-800 placeholder:text-slate-400"
-              />
-            </div>
-          </div>
-
-          {/* Results Table */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                <Radio className="w-4 h-4 text-indigo-600 animate-pulse" />
-                <span>Danh Sách Thiết Bị Khám Phá ({filteredDevices.length})</span>
-              </h3>
+            {/* Quick Search Bar */}
+            <div className="p-3 bg-slate-50/50 border-b border-slate-100">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm kết quả quét theo IP, Hostname, MAC, Hãng, Mã tài sản hoặc Khoa phòng quản lý..."
+                  value={searchDevice}
+                  onChange={(e) => setSearchDevice(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium outline-none text-slate-800 placeholder:text-slate-400 focus:border-indigo-400"
+                />
+              </div>
             </div>
 
             <div className="overflow-x-auto">
@@ -808,47 +1382,69 @@ export default function DiscoveryPage() {
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
                   <tr>
                     <th className="p-3">Địa Chỉ IP & Hostname</th>
-                    <th className="p-3">Hãng (OUI Vendor) & Model</th>
+                    <th className="p-3">VLAN / Dải Mạng</th>
+                    <th className="p-3">Hãng (OUI) & Model</th>
                     <th className="p-3">Địa Chỉ MAC</th>
                     <th className="p-3">Loại Thiết Bị</th>
-                    <th className="p-3">Cổng Dịch Vụ Mở</th>
-                    <th className="p-3">Trạng Thái Hệ Thống</th>
+                    <th className="p-3">Cổng Mở</th>
+                    <th className="p-3">Trạng Thái & Khoa Phòng</th>
                     <th className="p-3 text-right">Thao Tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {devices.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-8 text-center text-slate-400">
+                      <td colSpan={8} className="p-8 text-center text-slate-400">
                         <Wifi className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                         <p className="font-semibold text-xs text-slate-600">Chưa có kết quả quét nào</p>
-                        <p className="text-[11px] text-slate-400">
-                          Bấm nút <strong>"Bắt Đầu Quét Mạng"</strong> để tự động dò tìm toàn bộ máy tính, máy in, switch trong dải IP.
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          Tích chọn các VLAN mong muốn ở trên và bấm <strong>"Bắt Đầu Quét Mạng"</strong> để tự động dò tìm máy tính, máy in, camera trong mạng nội bộ.
                         </p>
                       </td>
                     </tr>
                   ) : filteredDevices.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-slate-400 text-xs">
+                      <td colSpan={8} className="p-6 text-center text-slate-400 text-xs">
                         Không tìm thấy thiết bị phù hợp với bộ lọc.
                       </td>
                     </tr>
                   ) : (
                     paginatedDevices.map((dev, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                      <tr
+                        key={idx}
+                        className={`hover:bg-indigo-50/40 transition-colors ${
+                          dev.matchedAsset ? 'cursor-pointer' : ''
+                        }`}
+                        onClick={() => {
+                          if (dev.matchedAsset) {
+                            setQuickViewDevice(dev);
+                          }
+                        }}
+                      >
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
                             <div>
-                              <span className="font-mono font-bold text-indigo-600 block">{dev.ipAddress}</span>
-                              <span className="font-semibold text-slate-800 text-[11px]">{dev.hostname}</span>
+                              <span className="font-mono font-bold text-indigo-600 block hover:underline">
+                                {dev.ipAddress}
+                              </span>
+                              <span className="font-semibold text-slate-800 text-[11px] block">{dev.hostname}</span>
                             </div>
                           </div>
                         </td>
 
                         <td className="p-3">
+                          <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-indigo-700 text-[10.5px] font-bold block truncate max-w-[150px]">
+                            {dev.vlanName || 'VLAN Mặc Định'}
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400 block mt-0.5">
+                            {dev.subnet || 'N/A'}
+                          </span>
+                        </td>
+
+                        <td className="p-3">
                           <div className="font-bold text-slate-900">{dev.vendor}</div>
-                          <div className="text-[11px] text-slate-500 truncate max-w-[200px]">
+                          <div className="text-[11px] text-slate-500 truncate max-w-[180px]">
                             {dev.model || dev.os || 'Chưa rõ Model'}
                           </div>
                         </td>
@@ -862,7 +1458,7 @@ export default function DiscoveryPage() {
                         </td>
 
                         <td className="p-3">
-                          <div className="flex items-center gap-1 flex-wrap max-w-[140px]">
+                          <div className="flex items-center gap-1 flex-wrap max-w-[130px]">
                             {dev.openPorts.map((p) => (
                               <span key={p} className="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[9.5px] font-mono">
                                 :{p}
@@ -873,10 +1469,23 @@ export default function DiscoveryPage() {
 
                         <td className="p-3">
                           {dev.matchedAsset ? (
-                            <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold inline-flex items-center gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>[{dev.matchedAsset.assetTag}] Đã Quản Lý</span>
-                            </span>
+                            <div className="space-y-1">
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold inline-flex items-center gap-1">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>[{dev.matchedAsset.assetTag}] Đã Quản Lý</span>
+                              </span>
+                              <div className="flex items-center gap-1 text-[11px] text-slate-600 font-medium">
+                                <Building2 className="w-3 h-3 text-indigo-500 shrink-0" />
+                                <span className="font-bold text-slate-800 truncate max-w-[160px]" title={dev.matchedAsset.department}>
+                                  {dev.matchedAsset.department || 'Chưa gán khoa phòng'}
+                                </span>
+                              </div>
+                              {dev.matchedAsset.assignedTo && dev.matchedAsset.assignedTo !== 'Chưa cấp phát' && (
+                                <div className="text-[10px] text-slate-500 truncate max-w-[160px]">
+                                  👤 {dev.matchedAsset.assignedTo}
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10.5px] font-bold inline-flex items-center gap-1">
                               <AlertTriangle className="w-3 h-3" />
@@ -885,15 +1494,19 @@ export default function DiscoveryPage() {
                           )}
                         </td>
 
-                        <td className="p-3 text-right">
+                        <td className="p-3 text-right" onClick={(e) => e.stopPropagation()}>
                           {dev.matchedAsset ? (
-                            <a
-                              href={`/assets?id=${dev.matchedAsset.id}`}
-                              className="px-2.5 py-1 text-slate-600 hover:text-indigo-600 rounded-lg hover:bg-slate-100 text-xs font-semibold inline-flex items-center gap-1"
-                            >
-                              <span>Xem Tài Sản</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setQuickViewDevice(dev)}
+                                className="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition-all cursor-pointer shadow-2xs"
+                                title="Xem nhanh thông tin thiết bị và khoa phòng quản lý ngay tại đây"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Xem Nhanh</span>
+                              </button>
+                            </div>
                           ) : (
                             <button
                               type="button"
@@ -1300,6 +1913,281 @@ export default function DiscoveryPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL: ADD CUSTOM VLAN ==================== */}
+      {isVlanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 space-y-4 animate-in zoom-in-95 text-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                  <Layers className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900">Thêm Dải VLAN Quét Mới</h3>
+                  <span className="text-[11px] text-slate-500">Cấu hình dải mạng / VLAN cần quét dò tìm</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVlanModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddVlan} className="space-y-3">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Tên VLAN (*):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: VLAN 40 - Phòng Kế Toán, VLAN 100 - Kho Dược..."
+                  value={newVlanForm.name}
+                  onChange={(e) => setNewVlanForm({ ...newVlanForm, name: e.target.value })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Dải Mạng (Subnet CIDR) (*):</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="VD: 192.168.40.0/24"
+                  value={newVlanForm.subnet}
+                  onChange={(e) => {
+                    const sub = e.target.value;
+                    const p = sub.split('/')[0].split('.');
+                    if (p.length >= 3) {
+                      setNewVlanForm({
+                        ...newVlanForm,
+                        subnet: sub,
+                        ipStart: `${p[0]}.${p[1]}.${p[2]}.1`,
+                        ipEnd: `${p[0]}.${p[1]}.${p[2]}.254`,
+                      });
+                    } else {
+                      setNewVlanForm({ ...newVlanForm, subnet: sub });
+                    }
+                  }}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono font-bold text-indigo-700 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">IP Bắt Đầu:</label>
+                  <input
+                    type="text"
+                    required
+                    value={newVlanForm.ipStart}
+                    onChange={(e) => setNewVlanForm({ ...newVlanForm, ipStart: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">IP Kết Thúc:</label>
+                  <input
+                    type="text"
+                    required
+                    value={newVlanForm.ipEnd}
+                    onChange={(e) => setNewVlanForm({ ...newVlanForm, ipEnd: e.target.value })}
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Mô Tả / Ghi Chú:</label>
+                <input
+                  type="text"
+                  placeholder="VD: Khu vực văn phòng lầu 3, Switch Cisco cổng G0/2..."
+                  value={newVlanForm.description}
+                  onChange={(e) => setNewVlanForm({ ...newVlanForm, description: e.target.value })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsVlanModalOpen(false)}
+                  className="px-4 py-2 border border-slate-200 rounded-xl font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Lưu VLAN</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== MODAL: INSTANT ASSET QUICK VIEW & DEPARTMENT ==================== */}
+      {quickViewDevice && quickViewDevice.matchedAsset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden animate-in zoom-in-95">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-700 via-indigo-800 to-blue-800 text-white p-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20 shadow-inner shrink-0">
+                  <Laptop className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-mono text-xs font-black px-2 py-0.5 rounded-lg bg-emerald-500 text-white shadow-xs">
+                      {quickViewDevice.matchedAsset.assetTag}
+                    </span>
+                    <span className="text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
+                      {quickViewDevice.matchedAsset.categoryName || 'Thiết bị IT'}
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-white mt-1">
+                    {quickViewDevice.matchedAsset.name}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickViewDevice(null)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+              {/* NỔI BẬT: KHOA / PHÒNG QUẢN LÝ */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50/70 border-2 border-indigo-200/80 rounded-2xl p-4 shadow-xs space-y-3">
+                <div className="flex items-center justify-between border-b border-indigo-100 pb-2">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-indigo-700 flex items-center gap-1.5">
+                    <Building2 className="w-4 h-4 text-indigo-600" />
+                    <span>Đơn Vị & Khoa Phòng Quản Lý</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10.5px] font-bold">
+                    ✓ Đang Quản Lý
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Khoa / Phòng trực thuộc:</span>
+                    <span className="text-sm font-black text-indigo-900 block mt-0.5">
+                      {quickViewDevice.matchedAsset.department || 'Chưa gán khoa phòng'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-500 text-[11px] block">Người phụ trách / Đang sử dụng:</span>
+                    <span className="text-sm font-bold text-slate-800 block mt-0.5 flex items-center gap-1">
+                      <UserIcon className="w-3.5 h-3.5 text-indigo-600" />
+                      {quickViewDevice.matchedAsset.assignedTo || 'Chưa cấp phát'}
+                    </span>
+                    {quickViewDevice.matchedAsset.assignedUserPhone && (
+                      <span className="text-[11px] text-slate-500 block">
+                        SĐT: {quickViewDevice.matchedAsset.assignedUserPhone}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2 pt-1 border-t border-indigo-100/60 flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-1.5 text-slate-600">
+                      <MapPin className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                      <span>Vị trí: <strong>{quickViewDevice.matchedAsset.locationName || 'Chưa thiết lập'}</strong></span>
+                    </div>
+                    {quickViewDevice.matchedAsset.assignedAt && (
+                      <span className="text-[11px] text-slate-400">
+                        Bàn giao: {new Date(quickViewDevice.matchedAsset.assignedAt).toLocaleDateString('vi-VN')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* THÔNG SỐ CƠ BẢN CỦA THIẾT BỊ */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2.5">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Thông Số Cơ Bản Tài Sản</span>
+                </span>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Hãng sản xuất:</span>
+                    <span className="font-bold text-slate-800">{quickViewDevice.matchedAsset.brand || quickViewDevice.vendor}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Model:</span>
+                    <span className="font-bold text-slate-800">{quickViewDevice.matchedAsset.model || quickViewDevice.model || 'Chưa rõ'}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Số Serial:</span>
+                    <span className="font-mono font-bold text-indigo-600">{quickViewDevice.matchedAsset.serialNumber || 'N/A'}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Trạng thái kho:</span>
+                    <span className="font-bold text-emerald-600">{quickViewDevice.matchedAsset.status}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Tình trạng vật lý:</span>
+                    <span className="font-bold text-slate-700">{quickViewDevice.matchedAsset.condition || 'Bình thường'}</span>
+                  </div>
+                  <div className="bg-white p-2.5 rounded-xl border border-slate-100">
+                    <span className="text-[10.5px] text-slate-400 block">Phân loại:</span>
+                    <span className="font-bold text-slate-700">{quickViewDevice.deviceType}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* THÔNG TIN PHÁT HIỆN MẠNG THỰC TẾ */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-600 block flex items-center gap-1.5">
+                  <Radio className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Thông Tin Mạng Thực Tế (Scan Discovery)</span>
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div>VLAN: <strong className="text-indigo-700">{quickViewDevice.vlanName || 'VLAN Mặc Định'}</strong></div>
+                  <div>Subnet: <strong className="font-mono text-slate-700">{quickViewDevice.subnet || 'N/A'}</strong></div>
+                  <div>Địa chỉ IP: <strong className="font-mono text-indigo-600">{quickViewDevice.ipAddress}</strong></div>
+                  <div>Địa chỉ MAC: <strong className="font-mono text-slate-700">{quickViewDevice.macAddress}</strong></div>
+                  <div className="col-span-2">Cổng mở phát hiện: <span className="font-mono text-slate-600">{quickViewDevice.openPorts.map(p => ':' + p).join(' ') || 'Không có cổng mở phổ biến'}</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const assetId = quickViewDevice.matchedAsset?.id;
+                  setQuickViewDevice(null);
+                  if (assetId) openQuickView('asset', assetId);
+                }}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Mở Toàn Bộ Hồ Sơ Chi Tiết (Drawer)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setQuickViewDevice(null)}
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}
