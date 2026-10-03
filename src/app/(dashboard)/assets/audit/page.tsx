@@ -248,13 +248,20 @@ export default function AssetsAuditPage() {
   const [locationSearchText, setLocationSearchText] = useState('');
   const [isDraggingPhoto, setIsDraggingPhoto] = useState(false);
 
-  // Tab inside Workspace: 'SCAN' (Quét & Đối Soát) | 'SHEET1' (Bảng Kiểm Kê Mẫu Hình 1) | 'REPORT2' (Báo Cáo Kiểm Kê TSCĐ Mẫu Hình 2)
+  // Tab inside Workspace: 'SCAN' (Quét & Đối Soát) | 'SHEET1' (Bảng Kiểm Kê Chi Tiết) | 'REPORT2' (Báo Cáo Kiểm Kê TSCĐ)
   const [workspaceTab, setWorkspaceTab] = useState<'SCAN' | 'SHEET1' | 'REPORT2'>('SCAN');
 
-  // Edit Item Details Modal (Hình 1 & 2)
+  // Edit Item Details Modal
   const [editingAuditItem, setEditingAuditItem] = useState<AuditItem | null>(null);
   const [isSavingItemDetail, setIsSavingItemDetail] = useState(false);
   const [reportUnit, setReportUnit] = useState<'THOUSAND' | 'VND'>('THOUSAND');
+
+  // Bộ lọc tùy chỉnh cho Báo cáo kiểm kê (Sheet 1 & Báo cáo TSCĐ)
+  const [reportFilterDepartment, setReportFilterDepartment] = useState<string>('ALL');
+  const [reportFilterCategory, setReportFilterCategory] = useState<string>('ALL');
+  const [reportFilterAuditStatus, setReportFilterAuditStatus] = useState<string>('ALL');
+  const [reportFilterCondition, setReportFilterCondition] = useState<string>('ALL');
+  const [reportFilterKeyword, setReportFilterKeyword] = useState<string>('');
 
   // ESC key listener to close active modals & dropdowns
   useEffect(() => {
@@ -917,23 +924,25 @@ export default function AssetsAuditPage() {
     });
   };
 
-  // ==================== EXPORT EXCEL SHEET 1 (MẪU HÌNH 1) ====================
+  // ==================== EXPORT EXCEL SHEET 1 (BẢNG KIỂM KÊ CHI TIẾT) ====================
   const handleExportSheet1Excel = async () => {
     if (!currentSession || currentSession.items.length === 0) return;
+    const exportItems = filteredReportItems.length > 0 ? filteredReportItems : currentSession.items;
 
     try {
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'Simply IT Asset Management';
       workbook.created = new Date();
 
-      const sheet = workbook.addWorksheet('Bảng Kiểm Kê Mẫu 1', {
+      const sheet = workbook.addWorksheet('Bảng Kiểm Kê Chi Tiết', {
         views: [{ showGridLines: true }],
       });
 
       // Dòng 1: Tiêu đề
       sheet.mergeCells('A1:T1');
       const titleCell = sheet.getCell('A1');
-      titleCell.value = `BẢNG KIỂM KÊ TÀI SẢN CỐ ĐỊNH & THIẾT BỊ CNTT - ${currentSession.title.toUpperCase()}`;
+      const deptTitle = reportFilterDepartment !== 'ALL' ? ` - KHOA/PHÒNG: ${reportFilterDepartment.toUpperCase()}` : '';
+      titleCell.value = `BẢNG KIỂM KÊ TÀI SẢN CỐ ĐỊNH & THIẾT BỊ CNTT - ${currentSession.title.toUpperCase()}${deptTitle}`;
       titleCell.font = { name: 'Times New Roman', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
       titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E40AF' } };
       titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
@@ -1005,8 +1014,8 @@ export default function AssetsAuditPage() {
         });
       });
 
-      // Data rows
-      currentSession.items.forEach((item, idx) => {
+      // Data rows (lấy theo exportItems)
+      exportItems.forEach((item, idx) => {
         const bQty = Number(item.bookQuantity) || 1;
         const bPrc = Number(item.bookPrice) || 0;
         const bRem = Number(item.bookRemainingValue) || 0;
@@ -1092,33 +1101,36 @@ export default function AssetsAuditPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Bang-Kiem-Ke-Tai-San-${currentSession.title.replace(/[\s/]/g, '-')}.xlsx`;
+      const deptSlug = reportFilterDepartment !== 'ALL' ? `-${reportFilterDepartment.replace(/[\s/]/g, '-')}` : '';
+      link.download = `Bang-Kiem-Ke-Chi-Tiet-${currentSession.title.replace(/[\s/]/g, '-')}${deptSlug}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error('Export sheet 1 error:', e);
-      alert('Không thể xuất file Excel Mẫu 1.');
+      alert('Không thể xuất file Excel Bảng Kiểm Kê Chi Tiết.');
     }
   };
 
-  // ==================== EXPORT EXCEL REPORT 2 (MẪU HÌNH 2: BÁO CÁO TSCĐ KHO CNTT) ====================
+  // ==================== EXPORT EXCEL REPORT 2 (BÁO CÁO KIỂM KÊ TSCĐ) ====================
   const handleExportReport2Excel = async () => {
     if (!currentSession || currentSession.items.length === 0) return;
+    const exportItems = filteredReportItems.length > 0 ? filteredReportItems : currentSession.items;
 
     try {
       const workbook = new ExcelJS.Workbook();
       workbook.creator = 'Simply IT Asset Management';
       workbook.created = new Date();
 
-      const sheet = workbook.addWorksheet('BC Kiểm Kê TSCĐ Kho CNTT', {
+      const sheet = workbook.addWorksheet('BC Kiểm Kê TSCĐ', {
         views: [{ showGridLines: true }],
       });
 
-      // Dòng 1: Tiêu đề báo cáo
+      // Dòng 1: Tiêu đề báo cáo (tự động cập nhật theo Khoa / Phòng ban được chọn)
+      const targetDept = reportFilterDepartment !== 'ALL' ? reportFilterDepartment : (currentSession.title || 'Kho CNTT');
       const r1 = sheet.getRow(1);
-      r1.getCell(2).value = 'Đã kiểm kê TSCĐ Kho CNTT, kết quả như sau:';
+      r1.getCell(2).value = `Đã kiểm kê TSCĐ ${targetDept}, kết quả như sau:`;
       r1.getCell(2).font = { name: 'Times New Roman', size: 11, bold: true, italic: true };
       r1.height = 24;
 
@@ -1204,13 +1216,13 @@ export default function AssetsAuditPage() {
         });
       });
 
-      // Phân nhóm
+      // Phân nhóm theo exportItems đã lọc
       const groups: Record<string, AuditItem[]> = {
         'Máy móc, thiết bị': [],
         'Thiết bị trả kho': [],
         'Theo dõi ngoài sổ': [],
       };
-      currentSession.items.forEach((item) => {
+      exportItems.forEach((item) => {
         let g = item.assetGroup || 'Máy móc, thiết bị';
         if (!groups[g]) groups[g] = [];
         groups[g].push(item);
@@ -1345,7 +1357,7 @@ export default function AssetsAuditPage() {
           cell.alignment = { vertical: 'middle', horizontal: 'right' };
           cell.numFmt = '#,##0.00';
         }
-        // Highlight vàng cho ô Thành tiền tiêu hao tổng cộng giống Hình 2
+        // Highlight vàng cho ô Thành tiền tiêu hao tổng cộng
         if (colNum === 19) {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF08A' } };
         }
@@ -1383,14 +1395,15 @@ export default function AssetsAuditPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `Bao-Cao-Kiem-Ke-TSCD-Kho-CNTT-${currentSession.title.replace(/[\s/]/g, '-')}.xlsx`;
+      const deptSlug = reportFilterDepartment !== 'ALL' ? `-${reportFilterDepartment.replace(/[\s/]/g, '-')}` : '';
+      link.download = `Bao-Cao-Kiem-Ke-TSCD-${currentSession.title.replace(/[\s/]/g, '-')}${deptSlug}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error('Export report 2 error:', e);
-      alert('Không thể xuất Báo cáo kiểm kê TSCĐ Mẫu 2.');
+      alert('Không thể xuất Báo cáo kiểm kê TSCĐ.');
     }
   };
 
@@ -1444,16 +1457,145 @@ export default function AssetsAuditPage() {
     }
   };
 
-  // Nhóm thiết bị cho Báo cáo Mẫu 2
+  // Danh sách Khoa / Phòng ban cho bộ lọc báo cáo
+  const reportDepartmentOptions = useMemo(() => {
+    const set = new Set<string>();
+    if (currentSession && currentSession.items) {
+      currentSession.items.forEach((it) => {
+        if (it.department?.trim()) set.add(it.department.trim());
+        if (it.actualLocationName?.trim()) set.add(it.actualLocationName.trim());
+        if (it.systemLocationName?.trim()) set.add(it.systemLocationName.trim());
+      });
+    }
+    locations.forEach((loc) => {
+      if (loc?.name?.trim()) set.add(loc.name.trim());
+    });
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
+  }, [currentSession, locations]);
+
+  // Danh sách Loại thiết bị cho bộ lọc báo cáo
+  const reportCategoryOptions = useMemo(() => {
+    const set = new Set<string>();
+    if (currentSession && currentSession.items) {
+      currentSession.items.forEach((it) => {
+        if (it.categoryName?.trim()) set.add(it.categoryName.trim());
+      });
+    }
+    categories.forEach((cat) => {
+      if (cat?.name?.trim()) set.add(cat.name.trim());
+    });
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b, 'vi'));
+  }, [currentSession, categories]);
+
+  // Kiểm tra xem có bộ lọc nào đang được áp dụng
+  const hasActiveReportFilter = useMemo(() => {
+    return (
+      reportFilterDepartment !== 'ALL' ||
+      reportFilterCategory !== 'ALL' ||
+      reportFilterAuditStatus !== 'ALL' ||
+      reportFilterCondition !== 'ALL' ||
+      reportFilterKeyword.trim() !== ''
+    );
+  }, [reportFilterDepartment, reportFilterCategory, reportFilterAuditStatus, reportFilterCondition, reportFilterKeyword]);
+
+  // Đặt lại bộ lọc
+  const handleResetReportFilters = () => {
+    setReportFilterDepartment('ALL');
+    setReportFilterCategory('ALL');
+    setReportFilterAuditStatus('ALL');
+    setReportFilterCondition('ALL');
+    setReportFilterKeyword('');
+  };
+
+  // Chuyển nhanh sang đợt kiểm kê khác từ dropdown bộ lọc
+  const handleSelectCampaignForReport = (campaignId: string) => {
+    const camp = campaigns.find((c) => c.id === campaignId);
+    if (camp) {
+      handleOpenCampaignWorkspace(camp, workspaceTab);
+    }
+  };
+
+  // Dữ liệu tài sản sau khi áp dụng toàn diện các bộ lọc (Khoa/Phòng, Loại TB, Trạng thái kiểm kê, Tình trạng, Từ khóa)
+  const filteredReportItems = useMemo(() => {
+    if (!currentSession || !currentSession.items) return [];
+
+    return currentSession.items.filter((item) => {
+      // 1. Lọc theo Khoa / Phòng ban
+      if (reportFilterDepartment !== 'ALL') {
+        const targetDept = reportFilterDepartment.trim().toLowerCase();
+        const itemDept = (item.department || '').trim().toLowerCase();
+        const actLoc = (item.actualLocationName || '').trim().toLowerCase();
+        const sysLoc = (item.systemLocationName || '').trim().toLowerCase();
+        const matchedDept =
+          itemDept === targetDept ||
+          actLoc === targetDept ||
+          sysLoc === targetDept ||
+          itemDept.includes(targetDept) ||
+          actLoc.includes(targetDept) ||
+          sysLoc.includes(targetDept);
+        if (!matchedDept) return false;
+      }
+
+      // 2. Lọc theo Loại thiết bị
+      if (reportFilterCategory !== 'ALL') {
+        const targetCat = reportFilterCategory.trim().toLowerCase();
+        const itemCat = (item.categoryName || '').trim().toLowerCase();
+        if (itemCat !== targetCat && !itemCat.includes(targetCat)) {
+          return false;
+        }
+      }
+
+      // 3. Lọc theo Trạng thái đối soát / kiểm kê
+      if (reportFilterAuditStatus !== 'ALL') {
+        if (reportFilterAuditStatus === 'AUDITED') {
+          if (item.auditStatus === 'PENDING') return false;
+        } else if (item.auditStatus !== reportFilterAuditStatus) {
+          return false;
+        }
+      }
+
+      // 4. Lọc theo Tình trạng vật lý thiết bị
+      if (reportFilterCondition !== 'ALL') {
+        const cond = item.actualCondition || item.systemCondition;
+        if (cond !== reportFilterCondition) return false;
+      }
+
+      // 5. Lọc theo từ khóa tìm kiếm
+      if (reportFilterKeyword.trim()) {
+        const q = reportFilterKeyword.trim().toLowerCase();
+        const match =
+          (item.name && item.name.toLowerCase().includes(q)) ||
+          (item.assetTag && item.assetTag.toLowerCase().includes(q)) ||
+          (item.serialNumber && item.serialNumber.toLowerCase().includes(q)) ||
+          (item.actualUserName && item.actualUserName.toLowerCase().includes(q)) ||
+          (item.systemUserName && item.systemUserName.toLowerCase().includes(q)) ||
+          (item.department && item.department.toLowerCase().includes(q)) ||
+          (item.actualLocationName && item.actualLocationName.toLowerCase().includes(q)) ||
+          (item.actualNotes && item.actualNotes.toLowerCase().includes(q));
+        if (!match) return false;
+      }
+
+      return true;
+    });
+  }, [
+    currentSession,
+    reportFilterDepartment,
+    reportFilterCategory,
+    reportFilterAuditStatus,
+    reportFilterCondition,
+    reportFilterKeyword,
+  ]);
+
+  // Nhóm thiết bị cho Báo Cáo Kiểm Kê TSCĐ (áp dụng theo danh sách đã lọc)
   const groupedReportItems = useMemo(() => {
-    if (!currentSession || !currentSession.items) return {};
+    if (!filteredReportItems || filteredReportItems.length === 0) return {};
     const groups: Record<string, AuditItem[]> = {
       'Máy móc, thiết bị': [],
       'Thiết bị trả kho': [],
       'Theo dõi ngoài sổ': [],
     };
 
-    currentSession.items.forEach((item) => {
+    filteredReportItems.forEach((item) => {
       let g = item.assetGroup;
       if (!g) {
         if (item.actualStatus === 'AVAILABLE' || item.systemStatus === 'AVAILABLE' || item.systemStatus === 'RETIRED') {
@@ -1469,11 +1611,11 @@ export default function AssetsAuditPage() {
     });
 
     return groups;
-  }, [currentSession]);
+  }, [filteredReportItems]);
 
-  // Tổng hợp số liệu Báo cáo Mẫu 2
+  // Tổng hợp số liệu Báo Cáo Kiểm Kê TSCĐ (áp dụng theo danh sách đã lọc)
   const reportTotals = useMemo(() => {
-    if (!currentSession || !currentSession.items) {
+    if (!filteredReportItems || filteredReportItems.length === 0) {
       return {
         bookQty: 0,
         bookPrice: 0,
@@ -1497,7 +1639,7 @@ export default function AssetsAuditPage() {
     let dPrc = 0;
     let dRem = 0;
 
-    currentSession.items.forEach((it) => {
+    filteredReportItems.forEach((it) => {
       const q1 = Number(it.bookQuantity) || 1;
       const p1 = toThousandVal(it.bookPrice);
       const r1 = toThousandVal(it.bookRemainingValue);
@@ -1530,7 +1672,7 @@ export default function AssetsAuditPage() {
       bookBookVal: bPrc,
       deprCost: bPrc,
     };
-  }, [currentSession]);
+  }, [filteredReportItems]);
 
   // ==================== OPEN MOBILE SHARE MODAL ====================
   const openShareModal = async (hostOverride?: string) => {
@@ -2021,7 +2163,7 @@ export default function AssetsAuditPage() {
                             handleOpenCampaignWorkspace(camp, 'REPORT2');
                           }}
                           className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="Xem Báo cáo kiểm kê TSCĐ Mẫu Hình 2"
+                          title="Xem Báo Cáo Kiểm Kê TSCĐ"
                         >
                           <Layers className="w-3.5 h-3.5 text-amber-500" />
                           <span>Báo Cáo</span>
@@ -2170,7 +2312,7 @@ export default function AssetsAuditPage() {
                   }`}
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>2. Bảng Kiểm Kê (Mẫu Hình 1)</span>
+                  <span>2. Bảng Kiểm Kê Chi Tiết</span>
                 </button>
 
                 <button
@@ -2183,7 +2325,7 @@ export default function AssetsAuditPage() {
                   }`}
                 >
                   <Layers className="w-3.5 h-3.5 text-amber-600" />
-                  <span>3. Báo Cáo TSCĐ Kho CNTT (Mẫu Hình 2)</span>
+                  <span>3. Báo Cáo Kiểm Kê TSCĐ</span>
                 </button>
               </div>
 
@@ -2196,7 +2338,7 @@ export default function AssetsAuditPage() {
                     className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Xuất Excel Phiếu Kiểm Kê (Mẫu 1)</span>
+                    <span>Xuất Excel Bảng Kiểm Kê</span>
                   </button>
                 )}
 
@@ -2208,7 +2350,7 @@ export default function AssetsAuditPage() {
                       className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <DollarSign className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Đvt: <strong>{reportUnit === 'THOUSAND' ? 'Nghìn đồng (Hình 2)' : 'Đồng (VND)'}</strong></span>
+                      <span>Đvt: <strong>{reportUnit === 'THOUSAND' ? 'Nghìn đồng' : 'Đồng (VND)'}</strong></span>
                     </button>
                     <button
                       type="button"
@@ -2216,13 +2358,181 @@ export default function AssetsAuditPage() {
                       className="px-3.5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
-                      <span>Xuất Báo Cáo TSCĐ Excel (Mẫu 2)</span>
+                      <span>Xuất Báo Cáo TSCĐ (Excel)</span>
                     </button>
                   </>
                 )}
               </div>
             </div>
           </div>
+
+          {/* ========================================================================= */}
+          {/* ==================== BỘ LỌC BÁO CÁO KIỂM KÊ ĐA NĂNG ===================== */}
+          {/* ========================================================================= */}
+          {(workspaceTab === 'SHEET1' || workspaceTab === 'REPORT2') && (
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                    <Filter className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                      <span>Bộ Lọc Báo Cáo Kiểm Kê</span>
+                      {hasActiveReportFilter && (
+                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-[10px] font-bold">
+                          Đang lọc
+                        </span>
+                      )}
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Tùy chọn hiển thị báo cáo theo khoa phòng ban, loại thiết bị, đợt kiểm kê & trạng thái đối soát
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                    Hiển thị: <strong className="text-indigo-600 font-mono font-bold">{filteredReportItems.length}</strong> / {currentSession.items.length} tài sản
+                  </span>
+                  {hasActiveReportFilter && (
+                    <button
+                      type="button"
+                      onClick={handleResetReportFilters}
+                      className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+                      title="Đặt lại toàn bộ tiêu chí lọc"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Đặt lại</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Grid 5 Dropdowns */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                {/* 1. Chọn Đợt kiểm kê */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Đợt kiểm kê:</span>
+                  </label>
+                  <select
+                    value={currentSession.id}
+                    onChange={(e) => handleSelectCampaignForReport(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-indigo-500 outline-none transition-all cursor-pointer"
+                  >
+                    {campaigns.map((camp) => (
+                      <option key={camp.id} value={camp.id}>
+                        {camp.title} ({camp.status === 'COMPLETED' ? 'Đã chốt' : 'Đang kiểm'})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 2. Chọn Khoa / Phòng ban */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Building className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Khoa / Phòng ban:</span>
+                  </label>
+                  <select
+                    value={reportFilterDepartment}
+                    onChange={(e) => setReportFilterDepartment(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-indigo-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="ALL">-- Tất cả Khoa / Phòng ban --</option>
+                    {reportDepartmentOptions.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 3. Chọn Loại thiết bị */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Laptop className="w-3.5 h-3.5 text-blue-500" />
+                    <span>Loại thiết bị:</span>
+                  </label>
+                  <select
+                    value={reportFilterCategory}
+                    onChange={(e) => setReportFilterCategory(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-indigo-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="ALL">-- Tất cả loại thiết bị --</option>
+                    {reportCategoryOptions.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. Chọn Trạng thái kiểm kê */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Trạng thái kiểm kê:</span>
+                  </label>
+                  <select
+                    value={reportFilterAuditStatus}
+                    onChange={(e) => setReportFilterAuditStatus(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-indigo-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="ALL">-- Tất cả trạng thái --</option>
+                    <option value="AUDITED">Đã kiểm kê (Khớp, Lệch, Báo hỏng)</option>
+                    <option value="MATCHED">✅ Khớp thông tin (OK)</option>
+                    <option value="MISMATCH_LOCATION_USER">⚠️ Sai lệch vị trí / Người dùng</option>
+                    <option value="DAMAGED_OR_LOST">❌ Báo hỏng / Thất thoát</option>
+                    <option value="PENDING">⏳ Chưa kiểm kê (Chờ quét)</option>
+                  </select>
+                </div>
+
+                {/* 5. Tình trạng thiết bị */}
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Tình trạng thiết bị:</span>
+                  </label>
+                  <select
+                    value={reportFilterCondition}
+                    onChange={(e) => setReportFilterCondition(e.target.value)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:border-indigo-500 outline-none transition-all cursor-pointer"
+                  >
+                    <option value="ALL">-- Tất cả tình trạng --</option>
+                    <option value="NEW">Mới (100%)</option>
+                    <option value="GOOD">Tốt (Hoạt động tốt)</option>
+                    <option value="FAIR">Bình thường / Trung bình</option>
+                    <option value="POOR">Kém / Cần bảo trì</option>
+                    <option value="BROKEN">Hỏng / Không hoạt động</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Tìm kiếm từ khóa */}
+              <div className="relative flex items-center pt-1">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm nhanh trong báo cáo theo tên tài sản, mã tag, serial, người dùng, vị trí..."
+                  value={reportFilterKeyword}
+                  onChange={(e) => setReportFilterKeyword(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                />
+                {reportFilterKeyword && (
+                  <button
+                    type="button"
+                    onClick={() => setReportFilterKeyword('')}
+                    className="absolute right-2.5 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ========================================================================= */}
           {/* ==================== TAB 1: WORKSPACE SCANNING & RECONCILIATION ========= */}
@@ -3053,7 +3363,7 @@ export default function AssetsAuditPage() {
                               type="button"
                               onClick={() => setEditingAuditItem(item)}
                               className="p-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold cursor-pointer transition-colors border border-slate-200 inline-flex items-center"
-                              title="Sửa thông tin kiểm kê (Mẫu Hình 1 & 2)"
+                              title="Sửa thông tin kiểm kê chi tiết"
                             >
                               <Edit3 className="w-3.5 h-3.5 text-slate-600" />
                             </button>
@@ -3082,7 +3392,7 @@ export default function AssetsAuditPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* ==================== TAB 2: BẢNG KIỂM KÊ MẪU HÌNH 1 ===================== */}
+      {/* ==================== TAB 2: BẢNG KIỂM KÊ CHI TIẾT ======================= */}
       {/* ========================================================================= */}
       {workspaceTab === 'SHEET1' && (
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
@@ -3090,10 +3400,15 @@ export default function AssetsAuditPage() {
             <div className="space-y-0.5">
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
                 <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                <span>Bảng Kiểm Kê Tài Sản Cố Định (Theo Mẫu Biểu Phiếu Kiểm Kê - Hình 1)</span>
+                <span>Bảng Kiểm Kê Chi Tiết Tài Sản Cố Định</span>
               </h3>
               <p className="text-xs text-slate-500">
                 Hiển thị 20 cột đối chiếu số liệu theo sổ kế toán, kiểm kê thực tế và chênh lệch
+                {reportFilterDepartment !== 'ALL' && (
+                  <span className="ml-2 font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                    Phòng ban: {reportFilterDepartment}
+                  </span>
+                )}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -3103,7 +3418,7 @@ export default function AssetsAuditPage() {
                 className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Download className="w-4 h-4" />
-                <span>Xuất File Excel Mẫu 1</span>
+                <span>Xuất Excel Bảng Kiểm Kê</span>
               </button>
             </div>
           </div>
@@ -3144,61 +3459,69 @@ export default function AssetsAuditPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {currentSession.items.map((item, idx) => {
-                  const bQty = Number(item.bookQuantity) || 1;
-                  const bPrc = Number(item.bookPrice) || 0;
-                  const bRem = Number(item.bookRemainingValue) || 0;
-                  const isLost = item.auditStatus === 'DAMAGED_OR_LOST';
-                  const aQty = item.actualQuantity !== undefined ? Number(item.actualQuantity) : (isLost ? 0 : bQty);
-                  const aPrc = item.actualPrice !== undefined ? Number(item.actualPrice) : (isLost ? 0 : bPrc);
-                  const aRem = item.actualRemainingValue !== undefined ? Number(item.actualRemainingValue) : (isLost ? 0 : bRem);
-                  const dQty = aQty - bQty;
-                  const dPrc = aPrc - bPrc;
-                  const dRem = aRem - bRem;
-                  const auditDate = item.inUseDate || (item.auditedAt ? new Date(item.auditedAt).toLocaleDateString('vi-VN') : '27/07/2026');
-                  const locName = item.department || item.actualLocationName || item.systemLocationName || 'Khoa Nhi';
+                {filteredReportItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={20} className="p-8 text-center text-slate-400 text-xs">
+                      Không có tài sản nào phù hợp với bộ lọc đã chọn. Vui lòng điều chỉnh tiêu chí lọc.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredReportItems.map((item, idx) => {
+                    const bQty = Number(item.bookQuantity) || 1;
+                    const bPrc = Number(item.bookPrice) || 0;
+                    const bRem = Number(item.bookRemainingValue) || 0;
+                    const isLost = item.auditStatus === 'DAMAGED_OR_LOST';
+                    const aQty = item.actualQuantity !== undefined ? Number(item.actualQuantity) : (isLost ? 0 : bQty);
+                    const aPrc = item.actualPrice !== undefined ? Number(item.actualPrice) : (isLost ? 0 : bPrc);
+                    const aRem = item.actualRemainingValue !== undefined ? Number(item.actualRemainingValue) : (isLost ? 0 : bRem);
+                    const dQty = aQty - bQty;
+                    const dPrc = aPrc - bPrc;
+                    const dRem = aRem - bRem;
+                    const auditDate = item.inUseDate || (item.auditedAt ? new Date(item.auditedAt).toLocaleDateString('vi-VN') : '27/07/2026');
+                    const locName = item.department || item.actualLocationName || item.systemLocationName || 'Khoa Nhi';
 
-                  return (
-                    <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="p-2 text-center font-mono text-slate-400 border-r border-slate-100">{idx + 1}</td>
-                      <td className="p-2 text-center font-mono text-slate-300 border-r border-slate-100"></td>
-                      <td className="p-2 font-bold text-slate-900 border-r border-slate-100">
-                        <div>{item.name}</div>
-                        <div className="text-[10px] font-mono text-slate-400">[{item.assetTag}]</div>
-                      </td>
-                      <td className="p-2 text-center text-slate-600 border-r border-slate-100 font-mono">{auditDate}</td>
-                      <td className="p-2 text-slate-700 font-medium border-r border-slate-100">{locName}</td>
-                      <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.brand || '—'}</td>
-                      <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.countryOfOrigin || 'Việt Nam'}</td>
-                      <td className="p-2 text-center text-slate-600 border-r border-slate-100 font-mono">{item.inUseYear || '2023'}</td>
-                      {/* Sổ kế toán */}
-                      <td className="p-2 text-center font-mono font-bold text-slate-800 border-r border-slate-100">{bQty}</td>
-                      <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{bPrc > 0 ? bPrc.toLocaleString('vi-VN') : '—'}</td>
-                      <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{bRem > 0 ? bRem.toLocaleString('vi-VN') : '—'}</td>
-                      {/* Kiểm kê */}
-                      <td className={`p-2 text-center font-mono font-bold border-r border-slate-100 ${isLost ? 'text-rose-600 bg-rose-50/50' : 'text-emerald-700'}`}>{aQty}</td>
-                      <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{aPrc > 0 ? aPrc.toLocaleString('vi-VN') : '—'}</td>
-                      <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{aRem > 0 ? aRem.toLocaleString('vi-VN') : '—'}</td>
-                      {/* Chênh lệch */}
-                      <td className={`p-2 text-center font-mono font-bold border-r border-slate-100 ${dQty !== 0 ? 'text-rose-600' : 'text-slate-400'}`}>{dQty !== 0 ? dQty : '0'}</td>
-                      <td className="p-2 text-right font-mono text-slate-500 border-r border-slate-100">{dPrc !== 0 ? dPrc.toLocaleString('vi-VN') : '—'}</td>
-                      <td className="p-2 text-right font-mono text-slate-500 border-r border-slate-100">{dRem !== 0 ? dRem.toLocaleString('vi-VN') : '—'}</td>
-                      <td className="p-2 text-slate-600 border-r border-slate-100 truncate max-w-[140px]">{item.actualNotes || '—'}</td>
-                      <td className="p-2 text-slate-600 border-r border-slate-100">{item.department || locName}</td>
-                      <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.warehouse || 'Kho CNTT'}</td>
-                      <td className="p-2 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setEditingAuditItem(item)}
-                          className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
-                          title="Chỉnh sửa thông tin kiểm kê"
-                        >
-                          <Edit3 className="w-3.5 h-3.5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                    return (
+                      <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="p-2 text-center font-mono text-slate-400 border-r border-slate-100">{idx + 1}</td>
+                        <td className="p-2 text-center font-mono text-slate-300 border-r border-slate-100"></td>
+                        <td className="p-2 font-bold text-slate-900 border-r border-slate-100">
+                          <div>{item.name}</div>
+                          <div className="text-[10px] font-mono text-slate-400">[{item.assetTag}]</div>
+                        </td>
+                        <td className="p-2 text-center text-slate-600 border-r border-slate-100 font-mono">{auditDate}</td>
+                        <td className="p-2 text-slate-700 font-medium border-r border-slate-100">{locName}</td>
+                        <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.brand || '—'}</td>
+                        <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.countryOfOrigin || 'Việt Nam'}</td>
+                        <td className="p-2 text-center text-slate-600 border-r border-slate-100 font-mono">{item.inUseYear || '2023'}</td>
+                        {/* Sổ kế toán */}
+                        <td className="p-2 text-center font-mono font-bold text-slate-800 border-r border-slate-100">{bQty}</td>
+                        <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{bPrc > 0 ? bPrc.toLocaleString('vi-VN') : '—'}</td>
+                        <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{bRem > 0 ? bRem.toLocaleString('vi-VN') : '—'}</td>
+                        {/* Kiểm kê */}
+                        <td className={`p-2 text-center font-mono font-bold border-r border-slate-100 ${isLost ? 'text-rose-600 bg-rose-50/50' : 'text-emerald-700'}`}>{aQty}</td>
+                        <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{aPrc > 0 ? aPrc.toLocaleString('vi-VN') : '—'}</td>
+                        <td className="p-2 text-right font-mono text-slate-700 border-r border-slate-100">{aRem > 0 ? aRem.toLocaleString('vi-VN') : '—'}</td>
+                        {/* Chênh lệch */}
+                        <td className={`p-2 text-center font-mono font-bold border-r border-slate-100 ${dQty !== 0 ? 'text-rose-600' : 'text-slate-400'}`}>{dQty !== 0 ? dQty : '0'}</td>
+                        <td className="p-2 text-right font-mono text-slate-500 border-r border-slate-100">{dPrc !== 0 ? dPrc.toLocaleString('vi-VN') : '—'}</td>
+                        <td className="p-2 text-right font-mono text-slate-500 border-r border-slate-100">{dRem !== 0 ? dRem.toLocaleString('vi-VN') : '—'}</td>
+                        <td className="p-2 text-slate-600 border-r border-slate-100 truncate max-w-[140px]">{item.actualNotes || '—'}</td>
+                        <td className="p-2 text-slate-600 border-r border-slate-100">{item.department || locName}</td>
+                        <td className="p-2 text-center text-slate-600 border-r border-slate-100">{item.warehouse || 'Kho CNTT'}</td>
+                        <td className="p-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setEditingAuditItem(item)}
+                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors cursor-pointer"
+                            title="Chỉnh sửa thông tin kiểm kê"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
@@ -3206,7 +3529,7 @@ export default function AssetsAuditPage() {
       )}
 
       {/* ========================================================================= */}
-      {/* ==================== TAB 3: BÁO CÁO TSCĐ KHO CNTT (MẪU HÌNH 2) =========== */}
+      {/* ==================== TAB 3: BÁO CÁO KIỂM KÊ TSCĐ ======================== */}
       {/* ========================================================================= */}
       {workspaceTab === 'REPORT2' && (
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
@@ -3215,10 +3538,15 @@ export default function AssetsAuditPage() {
             <div className="space-y-0.5">
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900 flex items-center gap-2">
                 <Layers className="w-4 h-4 text-amber-500" />
-                <span>Biên Bản & Báo Cáo Kiểm Kê TSCĐ Kho CNTT (Theo Mẫu Biểu Hình 2)</span>
+                <span>Biên Bản & Báo Cáo Kiểm Kê Tài Sản Cố Định</span>
               </h3>
               <p className="text-xs text-slate-500">
                 Phân nhóm tự động: Máy móc thiết bị • Thiết bị trả kho • Theo dõi ngoài sổ, tính khấu hao & tổng cộng
+                {reportFilterDepartment !== 'ALL' && (
+                  <span className="ml-2 font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                    Khoa / Phòng: {reportFilterDepartment}
+                  </span>
+                )}
               </p>
             </div>
 
@@ -3229,7 +3557,7 @@ export default function AssetsAuditPage() {
                 className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <DollarSign className="w-3.5 h-3.5 text-slate-500" />
-                <span>Đơn vị: <strong>{reportUnit === 'THOUSAND' ? 'Nghìn đồng (như Hình 2)' : 'Đồng (VND)'}</strong></span>
+                <span>Đơn vị: <strong>{reportUnit === 'THOUSAND' ? 'Nghìn đồng' : 'Đồng (VND)'}</strong></span>
               </button>
 
               <button
@@ -3247,17 +3575,17 @@ export default function AssetsAuditPage() {
                 className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Xuất Báo Cáo Excel (Mẫu 2)</span>
+                <span>Xuất Báo Cáo TSCĐ (Excel)</span>
               </button>
             </div>
           </div>
 
           {/* Paper Layout Container */}
           <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
-            {/* Title as in Image 2 */}
+            {/* Title as in Report */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-slate-900 border-b border-slate-100 pb-2">
-              <p className="font-serif italic font-bold text-sm sm:text-base">
-                Đã kiểm kê TSCĐ Kho CNTT, kết quả như sau:
+              <p className="font-serif italic font-bold text-sm sm:text-base text-slate-900">
+                Đã kiểm kê TSCĐ {reportFilterDepartment !== 'ALL' ? reportFilterDepartment : (currentSession.title || 'Kho CNTT')}, kết quả như sau:
               </p>
               <p className="font-serif italic text-xs text-slate-500 sm:text-right">
                 Đvt: {reportUnit === 'THOUSAND' ? 'nghìn đồng' : 'đồng'}
@@ -3305,7 +3633,14 @@ export default function AssetsAuditPage() {
                 </thead>
 
                 <tbody className="divide-y divide-slate-100">
-                  {Object.entries(groupedReportItems).map(([groupTitle, items]) => {
+                  {filteredReportItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={24} className="p-8 text-center text-slate-400 text-xs font-sans">
+                        Không có tài sản nào phù hợp với bộ lọc đã chọn. Vui lòng điều chỉnh tiêu chí lọc.
+                      </td>
+                    </tr>
+                  ) : (
+                    Object.entries(groupedReportItems).map(([groupTitle, items]) => {
                     if (items.length === 0) return null;
                     const isThousand = reportUnit === 'THOUSAND';
 
@@ -3404,7 +3739,8 @@ export default function AssetsAuditPage() {
                         })}
                       </React.Fragment>
                     );
-                  })}
+                  })
+                )}
 
                   {/* DÒNG TỔNG CỘNG */}
                   <tr className="bg-slate-100 font-extrabold text-slate-900 border-t-2 border-slate-800 text-[10.5px]">
@@ -3988,7 +4324,7 @@ function AuditItemEditModal({ item, isSaving, onClose, onSave }: AuditItemEditMo
             </span>
             <div>
               <h3 className="font-extrabold text-slate-900 text-sm sm:text-base">
-                Chỉnh Sửa Thông Tin Kiểm Kê (Mẫu Hình 1 & 2)
+                Chỉnh Sửa Thông Tin Kiểm Kê Chi Tiết
               </h3>
               <p className="text-[11px] text-slate-500">
                 [{item.assetTag}] {item.name}
