@@ -87,17 +87,46 @@ export async function PUT(
       );
 
       if (itemIdx !== -1) {
+        const prev = campaign.items[itemIdx];
+        const status = itemUpdate.auditStatus || 'MATCHED';
+        const isLostOrDamaged = status === 'DAMAGED_OR_LOST';
+
+        const bookQty = Number(prev.bookQuantity) || 1;
+        const bookPrc = Number(prev.bookPrice) || 0;
+        const bookRem = Number(prev.bookRemainingValue) || 0;
+
+        let actQty = itemUpdate.actualQuantity !== undefined ? Number(itemUpdate.actualQuantity) : (isLostOrDamaged ? 0 : bookQty);
+        let actPrc = itemUpdate.actualPrice !== undefined ? Number(itemUpdate.actualPrice) : (isLostOrDamaged ? 0 : bookPrc);
+        let actRem = itemUpdate.actualRemainingValue !== undefined ? Number(itemUpdate.actualRemainingValue) : (isLostOrDamaged ? 0 : bookRem);
+
+        let diffQty = actQty - bookQty;
+        let diffPrc = actPrc - bookPrc;
+        let diffRem = actRem - bookRem;
+
         campaign.items[itemIdx] = {
-          ...campaign.items[itemIdx],
+          ...prev,
           isAudited: true,
-          auditStatus: itemUpdate.auditStatus || 'MATCHED',
-          actualUserId: itemUpdate.actualUserId || campaign.items[itemIdx].actualUserId,
-          actualUserName: itemUpdate.actualUserName || campaign.items[itemIdx].actualUserName,
-          actualLocationId: itemUpdate.actualLocationId || campaign.items[itemIdx].actualLocationId,
-          actualLocationName: itemUpdate.actualLocationName || campaign.items[itemIdx].actualLocationName,
-          actualCondition: itemUpdate.actualCondition || campaign.items[itemIdx].actualCondition,
-          actualNotes: itemUpdate.actualNotes || '',
-          actualPhotoUrl: itemUpdate.actualPhotoUrl !== undefined ? itemUpdate.actualPhotoUrl : (campaign.items[itemIdx].actualPhotoUrl || null),
+          auditStatus: status,
+          actualQuantity: actQty,
+          actualPrice: actPrc,
+          actualRemainingValue: actRem,
+          diffQuantity: diffQty,
+          diffPrice: diffPrc,
+          diffRemainingValue: diffRem,
+          actualUserId: itemUpdate.actualUserId || prev.actualUserId,
+          actualUserName: itemUpdate.actualUserName || prev.actualUserName,
+          actualLocationId: itemUpdate.actualLocationId || prev.actualLocationId,
+          actualLocationName: itemUpdate.actualLocationName || prev.actualLocationName,
+          actualCondition: itemUpdate.actualCondition || prev.actualCondition,
+          actualNotes: itemUpdate.actualNotes !== undefined ? itemUpdate.actualNotes : (prev.actualNotes || ''),
+          actualPhotoUrl: itemUpdate.actualPhotoUrl !== undefined ? itemUpdate.actualPhotoUrl : (prev.actualPhotoUrl || null),
+          department: itemUpdate.department || prev.department,
+          warehouse: itemUpdate.warehouse || prev.warehouse,
+          assetGroup: itemUpdate.assetGroup || prev.assetGroup,
+          countryOfOrigin: itemUpdate.countryOfOrigin || prev.countryOfOrigin,
+          inUseYear: itemUpdate.inUseYear || prev.inUseYear,
+          notes1: itemUpdate.notes1 !== undefined ? itemUpdate.notes1 : prev.notes1,
+          controlCode: itemUpdate.controlCode || prev.controlCode,
           auditedAt: new Date().toISOString(),
           auditedBy: user.email || 'IT Staff',
         };
@@ -112,7 +141,7 @@ export async function PUT(
               assetId: campaign.items[itemIdx].id,
               type: 'INSPECTION',
               title: 'Kiểm kê đợt: ' + campaign.title,
-              description: 'Kết quả: ' + (itemUpdate.auditStatus || 'MATCHED') + '. Ghi chú: ' + (itemUpdate.actualNotes || 'Khớp đúng.'),
+              description: 'Kết quả: ' + status + '. Ghi chú: ' + (itemUpdate.actualNotes || 'Khớp đúng.'),
               performedById: user.userId || undefined,
               cost: 0,
               attachmentUrls: itemUpdate.actualPhotoUrl ? [itemUpdate.actualPhotoUrl] : undefined,
@@ -121,6 +150,37 @@ export async function PUT(
           });
         } catch {}
       }
+    }
+
+    // Action 1.1: Update custom fields of an item (Hình 1 & 2 attributes)
+    if (action === 'UPDATE_ITEM_FIELDS' && (itemUpdate?.assetId || itemUpdate?.assetTag)) {
+      const itemIdx = campaign.items.findIndex(
+        (i: any) => i.id === itemUpdate.assetId || i.assetTag === itemUpdate.assetTag
+      );
+      if (itemIdx !== -1) {
+        const prev = campaign.items[itemIdx];
+        const merged = { ...prev, ...itemUpdate };
+
+        // Recalculate diffs
+        const bQty = Number(merged.bookQuantity) || 0;
+        const bPrc = Number(merged.bookPrice) || 0;
+        const bRem = Number(merged.bookRemainingValue) || 0;
+        const aQty = Number(merged.actualQuantity) || 0;
+        const aPrc = Number(merged.actualPrice) || 0;
+        const aRem = Number(merged.actualRemainingValue) || 0;
+
+        merged.diffQuantity = aQty - bQty;
+        merged.diffPrice = aPrc - bPrc;
+        merged.diffRemainingValue = aRem - bRem;
+
+        campaign.items[itemIdx] = merged;
+      }
+    }
+
+    // Action 1.2: Bulk update items
+    if (action === 'BULK_UPDATE_ITEMS' && Array.isArray(body.items)) {
+      campaign.items = body.items;
+      campaign.auditedCount = campaign.items.filter((i: any) => i.isAudited || i.auditStatus !== 'PENDING').length;
     }
 
     // Action 2: Finalize Campaign

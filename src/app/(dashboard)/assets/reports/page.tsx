@@ -28,6 +28,7 @@ import {
   Cpu,
   RefreshCw,
   SlidersHorizontal,
+  ExternalLink,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
@@ -1238,8 +1239,25 @@ export default function AssetAndPartsReportsPage() {
                         </td>
                         <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">{locName}</td>
                         <td className="py-2.5 px-2.5 text-slate-600 dark:text-slate-300">{catName}</td>
-                        <td className="py-2.5 px-2.5 font-mono font-bold text-blue-700 dark:text-blue-400">{asset.assetTag}</td>
-                        <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">{asset.name}</td>
+                        <td className="py-2.5 px-2.5 font-mono font-bold text-blue-700 dark:text-blue-400">
+                          <Link
+                            href={`/assets?search=${encodeURIComponent(asset.assetTag)}`}
+                            className="hover:underline hover:text-blue-800 dark:hover:text-blue-300 inline-flex items-center gap-1 group"
+                            title={`Chuyển đến thiết bị ${asset.assetTag} trong danh sách tài sản`}
+                          >
+                            <span>{asset.assetTag}</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </Link>
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">
+                          <Link
+                            href={`/assets?search=${encodeURIComponent(asset.assetTag || asset.name)}`}
+                            className="hover:underline hover:text-blue-600 dark:hover:text-blue-400 transition-colors inline-block"
+                            title={`Chuyển đến thiết bị ${asset.name} trong danh sách tài sản`}
+                          >
+                            {asset.name}
+                          </Link>
+                        </td>
                         <td className="py-2.5 px-2.5 text-slate-600 dark:text-slate-300">{asset.brand || '—'}</td>
                         <td className="py-2.5 px-2 text-center font-mono text-slate-600 dark:text-slate-400">{ext.manufacturingYear || '—'}</td>
                         <td className="py-2.5 px-2.5">
@@ -1548,9 +1566,24 @@ export default function AssetAndPartsReportsPage() {
                       <tr key={part.id} className="hover:bg-purple-50/40 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="py-2.5 px-3 text-center font-mono text-slate-400">{globalIdx}</td>
                         <td className="py-2.5 px-3 font-mono font-bold text-purple-700 dark:text-purple-400">
-                          {part.sku || '—'}
+                          <Link
+                            href={`/spare-parts?search=${encodeURIComponent(part.sku || part.name)}`}
+                            className="hover:underline hover:text-purple-900 dark:hover:text-purple-300 inline-flex items-center gap-1 group"
+                            title={`Chuyển đến linh kiện ${part.sku || part.name} trong kho phụ tùng`}
+                          >
+                            <span>{part.sku || '—'}</span>
+                            {part.sku && <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover:opacity-100 transition-opacity" />}
+                          </Link>
                         </td>
-                        <td className="py-2.5 px-4 font-bold text-slate-900 dark:text-white">{part.name}</td>
+                        <td className="py-2.5 px-4 font-bold text-slate-900 dark:text-white">
+                          <Link
+                            href={`/spare-parts?search=${encodeURIComponent(part.sku || part.name)}`}
+                            className="hover:underline hover:text-purple-600 dark:hover:text-purple-400 transition-colors inline-block"
+                            title={`Chuyển đến linh kiện ${part.name} trong kho phụ tùng`}
+                          >
+                            {part.name}
+                          </Link>
+                        </td>
                         <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">{part.category?.name || '—'}</td>
                         <td className="py-2.5 px-3 text-slate-600 dark:text-slate-300">{part.location?.name || 'Kho IT'}</td>
                         <td className="py-2.5 px-3 text-center text-slate-500">{part.unit || 'cái'}</td>

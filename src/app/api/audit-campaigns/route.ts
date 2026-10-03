@@ -111,9 +111,37 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const items = matchedAssets.map((asset) => {
+    const now = new Date();
+
+    const items = matchedAssets.map((asset, index) => {
       const activeAssign = asset.assignments?.[0];
       const comp = (asset as any).companyName || (asset.specs as any)?.companyName || 'Công ty Cổ phần Tập đoàn ABC';
+      const price = Number(asset.purchasePrice) || 0;
+
+      // Tính khấu hao sổ sách và giá trị còn lại
+      const pDate = asset.purchaseDate ? new Date(asset.purchaseDate) : null;
+      const usefulLifeMonths = Number((asset.specs as any)?.depreciationMonths) || 36;
+      let remainingValue = price;
+      let depRate = Math.round((12 / usefulLifeMonths) * 100 * 100) / 100;
+      if (price > 0 && pDate && !isNaN(pDate.getTime())) {
+        const diffMonths = Math.max(0, (now.getFullYear() - pDate.getFullYear()) * 12 + (now.getMonth() - pDate.getMonth()));
+        const ratio = Math.min(1, diffMonths / usefulLifeMonths);
+        remainingValue = Math.max(0, Math.round(price * (1 - ratio)));
+      }
+
+      // Nhóm tài sản: Máy móc thiết bị, Thiết bị trả kho, Theo dõi ngoài sổ
+      const catName = (asset.category?.name || '').toLowerCase();
+      let assetGroup = 'Máy móc, thiết bị';
+      if (asset.status === 'AVAILABLE' || asset.status === 'RETIRED') {
+        assetGroup = 'Thiết bị trả kho';
+      } else if (catName.includes('phụ kiện') || catName.includes('ngoài sổ') || price === 0) {
+        assetGroup = 'Theo dõi ngoài sổ';
+      }
+
+      const inUseYear =
+        (asset.specs as any)?.manufacturingYear ||
+        (pDate ? `${pDate.getMonth() + 1}/${pDate.getFullYear()}` : '2023');
+
       return {
         id: asset.id,
         assetTag: asset.assetTag,
@@ -128,12 +156,34 @@ export async function POST(request: NextRequest) {
         locationName: asset.location?.name || 'Kho IT',
         systemUserId: activeAssign?.user?.id || '',
         systemUserName: activeAssign?.user?.fullName || 'Chưa cấp phát (Trong kho)',
-        systemDepartment: activeAssign?.user?.department || '',
+        systemDepartment: activeAssign?.user?.department || asset.location?.name || 'Kho CNTT',
         systemCondition: asset.condition || 'GOOD',
         systemStatus: asset.status || 'AVAILABLE',
-        // Audit verification state
+
+        // Các trường kiểm kê theo mẫu Hình 1 & Hình 2:
+        countryOfOrigin: (asset.specs as any)?.countryOfOrigin || (asset.specs as any)?.origin || 'Việt Nam',
+        inUseYear: inUseYear,
+        inUseDate: pDate ? pDate.toLocaleDateString('vi-VN') : '',
+        department: activeAssign?.user?.department || asset.location?.name || 'Kho CNTT',
+        warehouse: asset.location?.name || 'Kho CNTT',
+        assetGroup: (asset.specs as any)?.assetGroup || assetGroup,
+        bookQuantity: 1,
+        bookPrice: price,
+        bookRemainingValue: remainingValue,
+
+        // Theo kiểm kê (Actual)
         isAudited: false,
         auditStatus: 'PENDING',
+        actualQuantity: 1,
+        actualPrice: price,
+        actualRemainingValue: remainingValue,
+        diffQuantity: 0,
+        diffPrice: 0,
+        diffRemainingValue: 0,
+        depreciationRate: depRate,
+        depreciationDate: pDate ? `${pDate.getMonth() + 1}/${pDate.getFullYear()}` : '',
+        controlCode: (asset.specs as any)?.controlCode || `KS-${3269 + index}`,
+
         actualUserId: activeAssign?.user?.id || '',
         actualUserName: activeAssign?.user?.fullName || 'Chưa cấp phát (Trong kho)',
         actualLocationId: asset.locationId || '',
