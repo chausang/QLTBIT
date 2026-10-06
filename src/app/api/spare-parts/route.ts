@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
+        { fixedAssetName: { contains: search, mode: 'insensitive' } },
         { sku: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       name,
+      fixedAssetName,
       sku,
       categoryId,
       quantity,
@@ -87,6 +89,7 @@ export async function POST(request: NextRequest) {
     const part = await prisma.sparePart.create({
       data: {
         name,
+        fixedAssetName: fixedAssetName?.trim() || null,
         sku: sku?.trim() || null,
         categoryId: categoryId || null,
         quantity: Number(quantity) || 0,

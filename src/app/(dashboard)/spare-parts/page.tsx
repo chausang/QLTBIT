@@ -45,6 +45,7 @@ import {
 interface SparePart {
   id: string;
   name: string;
+  fixedAssetName?: string;
   sku?: string;
   categoryId?: string;
   category?: { id: string; name: string };
@@ -109,6 +110,7 @@ export default function SparePartsPage() {
 
   // Create form state
   const [formName, setFormName] = useState('');
+  const [formFixedAssetName, setFormFixedAssetName] = useState('');
   const [formSku, setFormSku] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formQty, setFormQty] = useState('0');
@@ -123,6 +125,7 @@ export default function SparePartsPage() {
   // Edit form state
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
+  const [editFixedAssetName, setEditFixedAssetName] = useState('');
   const [editSku, setEditSku] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editMinStock, setEditMinStock] = useState('5');
@@ -291,6 +294,7 @@ export default function SparePartsPage() {
   const openEditModal = (part: SparePart) => {
     setEditId(part.id);
     setEditName(part.name);
+    setEditFixedAssetName(part.fixedAssetName || '');
     setEditSku(part.sku || '');
     setEditCategory(part.categoryId || '');
     setEditMinStock(String(part.minStock || 5));
@@ -313,6 +317,7 @@ export default function SparePartsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: editName.trim(),
+          fixedAssetName: editFixedAssetName.trim() || undefined,
           sku: editSku.trim() || undefined,
           categoryId: editCategory || undefined,
           minStock: parseInt(editMinStock) || 5,
@@ -333,6 +338,7 @@ export default function SparePartsPage() {
           setDrawerPart({
             ...drawerPart,
             name: editName.trim(),
+            fixedAssetName: editFixedAssetName.trim() || undefined,
             sku: editSku.trim() || undefined,
             categoryId: editCategory || undefined,
             category: categories.find((c) => c.id === editCategory),
@@ -367,6 +373,7 @@ export default function SparePartsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formName.trim(),
+          fixedAssetName: formFixedAssetName.trim() || undefined,
           sku: formSku.trim() || undefined,
           categoryId: formCategory || undefined,
           quantity: parseInt(formQty) || 0,
@@ -514,6 +521,7 @@ export default function SparePartsPage() {
 
   const resetCreateForm = () => {
     setFormName('');
+    setFormFixedAssetName('');
     setFormSku('');
     setFormCategory('');
     setFormQty('0');
@@ -530,6 +538,7 @@ export default function SparePartsPage() {
     const q = search.toLowerCase();
     return (
       p.name.toLowerCase().includes(q) ||
+      (p.fixedAssetName && p.fixedAssetName.toLowerCase().includes(q)) ||
       (p.sku && p.sku.toLowerCase().includes(q)) ||
       (p.category && p.category.name.toLowerCase().includes(q)) ||
       (p.vendor && p.vendor.name.toLowerCase().includes(q)) ||
@@ -600,6 +609,7 @@ export default function SparePartsPage() {
       const headers = [
         'STT',
         isEn ? 'Part Name & Specs' : 'Tên Linh Kiện & Thông Số',
+        isEn ? 'Fixed Asset Name (Audit)' : 'Tên Tài Sản Cố Định (TSCĐ)',
         isEn ? 'SKU / Part Number' : 'Mã SKU / Part No',
         isEn ? 'Category' : 'Danh Mục',
         isEn ? 'Stock Qty' : 'Số Lượng Tồn',
@@ -630,6 +640,7 @@ export default function SparePartsPage() {
         const row = sheet.addRow([
           idx + 1,
           p.name,
+          p.fixedAssetName || '—',
           p.sku || '—',
           p.category?.name || (isEn ? 'Uncategorized' : 'Chưa phân loại'),
           `${p.quantity} ${p.unit || ''}`.trim(),
@@ -859,6 +870,12 @@ export default function SparePartsPage() {
                             {p.name}
                           </span>
                         </div>
+                        {p.fixedAssetName && (
+                          <div className="text-[10.5px] font-semibold text-blue-700 flex items-center gap-1 mt-0.5 line-clamp-1" title={`Tên tài sản cố định: ${p.fixedAssetName}`}>
+                            <span className="px-1 py-0.2 rounded bg-blue-100 text-blue-800 font-bold text-[8.5px] border border-blue-200 shrink-0">TSCĐ</span>
+                            <span className="truncate">{p.fixedAssetName}</span>
+                          </div>
+                        )}
                         {p.notes && <p className="text-[10px] text-slate-400 font-normal mt-0.5 line-clamp-1">{p.notes}</p>}
                       </td>
                       <td className="px-4 py-3.5 font-mono text-indigo-700 font-semibold">{p.sku || '—'}</td>
@@ -996,6 +1013,12 @@ export default function SparePartsPage() {
                     )}
                   </div>
                   <h2 className="text-lg font-black text-slate-900 leading-snug">{drawerPart.name}</h2>
+                  {drawerPart.fixedAssetName && (
+                    <p className="text-xs font-semibold text-blue-700 flex items-center gap-1 mt-0.5" title={`Tên tài sản cố định: ${drawerPart.fixedAssetName}`}>
+                      <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded font-black border border-blue-200">TSCĐ</span>
+                      <span>{drawerPart.fixedAssetName}</span>
+                    </p>
+                  )}
                 </div>
 
                 <button
@@ -1749,6 +1772,26 @@ export default function SparePartsPage() {
                 />
               </div>
 
+              {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
+              <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
+                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                  <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                    <span>{isEn ? 'Fixed Asset Name (Accounting/Audit)' : 'Tên tài sản cố định (TSCĐ)'}</span>
+                  </label>
+                  <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold border border-blue-200">
+                    {isEn ? 'Linked to Asset Audit • Optional' : 'Liên kết kiểm kê tài sản • Không bắt buộc'}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  placeholder={isEn ? "e.g. RAM DDR4 16GB (Leave blank if not applicable)..." : "VD: Thanh RAM DDR4 16GB Kingston (Để trống nếu không có)..."}
+                  value={editFixedAssetName}
+                  onChange={(e) => setEditFixedAssetName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">{isEn ? 'SKU Code / Inventory Code' : 'Mã SKU / Mã kho'}</label>
@@ -1905,6 +1948,26 @@ export default function SparePartsPage() {
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:border-indigo-500 font-semibold"
+                />
+              </div>
+
+              {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
+              <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
+                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                  <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                    <span>{isEn ? 'Fixed Asset Name (Accounting/Audit)' : 'Tên tài sản cố định (TSCĐ)'}</span>
+                  </label>
+                  <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold border border-blue-200">
+                    {isEn ? 'Linked to Asset Audit • Optional' : 'Liên kết kiểm kê tài sản • Không bắt buộc'}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  placeholder={isEn ? "e.g. RAM DDR4 16GB (Leave blank if not applicable)..." : "VD: Thanh RAM DDR4 16GB Kingston (Để trống nếu không có)..."}
+                  value={formFixedAssetName}
+                  onChange={(e) => setFormFixedAssetName(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
                 />
               </div>
 

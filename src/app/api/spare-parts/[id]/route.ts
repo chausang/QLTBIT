@@ -23,6 +23,7 @@ export async function PUT(
     const body = await request.json();
     const {
       name,
+      fixedAssetName,
       sku,
       categoryId,
       minStock,
@@ -38,6 +39,7 @@ export async function PUT(
       where: { id },
       data: {
         ...(name && { name }),
+        ...(fixedAssetName !== undefined && { fixedAssetName: fixedAssetName?.trim() || null }),
         ...(sku !== undefined && { sku: sku || null }),
         ...(categoryId !== undefined && { categoryId: categoryId || null }),
         ...(minStock !== undefined && { minStock: Number(minStock) }),

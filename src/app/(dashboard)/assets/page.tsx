@@ -2678,6 +2678,16 @@ export default function AssetsPage() {
               </span>
             </button>
 
+            {/* QUICK LINK TO TAMPER & SECURITY ALERTS */}
+            <Link
+              href="/discovery?tab=ALERTS"
+              className="px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 shadow-2xs"
+              title="Xem trung tâm cảnh báo tháo linh kiện & nhật ký thay đổi"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+              <span>🚨 Cảnh Báo Linh Kiện & Crack</span>
+            </Link>
+
             {/* QUICK LINK TO RECYCLE BIN */}
             <Link
               href="/trash?type=ASSET"
@@ -2898,6 +2908,24 @@ export default function AssetsPage() {
                                     <span>{Array.isArray(asset.specs?.installedSoftware) ? `${asset.specs.installedSoftware.length} apps` : 'Scan'}</span>
                                   </span>
                                 )}
+                                {asset.specs?.hardwareChangeAlert && (
+                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-amber-500 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`⚠️ Cảnh báo tháo/đổi linh kiện: ${asset.specs.hardwareChangeAlert}`}>
+                                    <span>⚠️</span>
+                                    <span>Tháo LK</span>
+                                  </span>
+                                )}
+                                {(asset.specs?.crackDetection?.hasSuspect || (Array.isArray(asset.specs?.crackDetection?.detectedTools) && asset.specs.crackDetection.detectedTools.length > 0)) && (
+                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-rose-600 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`🛡️ Cảnh báo phát hiện bẻ khóa: ${(asset.specs.crackDetection.detectedTools || []).join(', ')}`}>
+                                    <span>🛡️</span>
+                                    <span>Crack/KMS</span>
+                                  </span>
+                                )}
+                                {asset.specs?.softwareChangeAlert && (
+                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-blue-500 text-white text-[8px] font-extrabold block w-fit leading-none shadow-xs" title={`📦 Thay đổi phần mềm: ${asset.specs.softwareChangeAlert}`}>
+                                    <span>📦</span>
+                                    <span>Đổi PM</span>
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -2907,6 +2935,12 @@ export default function AssetsPage() {
                             <div className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors text-[11px] leading-snug line-clamp-2" title={asset.name}>
                               {asset.name}
                             </div>
+                            {asset.fixedAssetName && (
+                              <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1 mt-0.5 line-clamp-1" title={`Tên tài sản cố định: ${asset.fixedAssetName}`}>
+                                <span className="px-1 py-0.2 rounded bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 font-bold text-[8.5px] border border-blue-200 dark:border-blue-800 shrink-0">TSCĐ</span>
+                                <span className="truncate max-w-[200px]">{asset.fixedAssetName}</span>
+                              </div>
+                            )}
                             <div className="text-[9.5px] text-slate-400 mt-0.5 leading-tight line-clamp-2">
                               {asset.brand && <span className="font-semibold text-slate-600 dark:text-slate-400">{asset.brand} </span>}
                               {asset.model && <span>• {asset.model} </span>}

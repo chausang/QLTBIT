@@ -75,6 +75,9 @@ export async function GET() {
           os: toSafeString(sp.os) || toSafeString(sp.operatingSystem) || null,
           lastScannedAt: sp.lastScannedAt || a.updatedAt,
           hardwareChangeAlert: toSafeString(sp.hardwareChangeAlert) || null,
+          softwareChangeAlert: toSafeString(sp.softwareChangeAlert) || null,
+          changeHistory: Array.isArray(sp.changeHistory) ? sp.changeHistory : [],
+          lastChangeDetectedAt: sp.lastChangeDetectedAt || null,
           installedSoftwareCount: safeInstalledSoftware.length,
           installedSoftware: safeInstalledSoftware,
           osLicense: sp.osLicense || null,
@@ -82,6 +85,7 @@ export async function GET() {
           crackDetection: sp.crackDetection || null,
           licenseMatches: Array.isArray(sp.licenseMatches) ? sp.licenseMatches : [],
           unmanagedCommercialApps: Array.isArray(sp.unmanagedCommercialApps) ? sp.unmanagedCommercialApps : [],
+          specs: sp,
         };
       });
 

@@ -27,6 +27,7 @@ export interface ImportResultSummary {
 export interface AssetRowData {
   assetTag: string;
   name: string;
+  fixedAssetName?: string;
   categoryName: string;
   brand?: string;
   model?: string;
@@ -440,6 +441,7 @@ export async function importAssetsFromExcel(
     const rawAssetTag = getCellValue(row.getCell(colMap.assetTag))?.trim();
     const assetTag = rawAssetTag ? normalizeAssetTag(rawAssetTag) : undefined;
     const name = getCellValue(row.getCell(colMap.name))?.trim();
+    const fixedAssetName = colMap.fixedAssetName ? getCellValue(row.getCell(colMap.fixedAssetName))?.trim() : undefined;
     const categoryName = getCellValue(row.getCell(colMap.categoryName))?.trim();
     const brand = colMap.brand ? getCellValue(row.getCell(colMap.brand))?.trim() : undefined;
     const model = colMap.model ? getCellValue(row.getCell(colMap.model))?.trim() : undefined;
@@ -491,6 +493,7 @@ export async function importAssetsFromExcel(
       data: {
         assetTag: assetTag || '',
         name: name || '',
+        fixedAssetName,
         categoryName: categoryName || '',
         brand,
         model,
@@ -634,6 +637,7 @@ export async function importAssetsFromExcel(
         data: {
           assetTag: data.assetTag,
           name: data.name,
+          fixedAssetName: data.fixedAssetName || null,
           categoryId,
           brand: data.brand || null,
           model: data.model || null,
@@ -1057,6 +1061,7 @@ export async function syncCorporateCompanies(companies: Iterable<string | null |
 interface AssetColumnMap {
   assetTag: number;
   name: number;
+  fixedAssetName?: number;
   categoryName: number;
   brand: number;
   model: number;
@@ -1079,6 +1084,8 @@ function detectAssetColumns(headerRow: ExcelJS.Row): AssetColumnMap {
     const val = cell.value?.toString().trim().toLowerCase() || '';
     if (val.includes('mã tài sản') || val.includes('ma tai san') || val.includes('asset tag') || val.includes('mã ts')) {
       map.assetTag = colNumber;
+    } else if (val.includes('tên tài sản cố định') || val.includes('tên tscđ') || val.includes('tscđ') || val.includes('fixed asset name')) {
+      map.fixedAssetName = colNumber;
     } else if (val.includes('tên thiết bị') || val.includes('ten thiet bi') || val.includes('tên tài sản') || val.includes('device name')) {
       map.name = colNumber;
     } else if (val.includes('danh mục') || val.includes('danh muc') || val.includes('category')) {
@@ -1115,6 +1122,7 @@ function detectAssetColumns(headerRow: ExcelJS.Row): AssetColumnMap {
   return {
     assetTag: map.assetTag || 1,
     name: map.name || 2,
+    fixedAssetName: map.fixedAssetName,
     categoryName: map.categoryName || 3,
     brand: map.brand || 4,
     model: map.model || 5,

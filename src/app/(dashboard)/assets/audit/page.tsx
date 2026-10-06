@@ -71,6 +71,7 @@ export interface AuditItem {
   id: string; // matches asset id
   assetTag: string;
   name: string;
+  fixedAssetName?: string;
   brand?: string;
   model?: string;
   serialNumber?: string;
@@ -1034,7 +1035,7 @@ export default function AssetsAuditPage() {
         const row = sheet.addRow([
           idx + 1,
           '',
-          item.name,
+          item.fixedAssetName || item.name,
           auditDate,
           locName,
           item.brand || '—',
@@ -3485,7 +3486,10 @@ export default function AssetsAuditPage() {
                         <td className="p-2 text-center font-mono text-slate-400 border-r border-slate-100">{idx + 1}</td>
                         <td className="p-2 text-center font-mono text-slate-300 border-r border-slate-100"></td>
                         <td className="p-2 font-bold text-slate-900 border-r border-slate-100">
-                          <div>{item.name}</div>
+                          <div>{item.fixedAssetName || item.name}</div>
+                          {item.fixedAssetName && item.fixedAssetName !== item.name && (
+                            <div className="text-[10px] text-slate-500 font-normal">TB: {item.name}</div>
+                          )}
                           <div className="text-[10px] font-mono text-slate-400">[{item.assetTag}]</div>
                         </td>
                         <td className="p-2 text-center text-slate-600 border-r border-slate-100 font-mono">{auditDate}</td>
@@ -3672,7 +3676,10 @@ export default function AssetsAuditPage() {
                             <tr key={item.id} className="hover:bg-amber-50/30 transition-colors">
                               <td className="p-1.5 text-center font-mono text-slate-400 border-r border-slate-100">{idx + 1}</td>
                               <td className="p-1.5 font-bold text-slate-900 border-r border-slate-100">
-                                {item.name}
+                                <div>{item.fixedAssetName || item.name}</div>
+                                {item.fixedAssetName && item.fixedAssetName !== item.name && (
+                                  <div className="text-[9px] text-slate-500 font-normal truncate max-w-[200px]" title={item.name}>TB: {item.name}</div>
+                                )}
                               </td>
                               <td className="p-1.5 font-mono text-blue-700 border-r border-slate-100 text-center">{item.assetTag}</td>
                               <td className="p-1.5 text-slate-600 border-r border-slate-100 text-center">{item.department || item.systemLocationName || 'Kho CNTT'}</td>
@@ -4341,6 +4348,26 @@ function AuditItemEditModal({ item, isSaving, onClose, onSave }: AuditItemEditMo
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto text-xs">
+          {/* Tên tài sản cố định */}
+          <div className="p-3 bg-blue-50/60 rounded-2xl border border-blue-200">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-[11px] font-bold text-blue-900 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                <span>Tên Tài Sản Cố Định (TSCĐ):</span>
+              </label>
+              <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold">
+                Liên kết kiểm kê tài sản
+              </span>
+            </div>
+            <input
+              type="text"
+              value={form.fixedAssetName || ''}
+              onChange={(e) => handleChange('fixedAssetName', e.target.value)}
+              placeholder="VD: Bộ máy vi tính để bàn HP ProDesk 400 G6..."
+              className="w-full p-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900 outline-none focus:border-indigo-500"
+            />
+          </div>
+
           {/* Nhóm tài sản & Nơi sử dụng */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>

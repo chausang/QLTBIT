@@ -437,6 +437,7 @@ model Asset {
   id               String         @id @default(uuid()) @db.Uuid
   assetTag         String         @unique @map("asset_tag")
   name             String
+  fixedAssetName   String?        @map("fixed_asset_name")
   categoryId       String         @map("category_id") @db.Uuid
   brand            String?
   model            String?
@@ -1278,6 +1279,7 @@ model MaintenanceSchedule {
 model SparePart {
   id              String   @id @default(uuid()) @db.Uuid
   name            String                        // "RAM DDR4 16GB"
+  fixedAssetName  String?  @map("fixed_asset_name") // Tên tài sản cố định (liên kết với kiểm kê tài sản)
   sku             String?  @unique              // Mã kho nội bộ
   categoryId      String?  @map("category_id") @db.Uuid
   category        AssetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)

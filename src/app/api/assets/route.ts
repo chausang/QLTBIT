@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
       andConditions.push({
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
+          { fixedAssetName: { contains: search, mode: 'insensitive' } },
           { assetTag: { contains: search, mode: 'insensitive' } },
           { serialNumber: { contains: search, mode: 'insensitive' } },
           { brand: { contains: search, mode: 'insensitive' } },
@@ -219,6 +220,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       name,
+      fixedAssetName,
       categoryId,
       assetTag: customAssetTag,
       brand,
@@ -325,6 +327,7 @@ export async function POST(request: NextRequest) {
       data: {
         assetTag,
         name,
+        fixedAssetName: fixedAssetName ? fixedAssetName.trim() : null,
         categoryId: finalCategoryId,
         brand: brand || null,
         model: model || null,

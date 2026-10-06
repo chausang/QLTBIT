@@ -917,6 +917,12 @@ export default function MobileAuditScanPage() {
                   <h3 className="text-sm font-extrabold text-white leading-tight">
                     {selectedItem.name}
                   </h3>
+                  {selectedItem.fixedAssetName && (
+                    <div className="text-xs font-semibold text-amber-300 flex items-center gap-1" title={`Tên tài sản cố định: ${selectedItem.fixedAssetName}`}>
+                      <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded border border-amber-500/30 font-bold">TSCĐ</span>
+                      <span>{selectedItem.fixedAssetName}</span>
+                    </div>
+                  )}
                   <p className="text-[11px] text-slate-400">
                     🏢 {selectedItem.companyName || 'Công ty'} • 📦 {selectedItem.categoryName || 'Tài sản'}
                   </p>

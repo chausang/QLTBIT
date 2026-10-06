@@ -225,6 +225,7 @@ export async function PUT(
       data: {
         assetTag: newAssetTag ? normalizeAssetTag(newAssetTag) : existing.assetTag,
         name: body.name !== undefined ? body.name : existing.name,
+        fixedAssetName: body.fixedAssetName !== undefined ? (body.fixedAssetName ? body.fixedAssetName.trim() : null) : existing.fixedAssetName,
         categoryId: body.categoryId ? body.categoryId : existing.categoryId,
         brand: body.brand !== undefined ? (body.brand || null) : existing.brand,
         model: body.model !== undefined ? (body.model || null) : existing.model,

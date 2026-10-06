@@ -23,6 +23,11 @@ import {
   Layers,
   CheckCircle2,
   ShieldCheck,
+  ShieldAlert,
+  Package,
+  History,
+  Cpu,
+  HardDrive,
 } from 'lucide-react';
 import { useQuickViewStore, QuickViewEntityType } from '@/lib/quick-view-store';
 import { useLanguage } from '@/lib/i18n/context';
@@ -313,6 +318,105 @@ export const QuickViewDrawer: React.FC = () => {
                       </p>
                     </div>
 
+                    {/* ⚠️ CẢNH BÁO THAY ĐỔI PHẦN CỨNG (THÁO LINH KIỆN) */}
+                    {data.specs?.hardwareChangeAlert && (
+                      <div className="p-3.5 bg-amber-500/10 border-2 border-amber-400 rounded-2xl space-y-1.5 animate-in fade-in">
+                        <div className="flex items-center gap-2 font-black text-xs text-amber-900 dark:text-amber-300 uppercase tracking-wide">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 animate-bounce shrink-0" />
+                          <span>⚠️ {isEn ? 'Hardware Configuration Change Detected!' : 'PHÁT HIỆN THAY ĐỔI CẤU HÌNH PHẦN CỨNG!'}</span>
+                        </div>
+                        <p className="text-xs font-bold text-amber-950 dark:text-amber-200 bg-white/80 dark:bg-slate-900/80 p-2 rounded-xl border border-amber-200 dark:border-amber-800 font-mono">
+                          {data.specs.hardwareChangeAlert}
+                        </p>
+                        <p className="text-[10.5px] text-amber-800 dark:text-amber-400">
+                          {isEn
+                            ? 'The actual scanned components differ from initial baseline specs (e.g. RAM removed, disk swapped, CPU altered).'
+                            : 'Hệ thống phát hiện linh kiện thực tế của máy trạm vừa quét có sự thay đổi (nghi vấn tháo bớt RAM, đổi ổ cứng...).'}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 🛡️ CẢNH BÁO AN NINH: PHÁT HIỆN PHẦN MỀM BẺ KHÓA / CRACK / KMS */}
+                    {(data.specs?.crackDetection?.hasSuspect || (Array.isArray(data.specs?.crackDetection?.detectedTools) && data.specs.crackDetection.detectedTools.length > 0)) && (
+                      <div className="p-3.5 bg-rose-500/10 border-2 border-rose-400 rounded-2xl space-y-1.5 animate-in fade-in">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 font-black text-xs text-rose-900 dark:text-rose-300 uppercase tracking-wide">
+                            <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
+                            <span>🛡️ {isEn ? 'Security Threat: Crack / HackTool / KMS Detected!' : 'CẢNH BÁO AN NINH: PHÁT HIỆN PHẦN MỀM BẺ KHÓA / CRACK / KMS!'}</span>
+                          </div>
+                          <span className="text-[9.5px] font-black bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full">
+                            {isEn ? 'Policy Violation' : 'Vi phạm an toàn'}
+                          </span>
+                        </div>
+                        {Array.isArray(data.specs?.crackDetection?.detectedTools) && data.specs.crackDetection.detectedTools.length > 0 && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300">Phát hiện:</span>
+                            {data.specs.crackDetection.detectedTools.map((tool: string, idx: number) => (
+                              <span key={idx} className="font-mono text-[10.5px] font-black bg-white dark:bg-slate-900 text-rose-700 px-2 py-0.5 rounded-lg border border-rose-300">
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {Array.isArray(data.specs?.crackDetection?.warnings) && data.specs.crackDetection.warnings.length > 0 && (
+                          <ul className="list-disc list-inside space-y-0.5 text-xs text-rose-900 dark:text-rose-300 font-medium">
+                            {data.specs.crackDetection.warnings.map((w: string, idx: number) => (
+                              <li key={idx}>{w}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 📦 CẢNH BÁO THAY ĐỔI PHẦN MỀM */}
+                    {data.specs?.softwareChangeAlert && (
+                      <div className="p-3.5 bg-blue-500/10 border-2 border-blue-400 rounded-2xl space-y-1.5 animate-in fade-in">
+                        <div className="flex items-center gap-2 font-black text-xs text-blue-900 dark:text-blue-300 uppercase tracking-wide">
+                          <Package className="w-4 h-4 text-blue-600 shrink-0" />
+                          <span>📦 {isEn ? 'Software Change Detected (Installed / Uninstalled)!' : 'CẢNH BÁO THAY ĐỔI PHẦN MỀM (CÀI ĐẶT MỚI / ĐÃ GỠ BỎ)!'}</span>
+                        </div>
+                        <p className="text-xs font-bold text-blue-950 dark:text-blue-200 bg-white/80 dark:bg-slate-900/80 p-2 rounded-xl border border-blue-200 dark:border-blue-800 font-mono">
+                          {data.specs.softwareChangeAlert}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* THÔNG SỐ PHẦN CỨNG TỔNG QUAN NẾU CÓ */}
+                    {(data.specs?.cpu || data.specs?.ram || data.specs?.storage || data.specs?.os) && (
+                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5 text-xs">
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block flex items-center gap-1">
+                          <Cpu className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>{isEn ? 'Hardware Specs:' : 'Cấu hình phần cứng thực tế:'}</span>
+                        </span>
+                        <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                          {data.specs?.cpu && (
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-100 truncate" title={String(data.specs.cpu)}>
+                              <span className="text-slate-400 block text-[9.5px]">CPU:</span>
+                              <strong className="text-slate-800 font-mono">{data.specs.cpu}</strong>
+                            </div>
+                          )}
+                          {data.specs?.ram && (
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-100 truncate" title={String(data.specs.ram)}>
+                              <span className="text-slate-400 block text-[9.5px]">RAM:</span>
+                              <strong className="text-slate-800 font-mono">{data.specs.ram}</strong>
+                            </div>
+                          )}
+                          {data.specs?.storage && (
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-100 truncate" title={String(data.specs.storage)}>
+                              <span className="text-slate-400 block text-[9.5px]">Ổ cứng:</span>
+                              <strong className="text-slate-800 font-mono">{data.specs.storage}</strong>
+                            </div>
+                          )}
+                          {data.specs?.os && (
+                            <div className="p-1.5 bg-white rounded-lg border border-slate-100 truncate" title={String(data.specs.os)}>
+                              <span className="text-slate-400 block text-[9.5px]">HĐH:</span>
+                              <strong className="text-slate-800 font-mono">{data.specs.os}</strong>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     {/* KPI GÁN LICENSE CHO MÁY */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="p-3 rounded-2xl bg-purple-50/70 border border-purple-100 text-center">
@@ -561,6 +665,81 @@ export const QuickViewDrawer: React.FC = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* 📜 MỤC NHẬT KÝ THAY ĐỔI CẤU HÌNH & PHẦN MỀM */}
+                    {Array.isArray(data.specs?.changeHistory) && data.specs.changeHistory.length > 0 && (
+                      <div className="space-y-2 pt-2 border-t border-slate-200">
+                        <div className="flex items-center justify-between">
+                          <h5 className="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                            <History className="w-4 h-4 text-indigo-600" />
+                            <span>{isEn ? 'Hardware & Software Change History:' : 'Mục Nhật Ký Thay Đổi Cấu Hình:'}</span>
+                          </h5>
+                          <span className="text-[10px] font-black bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-200">
+                            {data.specs.changeHistory.length} {isEn ? 'events' : 'lần can thiệp'}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                          {data.specs.changeHistory.map((chg: any, cIdx: number) => {
+                            const isHw = chg.category === 'HARDWARE';
+                            const isAdd = chg.action === 'ADDED';
+                            const isRem = chg.action === 'REMOVED';
+
+                            return (
+                              <div
+                                key={chg.id || cIdx}
+                                className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1"
+                              >
+                                <div className="flex items-center justify-between text-[11px] gap-2">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded font-black text-[9px] uppercase ${
+                                        isHw ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                                      }`}
+                                    >
+                                      {isHw ? 'Phần cứng' : 'Phần mềm'}
+                                    </span>
+                                    <span
+                                      className={`px-1.5 py-0.2 rounded font-black text-[9px] ${
+                                        isAdd
+                                          ? 'bg-emerald-100 text-emerald-800'
+                                          : isRem
+                                          ? 'bg-rose-100 text-rose-800'
+                                          : 'bg-slate-200 text-slate-700'
+                                      }`}
+                                    >
+                                      {isAdd ? '+ Cài đặt' : isRem ? '- Gỡ bỏ' : '⚡ Thay đổi'}
+                                    </span>
+                                    <strong className="text-slate-800 truncate max-w-[150px]" title={chg.component}>
+                                      {chg.component}
+                                    </strong>
+                                  </div>
+                                  <span className="text-[9.5px] text-slate-400 font-mono shrink-0">
+                                    {chg.timestamp ? new Date(chg.timestamp).toLocaleDateString('vi-VN') : ''}
+                                  </span>
+                                </div>
+
+                                {chg.description && (
+                                  <p className="text-[10.5px] text-slate-600 line-clamp-2">{chg.description}</p>
+                                )}
+
+                                {(chg.oldValue || chg.newValue) && (
+                                  <div className="flex items-center gap-1.5 text-[10px] bg-white p-1 rounded border border-slate-100 font-mono">
+                                    <span className="text-slate-400 line-through truncate max-w-[100px]" title={String(chg.oldValue || '-')}>
+                                      {String(chg.oldValue || '-')}
+                                    </span>
+                                    <span className="text-indigo-600 font-black">➔</span>
+                                    <span className="text-slate-800 font-bold truncate max-w-[120px]" title={String(chg.newValue || '-')}>
+                                      {String(chg.newValue || '-')}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 

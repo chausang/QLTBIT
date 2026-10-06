@@ -117,6 +117,31 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   const [mainTab, setMainTab] = useState<'details' | 'timeline' | 'health'>('details');
   const [isHandoverModalOpen, setIsHandoverModalOpen] = useState(false);
   const [handoverMode, setHandoverMode] = useState<'HANDOVER' | 'RETURN'>('HANDOVER');
+  const [clearingAlert, setClearingAlert] = useState(false);
+
+  const handleClearModalAlert = async (type: 'HARDWARE' | 'SOFTWARE' | 'CRACK' | 'ALL') => {
+    if (!selectedDetailAsset?.id) return;
+    try {
+      setClearingAlert(true);
+      const res = await fetch('/api/assets/clear-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assetId: selectedDetailAsset.id, alertType: type }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSelectedDetailAsset((prev: any) => ({
+          ...prev,
+          specs: data.specs,
+        }));
+        if (onReload) onReload();
+      }
+    } catch (err) {
+      console.error('Clear alert error:', err);
+    } finally {
+      setClearingAlert(false);
+    }
+  };
 
   const { language: ctxLang } = useLanguage();
   const activeLang = language || ctxLang || 'vi';
@@ -274,6 +299,12 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                     <h3 className="font-bold text-base text-white truncate max-w-lg">
                       {selectedDetailAsset.name}
                     </h3>
+                    {selectedDetailAsset.fixedAssetName && (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-400 text-slate-900 border border-amber-300 shadow-xs flex items-center gap-1" title={`Tên tài sản cố định: ${selectedDetailAsset.fixedAssetName}`}>
+                        <span className="text-[9.5px] uppercase font-black bg-amber-500/40 px-1 py-0.2 rounded">TSCĐ</span>
+                        <span>{selectedDetailAsset.fixedAssetName}</span>
+                      </span>
+                    )}
                     {selectedDetailAsset.category?.name && (
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white/90 border border-white/20">
                         {selectedDetailAsset.category.name}
@@ -361,6 +392,116 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                   />
                 ) : (
                   <>
+                    {/* ⚠️ BANNER CẢNH BÁO THAY ĐỔI CẤU HÌNH PHẦN CỨNG (THÁO TRỘM LINH KIỆN) */}
+                    {selectedDetailAsset.specs?.hardwareChangeAlert && (
+                      <div className="p-4 bg-amber-500/10 border-2 border-amber-400 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <AlertTriangle className="w-5 h-5 animate-bounce" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-amber-950 dark:text-amber-200">
+                              ⚠️ {txt('PHÁT HIỆN THAY ĐỔI CẤU HÌNH PHẦN CỨNG (THÁO / TRÁO LINH KIỆN)!', 'Hardware Tamper / Configuration Change Detected!', 'ハードウェア構成変更・改ざん警告')}
+                            </h4>
+                            <p className="text-xs font-bold text-amber-900 dark:text-amber-300 font-mono bg-white/70 dark:bg-slate-900/70 p-1.5 rounded-lg border border-amber-200">
+                              {selectedDetailAsset.specs.hardwareChangeAlert}
+                            </p>
+                            <p className="text-[11px] text-amber-800 dark:text-amber-400">
+                              {txt('Hệ thống phát hiện thông số thực tế của máy khác với cấu hình lưu ban đầu (RAM giảm, thay đổi ổ cứng, thay CPU...).', 'Scanned specs differ from original baseline (RAM reduced, disk swapped, etc.).', 'スキャンされた構成と初期登録スペックの差異が検出されました。')}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={clearingAlert}
+                          onClick={() => handleClearModalAlert('HARDWARE')}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0 self-end sm:self-auto cursor-pointer disabled:opacity-50"
+                          title="Xác nhận IT đã kiểm tra thực tế và xóa cờ cảnh báo này"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{clearingAlert ? txt('Đang xử lý...', 'Processing...', '処理中...') : txt('✓ Đã Kiểm Tra & Xóa Cảnh Báo', '✓ Acknowledge & Clear', '✓ 確認済・警告解除')}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 🛡️ BANNER CẢNH BÁO AN NINH: BẺ KHÓA / CRACK / KMS */}
+                    {(selectedDetailAsset.specs?.crackDetection?.hasSuspect || (Array.isArray(selectedDetailAsset.specs?.crackDetection?.detectedTools) && selectedDetailAsset.specs.crackDetection.detectedTools.length > 0)) && (
+                      <div className="p-4 bg-rose-500/10 border-2 border-rose-400 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <ShieldAlert className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-xs font-black uppercase tracking-wider text-rose-950 dark:text-rose-200">
+                                🛡️ {txt('CẢNH BÁO AN NINH: PHÁT HIỆN CÔNG CỤ BẺ KHÓA / CRACK / KMS!', 'Security Threat: Crack / HackTool / KMS Detected!', 'セキュリティ警告: クラック・不正ツール検出')}
+                              </h4>
+                              <span className="text-[9.5px] font-black bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full">
+                                {txt('Vi phạm chính sách', 'Policy Violation', 'ポリシー違反')}
+                              </span>
+                            </div>
+                            {Array.isArray(selectedDetailAsset.specs.crackDetection.detectedTools) && selectedDetailAsset.specs.crackDetection.detectedTools.length > 0 && (
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[11px] font-bold text-rose-800 dark:text-rose-300">Công cụ:</span>
+                                {selectedDetailAsset.specs.crackDetection.detectedTools.map((tool: string, idx: number) => (
+                                  <span key={idx} className="font-mono text-[10.5px] font-black bg-white dark:bg-slate-900 text-rose-700 px-2 py-0.5 rounded-lg border border-rose-300">
+                                    {tool}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {Array.isArray(selectedDetailAsset.specs.crackDetection.warnings) && selectedDetailAsset.specs.crackDetection.warnings.length > 0 && (
+                              <p className="text-xs text-rose-800 dark:text-rose-300">
+                                {selectedDetailAsset.specs.crackDetection.warnings.join('; ')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={clearingAlert}
+                          onClick={() => handleClearModalAlert('CRACK')}
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0 self-end sm:self-auto cursor-pointer disabled:opacity-50"
+                          title="Xác nhận đã xử lý gỡ bỏ phần mềm bẻ khóa"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{clearingAlert ? txt('Đang xử lý...', 'Processing...', '処理中...') : txt('✓ Đã Xử Lý An Toàn', '✓ Acknowledge Safe', '✓ 対応完了')}</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* 📦 BANNER CẢNH BÁO THAY ĐỔI PHẦN MỀM */}
+                    {selectedDetailAsset.specs?.softwareChangeAlert && (
+                      <div className="p-4 bg-blue-500/10 border-2 border-blue-400 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-in fade-in">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                            <Package className="w-5 h-5" />
+                          </div>
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-black uppercase tracking-wider text-blue-950 dark:text-blue-200">
+                              📦 {txt('CẢNH BÁO THAY ĐỔI PHẦN MỀM (CÀI ĐẶT MỚI / ĐÃ GỠ BỎ)!', 'Software Change Detected (Installed / Uninstalled)!', 'ソフトウェア変更警告')}
+                            </h4>
+                            <p className="text-xs font-bold text-blue-900 dark:text-blue-300 font-mono bg-white/70 dark:bg-slate-900/70 p-1.5 rounded-lg border border-blue-200">
+                              {selectedDetailAsset.specs.softwareChangeAlert}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={clearingAlert}
+                          onClick={() => handleClearModalAlert('SOFTWARE')}
+                          className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all flex items-center gap-1.5 shrink-0 self-end sm:self-auto cursor-pointer disabled:opacity-50"
+                          title="Xác nhận đã ghi nhận sự thay đổi phần mềm này"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>{clearingAlert ? txt('Đang xử lý...', 'Processing...', '処理中...') : txt('✓ Đã Ghi Nhận', '✓ Acknowledge', '✓ 確認済')}</span>
+                        </button>
+                      </div>
+                    )}
+
                     {/* 💡 Cảnh Báo Khuyến Nghị Thay Thế / Mua Mới */}
                     {health.recommendReplacement && (
                       <div className="p-4 bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 border-2 border-rose-300 dark:border-rose-700 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">

@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
         id: asset.id,
         assetTag: asset.assetTag,
         name: asset.name,
+        fixedAssetName: (asset as any).fixedAssetName || (asset.specs as any)?.fixedAssetName || asset.name,
         brand: asset.brand || '',
         model: asset.model || '',
         serialNumber: asset.serialNumber || '',
@@ -196,6 +197,86 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // Tích hợp linh kiện phụ tùng có gán tên TSCĐ vào đợt kiểm kê
+    const spWhere: any = {
+      fixedAssetName: { not: null },
+    };
+    if (locationId && locationId !== 'ALL') {
+      spWhere.locationId = locationId;
+    }
+    if (categoryId && categoryId !== 'ALL') {
+      spWhere.categoryId = categoryId;
+    }
+
+    let matchedSpareParts: any[] = [];
+    try {
+      matchedSpareParts = await prisma.sparePart.findMany({
+        where: spWhere,
+        include: {
+          category: { select: { id: true, name: true, icon: true } },
+          location: { select: { id: true, name: true } },
+        },
+        orderBy: { name: 'asc' },
+      });
+    } catch {}
+
+    const spItems = matchedSpareParts.map((sp, spIdx) => {
+      const price = Number(sp.unitPrice) || 0;
+      const totalVal = price * sp.quantity;
+      const defaultCompany = effectiveCompanies.length === 1 && effectiveCompanies[0] !== 'ALL' ? effectiveCompanies[0] : 'Công ty Cổ phần Tập đoàn ABC';
+      return {
+        id: sp.id,
+        assetTag: sp.sku || `PK-${sp.id.slice(0, 8).toUpperCase()}`,
+        name: sp.name,
+        fixedAssetName: sp.fixedAssetName || sp.name,
+        brand: '—',
+        model: sp.sku || '',
+        serialNumber: '',
+        companyName: defaultCompany,
+        categoryName: sp.category?.name || 'Phụ tùng, linh kiện',
+        categoryIcon: sp.category?.icon || '📦',
+        locationId: sp.locationId || '',
+        locationName: sp.location?.name || 'Kho IT',
+        systemUserId: '',
+        systemUserName: 'Kho phụ tùng & linh kiện',
+        systemDepartment: sp.location?.name || 'Kho CNTT',
+        systemCondition: 'NEW',
+        systemStatus: 'AVAILABLE',
+        countryOfOrigin: 'Việt Nam',
+        inUseYear: '2024',
+        inUseDate: '',
+        department: sp.location?.name || 'Kho CNTT',
+        warehouse: sp.location?.name || 'Kho CNTT',
+        assetGroup: 'Linh kiện, phụ tùng TSCĐ',
+        bookQuantity: sp.quantity,
+        bookPrice: price,
+        bookRemainingValue: totalVal,
+        isAudited: false,
+        auditStatus: 'PENDING',
+        actualQuantity: sp.quantity,
+        actualPrice: price,
+        actualRemainingValue: totalVal,
+        diffQuantity: 0,
+        diffPrice: 0,
+        diffRemainingValue: 0,
+        depreciationRate: 0,
+        depreciationDate: '',
+        controlCode: `KS-PK-${spIdx + 1}`,
+        isSparePart: true,
+        actualUserId: '',
+        actualUserName: 'Kho linh kiện',
+        actualLocationId: sp.locationId || '',
+        actualLocationName: sp.location?.name || 'Kho IT',
+        actualCondition: 'GOOD',
+        actualNotes: '',
+        actualPhotoUrl: null,
+        auditedAt: null,
+        auditedBy: null,
+      };
+    });
+
+    const allItems = [...items, ...spItems];
+
     const newCampaign = {
       id: 'AUDIT-' + Date.now(),
       title: title.trim(),
@@ -209,9 +290,9 @@ export async function POST(request: NextRequest) {
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
       createdBy: user.email,
-      totalAssets: items.length,
+      totalAssets: allItems.length,
       auditedCount: 0,
-      items,
+      items: allItems,
     };
 
     // Load existing campaigns

@@ -148,6 +148,7 @@ export const AssetEditModal: React.FC<AssetEditModalProps> = ({
 
   const [editFormData, setEditFormData] = useState<any>({
     name: '',
+    fixedAssetName: '',
     assetTag: '',
     categoryId: '',
     brand: '',
@@ -188,6 +189,7 @@ export const AssetEditModal: React.FC<AssetEditModalProps> = ({
 
       setEditFormData({
         name: asset.name || '',
+        fixedAssetName: asset.fixedAssetName || '',
         assetTag: asset.assetTag || '',
         categoryId: asset.categoryId || '',
         brand: asset.brand || '',
@@ -646,6 +648,26 @@ export const AssetEditModal: React.FC<AssetEditModalProps> = ({
                         allowEmpty={false}
                       />
                     </div>
+                  </div>
+
+                  {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
+                  <div className="p-3.5 bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 rounded-2xl">
+                    <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                        <span>{txt('Tên tài sản cố định (TSCĐ)', 'Fixed Asset Name (Accounting/Audit)', '固定資産名称')}</span>
+                      </label>
+                      <span className="text-[10px] text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 px-2 py-0.5 rounded-md font-semibold border border-blue-200 dark:border-blue-800">
+                        {txt('Liên kết với kiểm kê tài sản • Không bắt buộc', 'Linked to Asset Audit • Optional', '資産棚卸に連携・任意')}
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={txt('VD: Bộ máy vi tính để bàn HP ProDesk 400 G6 (Để trống nếu trùng tên thiết bị)...', 'e.g. Desktop Computer HP ProDesk 400 G6 (Leave blank if same as device)...', '例：デスクトップPC HP ProDesk 400 G6（未設定可）...')}
+                      value={editFormData.fixedAssetName || ''}
+                      onChange={(e) => setEditFormData({ ...editFormData, fixedAssetName: e.target.value })}
+                      className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 placeholder:font-normal"
+                    />
                   </div>
 
                   {/* Brand, Model, Serial */}
