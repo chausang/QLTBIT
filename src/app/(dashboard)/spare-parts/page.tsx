@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/context';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 import { fetchWithSwr, invalidateClientCache, useAutoRefresh, triggerDataRefresh } from '@/lib/client-cache';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import {
   Boxes,
   Plus,
@@ -713,20 +714,27 @@ export default function SparePartsPage() {
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            type="button"
-            disabled={isExportingExcel}
-            onClick={handleExportExcel}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 disabled:opacity-50"
-            title={isEn ? 'Export spare parts inventory to Excel' : 'Xuất danh sách tồn kho linh kiện ra file Excel'}
-          >
-            {isExportingExcel ? (
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-            ) : (
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            )}
-            <span>{isExportingExcel ? (isEn ? 'Exporting...' : 'Đang xuất...') : (isEn ? 'Export Excel' : 'Xuất Excel')}</span>
-          </button>
+          {/* Data Toolbar: Excel Export & JSON Backup / Restore */}
+          <ModuleDataToolbar
+            moduleKey="spare-parts"
+            moduleName={isEn ? 'Spare Parts Inventory' : 'Kho Phụ Tùng & Linh Kiện'}
+            currentData={filteredParts}
+            onDataRefresh={loadParts}
+            excelColumns={[
+              { header: 'Tên Phụ Tùng / Linh Kiện', key: 'name', width: 35 },
+              { header: 'Tên TSCĐ (Kiểm kê)', key: 'fixedAssetName', width: 30 },
+              { header: 'Mã SKU', key: 'sku', width: 20 },
+              { header: 'Mã Part Number', key: 'partNumber', width: 20 },
+              { header: 'Danh Mục', key: 'category', width: 22 },
+              { header: 'Số Lượng Tồn', key: 'quantity', width: 16 },
+              { header: 'Mức Tối Thiểu', key: 'minQuantity', width: 16 },
+              { header: 'Đơn Vị', key: 'unit', width: 12 },
+              { header: 'Đơn Giá (VNĐ)', key: 'unitPrice', width: 20, format: (v: any) => v || 0 },
+              { header: 'Vị Trí Lưu', key: 'location', width: 25 },
+              { header: 'Nhà Cung Cấp', key: 'supplier', width: 28 },
+            ]}
+            isEn={isEn}
+          />
 
           <Link
             href="/assets/reports?tab=parts"

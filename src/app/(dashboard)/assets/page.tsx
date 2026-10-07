@@ -3,6 +3,7 @@
 import { QuickLink } from '@/components/common/QuickLink';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 import { DocumentQuickPreviewModal } from '@/components/documents/document-quick-preview-modal';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
@@ -2333,16 +2334,14 @@ export default function AssetsPage() {
             <span>{language === 'en' ? 'Batch Print QR' : 'In Tem Hàng Loạt'}</span>
           </button>
 
-          {/* EXCEL EXPORT */}
-          <button
-            type="button"
-            onClick={handleExportExcel}
-            className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl shadow-2xs transition-all shrink-0 cursor-pointer"
-            title="Xuất bảng kê Excel theo mẫu 21 cột chuẩn cơ quan / bệnh viện"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{t('assets.export_excel', 'Xuất Excel')}</span>
-          </button>
+          {/* DATA TOOLBAR: EXPORT EXCEL & JSON BACKUP / RESTORE */}
+          <ModuleDataToolbar
+            moduleKey="assets"
+            moduleName={isEn ? 'IT Assets Inventory' : 'Danh Mục Thiết Bị CNTT'}
+            currentData={assets}
+            onDataRefresh={loadData}
+            isEn={isEn}
+          />
 
           {/* REPORTS & STATISTICS */}
           <Link

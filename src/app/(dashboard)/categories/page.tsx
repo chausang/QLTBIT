@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { invalidateClientCache, triggerDataRefresh } from '@/lib/client-cache';
 import { showTrashUndoToast } from '@/components/common/TrashUndoToast';
 import { CompanyOUNode, DepartmentNode, SubDepartmentNode } from '@/lib/ou-structure';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import {
   Layers,
   Plus,
@@ -972,10 +973,93 @@ export default function CategoriesPage() {
     }
   };
 
+  // Configuration for Module Data Toolbar (Excel & JSON Backup/Restore)
+  const toolbarConfig = (() => {
+    switch (activeTab) {
+      case 'assets':
+        return {
+          moduleKey: 'asset-categories',
+          moduleName: isEn ? 'Asset Categories' : 'Danh Mục Thiết Bị',
+          excelType: 'assets',
+          currentData: assetCategories,
+          excelColumns: [
+            { header: 'Tên Danh Mục', key: 'name', width: 30 },
+            { header: 'Biểu Tượng', key: 'icon', width: 15 },
+            { header: 'Mô Tả', key: 'description', width: 35 },
+            { header: 'Số Lượng Thiết Bị', key: '_count', width: 20, format: (v: any) => v?.assets || 0 },
+          ],
+        };
+      case 'licenses':
+        return {
+          moduleKey: 'license-categories',
+          moduleName: isEn ? 'License Categories' : 'Danh Mục License',
+          excelType: 'licenses',
+          currentData: licenseCategories,
+          excelColumns: [
+            { header: 'Tên Nhóm License', key: 'name', width: 32 },
+            { header: 'Biểu Tượng', key: 'icon', width: 15 },
+            { header: 'Mô Tả', key: 'description', width: 40 },
+            { header: 'Số Bản Quyền Gán', key: 'count', width: 20 },
+          ],
+        };
+      case 'services':
+        return {
+          moduleKey: 'service-categories',
+          moduleName: isEn ? 'Service Categories' : 'Danh Mục Dịch Vụ IT',
+          excelType: 'services',
+          currentData: serviceCategories,
+          excelColumns: [
+            { header: 'Tên Dịch Vụ IT', key: 'name', width: 32 },
+            { header: 'Biểu Tượng', key: 'icon', width: 15 },
+            { header: 'Loại Dịch Vụ', key: 'serviceType', width: 20 },
+            { header: 'Mô Tả', key: 'description', width: 40 },
+            { header: 'Số Hợp Đồng/Gói', key: 'count', width: 20 },
+          ],
+        };
+      case 'vendors':
+        return {
+          moduleKey: 'vendors',
+          moduleName: isEn ? 'Vendors & Partners' : 'Đối Tác / Nhà Cung Cấp',
+          excelType: 'vendors',
+          currentData: vendors,
+          excelColumns: [
+            { header: 'Tên Nhà Cung Cấp', key: 'name', width: 35 },
+            { header: 'Người Liên Hệ', key: 'contactPerson', width: 25 },
+            { header: 'Điện Thoại', key: 'phone', width: 20 },
+            { header: 'Email', key: 'email', width: 28 },
+            { header: 'Địa Chỉ', key: 'address', width: 35 },
+            { header: 'Website', key: 'website', width: 25 },
+            { header: 'Ghi Chú', key: 'generalNotes', width: 30 },
+          ],
+        };
+      case 'companies':
+        return {
+          moduleKey: 'companies',
+          moduleName: isEn ? 'Corporate Entities' : 'Công Ty Thành Viên & Sơ Đồ OU',
+          excelType: 'companies',
+          currentData: companies.map((c) => ({ name: c })),
+          excelColumns: [{ header: 'Tên Công Ty / Chi Nhánh', key: 'name', width: 40 }],
+        };
+      case 'locations':
+        return {
+          moduleKey: 'locations',
+          moduleName: isEn ? 'Locations & Branches' : 'Vị Trí & Phòng Ban',
+          excelType: 'locations',
+          currentData: locations,
+          excelColumns: [
+            { header: 'Tên Vị Trí / Phòng Ban', key: 'name', width: 32 },
+            { header: 'Tòa Nhà', key: 'building', width: 25 },
+            { header: 'Tầng', key: 'floor', width: 15 },
+            { header: 'Ghi Chú', key: 'notes', width: 35 },
+          ],
+        };
+    }
+  })();
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
+      <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
             <span className="p-2 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl shadow-xs">
@@ -988,21 +1072,34 @@ export default function CategoriesPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={handleOpenAdd}
-          className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>
-            {activeTab === 'assets' && (isEn ? '+ Add Asset Category' : 'Thêm Danh Mục Thiết Bị')}
-            {activeTab === 'licenses' && (isEn ? '+ Add License Category' : 'Thêm Danh Mục License')}
-            {activeTab === 'services' && (isEn ? '+ Add Service Category' : 'Thêm Danh Mục Dịch Vụ')}
-            {activeTab === 'vendors' && (isEn ? '+ Add Vendor / Partner' : 'Thêm Đối Tác / Nhà Cung Cấp')}
-            {activeTab === 'companies' && (isEn ? '+ Add Corporate Entity' : 'Thêm Công Ty / Chi Nhánh')}
-            {activeTab === 'locations' && (isEn ? '+ Add Location / Branch' : 'Thêm Vị Trí / Phòng Ban')}
-          </span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Module Data Actions: Import, Export, Backup, Restore */}
+          <ModuleDataToolbar
+            moduleKey={toolbarConfig.moduleKey}
+            moduleName={toolbarConfig.moduleName}
+            excelType={toolbarConfig.excelType}
+            currentData={toolbarConfig.currentData}
+            onDataRefresh={loadAllData}
+            excelColumns={toolbarConfig.excelColumns}
+            isEn={isEn}
+          />
+
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
+          >
+            <Plus className="w-4 h-4" />
+            <span>
+              {activeTab === 'assets' && (isEn ? '+ Add Asset Category' : 'Thêm Danh Mục Thiết Bị')}
+              {activeTab === 'licenses' && (isEn ? '+ Add License Category' : 'Thêm Danh Mục License')}
+              {activeTab === 'services' && (isEn ? '+ Add Service Category' : 'Thêm Danh Mục Dịch Vụ')}
+              {activeTab === 'vendors' && (isEn ? '+ Add Vendor / Partner' : 'Thêm Đối Tác / Nhà Cung Cấp')}
+              {activeTab === 'companies' && (isEn ? '+ Add Corporate Entity' : 'Thêm Công Ty / Chi Nhánh')}
+              {activeTab === 'locations' && (isEn ? '+ Add Location / Branch' : 'Thêm Vị Trí / Phòng Ban')}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Navigation Segmented Tabs (Buttons) */}
