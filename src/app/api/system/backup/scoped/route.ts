@@ -14,6 +14,11 @@ const MODULE_NAMES: Record<string, string> = {
   'locations': 'Vị Trí & Phòng Ban',
   'assets': 'Danh Mục Thiết Bị CNTT',
   'spare-parts': 'Kho Phụ Tùng & Linh Kiện',
+  'audit-campaigns': 'Quản Lý & Kiểm Kê Tài Sản',
+  'reports': 'Báo Cáo Thống Kê Tổng Hợp',
+  'floor-maps': 'Sơ Đồ Mặt Bằng 2D & Phòng Máy',
+  'tamper-alerts': 'Cảnh Báo Linh Kiện & Nhật Ký',
+  'documents': 'Hóa Đơn & Hợp Đồng Tài Liệu',
 };
 
 // GET /api/system/backup/scoped?module={moduleKey} - Export JSON backup for a single module
@@ -117,6 +122,70 @@ export async function GET(request: NextRequest) {
         });
         moduleData = spareParts;
         totalRecords = spareParts.length;
+        break;
+      }
+      case 'audit-campaigns': {
+        const setting = await prisma.systemSetting.findUnique({
+          where: { key: 'audit_campaigns_list' },
+        });
+        try {
+          moduleData = setting?.value ? JSON.parse(setting.value) : [];
+        } catch {
+          moduleData = [];
+        }
+        totalRecords = Array.isArray(moduleData) ? moduleData.length : 0;
+        break;
+      }
+      case 'floor-maps': {
+        const maps = await prisma.floorMap.findMany({
+          include: { location: true },
+          orderBy: { createdAt: 'desc' },
+        });
+        moduleData = maps;
+        totalRecords = maps.length;
+        break;
+      }
+      case 'tamper-alerts': {
+        const flaggedAssets = await prisma.asset.findMany({
+          select: {
+            id: true,
+            assetTag: true,
+            name: true,
+            brand: true,
+            model: true,
+            specs: true,
+            updatedAt: true,
+          },
+        });
+        const alertsData = flaggedAssets.filter((a) => {
+          const sp: any = a.specs;
+          return sp && (sp.hardwareChangeAlert || sp.changeHistory || sp.crackDetection);
+        });
+        moduleData = alertsData;
+        totalRecords = alertsData.length;
+        break;
+      }
+      case 'documents': {
+        const docs = await prisma.document.findMany({
+          orderBy: { createdAt: 'desc' },
+        });
+        moduleData = docs;
+        totalRecords = docs.length;
+        break;
+      }
+      case 'reports': {
+        const [assetCount, sparePartCount, totalValue] = await Promise.all([
+          prisma.asset.count(),
+          prisma.sparePart.count(),
+          prisma.asset.aggregate({ _sum: { purchasePrice: true } }),
+        ]);
+        moduleData = {
+          snapshotDate: new Date().toISOString(),
+          assetCount,
+          sparePartCount,
+          totalAssetValue: totalValue._sum.purchasePrice || 0,
+        };
+        totalRecords = 1;
         break;
       }
     }
@@ -436,15 +505,166 @@ export async function POST(request: NextRequest) {
         }
         break;
       }
+
+      case 'audit-campaigns': {
+        const list: any[] = Array.isArray(data) ? data : [];
+        let existingList: any[] = [];
+        if (mode === 'upsert') {
+          const setting = await prisma.systemSetting.findUnique({
+            where: { key: 'audit_campaigns_list' },
+          });
+          if (setting?.value) {
+            try { existingList = JSON.parse(setting.value); } catch {}
+          }
+        }
+        
+        const mergedMap = new Map();
+        if (mode === 'upsert') {
+          existingList.forEach((c) => mergedMap.set(c.id, c));
+        }
+        list.forEach((c) => mergedMap.set(c.id, c));
+        const finalList = Array.from(mergedMap.values());
+
+        await prisma.systemSetting.upsert({
+          where: { key: 'audit_campaigns_list' },
+          create: {
+            key: 'audit_campaigns_list',
+            value: JSON.stringify(finalList),
+            type: 'JSON',
+            group: 'audit',
+            label: 'Danh Sách Đợt Kiểm Kê',
+          },
+          update: {
+            value: JSON.stringify(finalList),
+          },
+        });
+        restoredCount = list.length;
+        break;
+      }
+
+      case 'floor-maps': {
+        const list: any[] = Array.isArray(data) ? data : [];
+        for (const item of list) {
+          if (!item.name) continue;
+          let locationId = item.locationId;
+          if (locationId) {
+            const loc = await prisma.location.findUnique({ where: { id: locationId } });
+            if (!loc) {
+              const defaultLoc = await prisma.location.findFirst();
+              locationId = defaultLoc ? defaultLoc.id : null;
+            }
+          }
+          if (!locationId) {
+            const firstLoc = await prisma.location.findFirst();
+            if (firstLoc) locationId = firstLoc.id;
+          }
+
+          const existing = await prisma.floorMap.findFirst({
+            where: { name: item.name },
+          });
+          if (existing) {
+            await prisma.floorMap.update({
+              where: { id: existing.id },
+              data: {
+                imageUrl: item.imageUrl || existing.imageUrl,
+                locationId: locationId || existing.locationId,
+                markers: item.markers || undefined,
+              },
+            });
+          } else {
+            await prisma.floorMap.create({
+              data: {
+                name: item.name,
+                imageUrl: item.imageUrl || '/images/default-floor.png',
+                locationId: locationId!,
+                markers: item.markers || [],
+              },
+            });
+          }
+          restoredCount++;
+        }
+        break;
+      }
+
+      case 'tamper-alerts': {
+        const list: any[] = Array.isArray(data) ? data : [];
+        for (const item of list) {
+          if (!item.id && !item.assetTag) continue;
+          const asset = await prisma.asset.findFirst({
+            where: item.id ? { id: item.id } : { assetTag: item.assetTag },
+          });
+          if (asset && item.specs) {
+            const curSpecs = (asset.specs as any) || {};
+            const mergedSpecs = {
+              ...curSpecs,
+              hardwareChangeAlert: item.specs.hardwareChangeAlert || curSpecs.hardwareChangeAlert,
+              changeHistory: item.specs.changeHistory || curSpecs.changeHistory,
+              crackDetection: item.specs.crackDetection || curSpecs.crackDetection,
+            };
+            await prisma.asset.update({
+              where: { id: asset.id },
+              data: { specs: mergedSpecs },
+            });
+            restoredCount++;
+          }
+        }
+        break;
+      }
+
+      case 'documents': {
+        const list: any[] = Array.isArray(data) ? data : [];
+        for (const item of list) {
+          if (!item.title) continue;
+          const existing = await prisma.document.findFirst({
+            where: { title: item.title },
+          });
+          if (existing) {
+            await prisma.document.update({
+              where: { id: existing.id },
+              data: {
+                type: item.type || existing.type,
+                contractNumber: item.contractNumber || null,
+                invoiceNumber: item.invoiceNumber || null,
+                vendorName: item.vendorName || null,
+                value: typeof item.value === 'number' ? item.value : null,
+                fileUrl: item.fileUrl || null,
+                fileName: item.fileName || null,
+                notes: item.notes || null,
+              },
+            });
+          } else {
+            await prisma.document.create({
+              data: {
+                title: item.title,
+                type: item.type || 'CONTRACT',
+                contractNumber: item.contractNumber || null,
+                invoiceNumber: item.invoiceNumber || null,
+                vendorName: item.vendorName || null,
+                value: typeof item.value === 'number' ? item.value : null,
+                fileUrl: item.fileUrl || null,
+                fileName: item.fileName || null,
+                notes: item.notes || null,
+                createdById: currentUser.userId,
+              },
+            });
+          }
+          restoredCount++;
+        }
+        break;
+      }
+      case 'reports': {
+        restoredCount = 1;
+        break;
+      }
     }
 
     // Write audit log
     await createAuditLog({
       userId: currentUser.userId,
-      action: 'RESTORE',
+      action: 'IMPORT',
       entityType: 'SCOPED_BACKUP',
       entityId: module,
-      details: {
+      changes: {
         module,
         moduleName: MODULE_NAMES[module],
         mode,

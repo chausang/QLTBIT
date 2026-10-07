@@ -31,6 +31,7 @@ import {
 import { useLanguage } from '@/lib/i18n/context';
 import { useQuickViewStore } from '@/lib/quick-view-store';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import ExcelJS from 'exceljs';
 
 interface ChangeRecord {
@@ -578,8 +579,16 @@ export function TamperAlertsTab() {
             </button>
           </div>
 
-          {/* Action buttons: Export Excel & Refresh */}
-          <div className="flex items-center gap-2">
+          {/* Action buttons: Export Excel, JSON Backup / Restore & Refresh */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <ModuleDataToolbar
+              moduleKey="tamper-alerts"
+              moduleName={isEn ? 'Hardware Tamper Alerts & Audit' : 'Cảnh Báo Linh Kiện & Nhật Ký'}
+              currentData={activeSubTab === 'ACTIVE_ALERTS' ? activeAlertDevices : flattenedHistory}
+              onDataRefresh={fetchData}
+              isEn={isEn}
+            />
+
             <button
               type="button"
               onClick={handleExportExcel}

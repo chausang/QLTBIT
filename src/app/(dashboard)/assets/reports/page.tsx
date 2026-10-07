@@ -39,6 +39,7 @@ import {
   getAssetExtraHospitalFields,
 } from '@/lib/asset-formatter';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 
 export default function AssetAndPartsReportsPage() {
   const searchParams = useSearchParams();
@@ -806,7 +807,18 @@ export default function AssetAndPartsReportsPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+          <ModuleDataToolbar
+            moduleKey="reports"
+            moduleName={isEn ? 'Reports & Analytics' : 'Báo Cáo Thống Kê Tổng Hợp'}
+            currentData={activeTab === 'assets' ? filteredAssets : filteredParts}
+            onDataRefresh={() => {
+              if (activeTab === 'assets') loadAssets();
+              else loadParts();
+            }}
+            isEn={isEn}
+          />
+
           <button
             type="button"
             onClick={activeTab === 'assets' ? handleExportAssetExcel : handleExportPartsExcel}

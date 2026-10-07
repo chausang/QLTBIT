@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 import { useLanguage } from '@/lib/i18n/context';
 import { invalidateClientCache, triggerDataRefresh } from '@/lib/client-cache';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import {
   ClipboardCheck,
   Search,
@@ -1834,6 +1835,24 @@ export default function AssetsAuditPage() {
               <span>&larr; {isEn ? 'All Campaigns' : 'Tất Cả Các Đợt'}</span>
             </button>
           )}
+
+          {/* Data Toolbar: Export Excel & JSON Backup / Restore for Audit Campaigns */}
+          <ModuleDataToolbar
+            moduleKey="audit-campaigns"
+            moduleName={isEn ? 'Asset Audit Campaigns' : 'Kiểm Kê Tài Sản'}
+            currentData={campaigns}
+            onDataRefresh={loadCampaigns}
+            excelColumns={[
+              { header: 'Mã Đợt', key: 'id', width: 22 },
+              { header: 'Tên Đợt Kiểm Kê', key: 'title', width: 35 },
+              { header: 'Công Ty', key: 'companyName', width: 30 },
+              { header: 'Người Phụ Trách', key: 'responsiblePerson', width: 25 },
+              { header: 'Trạng Thái', key: 'status', width: 16 },
+              { header: 'Tổng Thiết Bị', key: 'totalAssets', width: 16 },
+              { header: 'Ngày Tạo', key: 'createdAt', width: 20 },
+            ]}
+            isEn={isEn}
+          />
 
           <button
             type="button"

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { EnterpriseFeatureLock } from '@/components/common/EnterpriseFeatureLock';
 import { useLanguage } from '@/lib/i18n/context';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import {
   Map,
   Layers,
@@ -1415,6 +1416,22 @@ export default function FloorMapsPage() {
               </option>
             ))}
           </select>
+
+          {/* Data Toolbar: Excel Export & JSON Backup / Restore for Floor Maps */}
+          <ModuleDataToolbar
+            moduleKey="floor-maps"
+            moduleName={isEn ? '2D Floor Plans' : 'Sơ Đồ Mặt Bằng 2D'}
+            currentData={maps}
+            onDataRefresh={loadData}
+            excelColumns={[
+              { header: 'Mã Sơ Đồ', key: 'id', width: 25 },
+              { header: 'Tên Sơ Đồ', key: 'name', width: 35 },
+              { header: 'Vị Trí / Tòa Nhà', key: 'location', width: 25, format: (v: any) => v?.name || '—' },
+              { header: 'Số Điểm Ghim', key: 'markers', width: 16, format: (v: any) => v?.length || 0 },
+              { header: 'Ngày Tạo', key: 'createdAt', width: 22 },
+            ]}
+            isEn={isEn}
+          />
 
           <button
             type="button"

@@ -4,6 +4,7 @@ import { OfficeDocumentViewer } from '@/components/documents/office-document-vie
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 import { invalidateClientCache, triggerDataRefresh } from '@/lib/client-cache';
+import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
 import {
   FileText,
   Receipt,
@@ -1054,6 +1055,26 @@ export default function DocumentsPage() {
             {aiExtracting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-300" />}
             <span>{aiExtracting ? (isEn ? 'AI reading file...' : 'AI đang đọc tệp...') : (isEn ? '✨ AI Smart Import' : '✨ Nhập nhanh AI')}</span>
           </button>
+
+          {/* Data Toolbar: Export Excel & JSON Backup / Restore for Documents */}
+          <ModuleDataToolbar
+            moduleKey="documents"
+            moduleName={isEn ? 'Invoices & Contracts' : 'Hóa Đơn & Hợp Đồng'}
+            currentData={documents}
+            onDataRefresh={loadDocuments}
+            excelColumns={[
+              { header: 'Tiêu Đề Hồ Sơ', key: 'title', width: 35 },
+              { header: 'Phân Loại', key: 'type', width: 18 },
+              { header: 'Số Hợp Đồng', key: 'contractNumber', width: 20 },
+              { header: 'Số Hóa Đơn', key: 'invoiceNumber', width: 20 },
+              { header: 'Dự Án / Gói Thầu', key: 'projectName', width: 25 },
+              { header: 'Công Ty', key: 'companyName', width: 28 },
+              { header: 'Nhà Cung Cấp', key: 'vendorName', width: 28 },
+              { header: 'Giá Trị (VNĐ)', key: 'amount', width: 20 },
+              { header: 'Ngày Lập', key: 'documentDate', width: 18 },
+            ]}
+            isEn={isEn}
+          />
 
           <button
             onClick={loadDocuments}
