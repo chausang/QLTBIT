@@ -19,11 +19,38 @@ export async function DELETE(
     }
 
     const { logId } = await params;
-    await prisma.assetMaintenanceLog.delete({
-      where: { id: logId },
+
+    // Hoàn trả tồn kho phụ tùng nếu có giao dịch liên quan
+    await prisma.$transaction(async (tx) => {
+      const relatedTxs = await tx.sparePartTransaction.findMany({
+        where: { maintenanceLogId: logId },
+      });
+
+      for (const t of relatedTxs) {
+        if (t.type === 'OUT' && t.quantity < 0) {
+          const returnQty = Math.abs(t.quantity);
+          await tx.sparePart.update({
+            where: { id: t.sparePartId },
+            data: { quantity: { increment: returnQty } },
+          });
+        } else if (t.type === 'IN' && t.quantity > 0) {
+          await tx.sparePart.update({
+            where: { id: t.sparePartId },
+            data: { quantity: { decrement: t.quantity } },
+          });
+        }
+      }
+
+      await tx.sparePartTransaction.deleteMany({
+        where: { maintenanceLogId: logId },
+      });
+
+      await tx.assetMaintenanceLog.delete({
+        where: { id: logId },
+      });
     });
 
-    return NextResponse.json({ success: true, message: 'Đã xóa bản ghi thành công' });
+    return NextResponse.json({ success: true, message: 'Đã xóa bản ghi thành công và cập nhật lại kho' });
   } catch (error) {
     console.error('Delete maintenance log error:', error);
     return NextResponse.json({ error: 'Failed to delete maintenance log' }, { status: 500 });

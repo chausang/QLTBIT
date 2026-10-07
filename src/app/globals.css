@@ -107,16 +107,23 @@ nextjs-portal,
     overflow: visible !important;
   }
 
-  body:has(#printable-handover-doc) * {
+  body:has(#printable-handover-doc) *,
+  body:has(#printable-handover-document) *,
+  body:has(#printable-maintenance-sticker) * {
     visibility: hidden;
   }
 
   body:has(#printable-handover-doc) #printable-handover-doc,
-  body:has(#printable-handover-doc) #printable-handover-doc * {
+  body:has(#printable-handover-doc) #printable-handover-doc *,
+  body:has(#printable-handover-document) #printable-handover-document,
+  body:has(#printable-handover-document) #printable-handover-document *,
+  body:has(#printable-maintenance-sticker) #printable-maintenance-sticker,
+  body:has(#printable-maintenance-sticker) #printable-maintenance-sticker * {
     visibility: visible;
   }
 
-  body:has(#printable-handover-doc) #printable-handover-doc {
+  body:has(#printable-handover-doc) #printable-handover-doc,
+  body:has(#printable-handover-document) #printable-handover-document {
     position: absolute;
     left: 0;
     top: 0;
@@ -126,6 +133,15 @@ nextjs-portal,
     margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
+  }
+
+  body:has(#printable-maintenance-sticker) #printable-maintenance-sticker {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 4mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
   }
 
   tr, .avoid-break, .signature-block {

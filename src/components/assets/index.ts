@@ -13,3 +13,5 @@ export { default as SignaturePadModal } from './SignaturePadModal';
 export { default as AssetInventoryAuditModal } from './asset-inventory-audit-modal';
 export { AssetAuditCreateModal } from './AssetAuditCreateModal';
 export * from './AssetTimeline360';
+export { MaintenanceHandoverModal } from './MaintenanceHandoverModal';
+export { MaintenanceQrModal } from './MaintenanceQrModal';
