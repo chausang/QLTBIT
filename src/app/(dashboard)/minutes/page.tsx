@@ -37,6 +37,7 @@ import {
   Copy,
   QrCode,
   Sparkles,
+  Package,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
 import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
@@ -66,6 +67,10 @@ export default function MinutesManagementPage() {
   // Locations / Departments list for dropdown
   const [departments, setDepartments] = useState<string[]>([]);
   const [availableAssets, setAvailableAssets] = useState<any[]>([]);
+  const [spareParts, setSpareParts] = useState<any[]>([]);
+  const [isSparePartsModalOpen, setIsSparePartsModalOpen] = useState(false);
+  const [sparePartSearch, setSparePartSearch] = useState('');
+  const [showAllAssetsForRevocation, setShowAllAssetsForRevocation] = useState(false);
 
   // Print view state
   const [printingMinute, setPrintingMinute] = useState<MinuteDetailProps | null>(null);
@@ -158,6 +163,18 @@ export default function MinutesManagementPage() {
         }
       })
       .catch(() => {});
+
+    // Fetch spare parts from warehouse
+    fetch('/api/spare-parts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSpareParts(data);
+        } else if (data.data && Array.isArray(data.data)) {
+          setSpareParts(data.data);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   // List of all proposal minutes to link with
@@ -188,6 +205,66 @@ export default function MinutesManagementPage() {
       return true;
     });
   }, [minutes, activeTab, selectedDept, selectedStatus, search]);
+
+  // Helper to check if asset belongs to department
+  const isAssetInDepartment = (asset: any, dept: string): boolean => {
+    if (!dept || !dept.trim()) return false;
+    const clean = (s: string) =>
+      s
+        .toLowerCase()
+        .replace(/^(khoa|phòng|ban|trung tâm|bộ phận)\s+/i, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const target = clean(dept);
+    if (!target) return false;
+
+    // 1. Check asset location
+    const locName = clean(asset.location?.name || '');
+    if (locName && (locName.includes(target) || target.includes(locName))) {
+      return true;
+    }
+
+    // 2. Check assignments
+    if (Array.isArray(asset.assignments)) {
+      for (const assign of asset.assignments) {
+        const userDept = clean(assign.user?.department || '');
+        if (userDept && (userDept.includes(target) || target.includes(userDept))) {
+          return true;
+        }
+      }
+    }
+
+    // 3. Direct department on asset if any
+    const directDept = clean(asset.department || '');
+    if (directDept && (directDept.includes(target) || target.includes(directDept))) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Quick select assets list - for REVOCATION, filter by current department
+  const quickSelectAssets = useMemo(() => {
+    if (formData.minuteType === 'REVOCATION' && !showAllAssetsForRevocation) {
+      if (!formData.department?.trim()) return [];
+      return availableAssets.filter((a) => isAssetInDepartment(a, formData.department));
+    }
+    return availableAssets;
+  }, [availableAssets, formData.minuteType, formData.department, showAllAssetsForRevocation]);
+
+  // Filtered spare parts for modal search
+  const filteredSpareParts = useMemo(() => {
+    if (!sparePartSearch.trim()) return spareParts;
+    const q = sparePartSearch.toLowerCase();
+    return spareParts.filter(
+      (sp) =>
+        (sp.name || '').toLowerCase().includes(q) ||
+        (sp.sku || '').toLowerCase().includes(q) ||
+        (sp.category?.name || '').toLowerCase().includes(q) ||
+        (sp.location?.name || '').toLowerCase().includes(q)
+    );
+  }, [spareParts, sparePartSearch]);
 
   // Handle open create modal
   const handleOpenCreate = (defaultType?: MinuteType) => {
@@ -223,6 +300,7 @@ export default function MinutesManagementPage() {
             receiver2Name: '',
           };
 
+    setShowAllAssetsForRevocation(false);
     setFormData({
       title: defaultTitle,
       minuteType: type,
@@ -305,6 +383,7 @@ export default function MinutesManagementPage() {
       signers: item.signers || {},
       extraNotes: item.extraNotes || '',
     });
+    setShowAllAssetsForRevocation(false);
     setEditingId(item.id);
     setModalMode('edit');
     setIsModalOpen(true);
@@ -490,10 +569,57 @@ export default function MinutesManagementPage() {
         serial: asset.serialNumber || '',
         model: asset.model || '',
         unit: 'Cái',
+        usageYear: asset.purchaseDate ? new Date(asset.purchaseDate).getFullYear().toString() : 'Không rõ',
+        originalPrice: asset.purchasePrice ? Number(asset.purchasePrice).toLocaleString('vi-VN') : 'Không rõ',
         condition: prev.minuteType === 'REVOCATION' ? 'Hư không sửa được' : 'Hoạt động tốt',
       };
       return { ...prev, equipmentList: list };
     });
+  };
+
+  // Quick select spare part for an existing row
+  const handleSelectSparePartForEquipment = (index: number, partId: string) => {
+    const part = spareParts.find((p) => p.id === partId);
+    if (!part) return;
+    setFormData((prev) => {
+      const list = [...(prev.equipmentList || [])];
+      list[index] = {
+        ...list[index],
+        name: part.name,
+        code: part.sku || `LK-${part.id.substring(0, 6).toUpperCase()}`,
+        serial: part.sku || '',
+        model: part.category?.name || 'Linh kiện phụ tùng',
+        quantity: 1,
+        unit: part.unit || 'Cái',
+        usageYear: new Date().getFullYear().toString(),
+        originalPrice: part.unitCost ? Number(part.unitCost).toLocaleString('vi-VN') : 'Không rõ',
+        condition: 'Mới 100%',
+        notes: `Lấy từ kho linh kiện (Tồn: ${part.quantity} ${part.unit || 'cái'})`,
+      };
+      return { ...prev, equipmentList: list };
+    });
+  };
+
+  // Add spare part directly from modal
+  const handleAddSparePartDirect = (part: any, qty: number = 1) => {
+    setFormData((prev) => ({
+      ...prev,
+      equipmentList: [
+        ...(prev.equipmentList || []),
+        {
+          name: part.name,
+          code: part.sku || `LK-${part.id.substring(0, 6).toUpperCase()}`,
+          serial: part.sku || '',
+          model: part.category?.name || 'Linh kiện phụ tùng',
+          quantity: qty || 1,
+          unit: part.unit || 'Cái',
+          usageYear: new Date().getFullYear().toString(),
+          originalPrice: part.unitCost ? Number(part.unitCost).toLocaleString('vi-VN') : 'Không rõ',
+          condition: 'Mới 100%',
+          notes: `Lấy từ kho linh kiện (Tồn: ${part.quantity} ${part.unit || 'cái'})`,
+        },
+      ],
+    }));
   };
 
   // Type Badge Renderer
@@ -618,7 +744,7 @@ export default function MinutesManagementPage() {
             className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
           >
             <ClipboardCheck className="w-4 h-4" />
-            <span>+ Bàn Giao (Mẫu 2)</span>
+            <span>+ Bàn Giao</span>
           </button>
 
           <button
@@ -627,7 +753,7 @@ export default function MinutesManagementPage() {
             className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
           >
             <ArrowRightLeft className="w-4 h-4" />
-            <span>+ Thu Hồi (Mẫu 1)</span>
+            <span>+ Thu Hồi</span>
           </button>
 
           <button
@@ -886,7 +1012,7 @@ export default function MinutesManagementPage() {
                           type="button"
                           onClick={() => setPrintingMinute(item)}
                           className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                          title="In / Xem trước mẫu in A4 (Hình 1 hoặc 2)"
+                          title="In / Xem trước mẫu in A4"
                         >
                           <Printer className="w-4 h-4 text-blue-600" />
                         </button>
@@ -1024,8 +1150,8 @@ export default function MinutesManagementPage() {
                     }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
-                    <option value="HANDOVER">Biên bản bàn giao tài sản, công cụ (Hình 2)</option>
-                    <option value="REVOCATION">Biên bản thu hồi tài sản (Hình 1)</option>
+                    <option value="HANDOVER">Biên bản bàn giao tài sản, công cụ</option>
+                    <option value="REVOCATION">Biên bản thu hồi tài sản</option>
                     <option value="MAINTENANCE">Kế hoạch bảo trì & nâng cấp</option>
                     <option value="PROPOSAL">Tờ đề nghị xin cấp thiết bị</option>
                   </select>
@@ -1137,11 +1263,11 @@ export default function MinutesManagementPage() {
 
               {/* Dynamic Sections Based on Type */}
               {formData.minuteType === 'REVOCATION' ? (
-                /* SECTION CHO BIÊN BẢN THU HỒI (HÌNH 1) */
+                /* SECTION CHO BIÊN BẢN THU HỒI */
                 <div className="p-4 bg-rose-50/60 border border-rose-200 rounded-2xl space-y-3">
                   <span className="font-bold text-xs text-rose-950 flex items-center gap-1.5 pb-1 border-b border-rose-200">
                     <ArrowRightLeft className="w-4 h-4 text-rose-600" />
-                    <span>Cấu hình nội dung Biên bản Thu hồi tài sản (Mẫu hình 1)</span>
+                    <span>Cấu hình nội dung Biên bản Thu hồi tài sản</span>
                   </span>
 
                   <div>
@@ -1156,11 +1282,11 @@ export default function MinutesManagementPage() {
                   </div>
                 </div>
               ) : (
-                /* SECTION CHO BIÊN BẢN BÀN GIAO (HÌNH 2) */
+                /* SECTION CHO BIÊN BẢN BÀN GIAO */
                 <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-3">
                   <span className="font-bold text-xs text-emerald-950 flex items-center gap-1.5 pb-1 border-b border-emerald-200">
                     <ClipboardCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Cấu hình nội dung Biên bản Bàn giao tài sản, công cụ (Mẫu hình 2)</span>
+                    <span>Cấu hình nội dung Biên bản Bàn giao tài sản, công cụ</span>
                   </span>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1319,14 +1445,26 @@ export default function MinutesManagementPage() {
                     </p>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleAddEquipmentRow}
-                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>+ Thêm Thiết Bị</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsSparePartsModalOpen(true)}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                      title="Chọn linh kiện phụ tùng từ kho vật tư"
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      <span>+ Thêm từ Kho Linh Kiện</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleAddEquipmentRow}
+                      className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Thêm Thiết Bị</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3 pt-1">
@@ -1336,28 +1474,63 @@ export default function MinutesManagementPage() {
                         key={idx}
                         className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 shadow-2xs relative"
                       >
-                        <div className="flex items-center justify-between pb-1 border-b border-slate-100">
+                        <div className="flex items-center justify-between pb-1 border-b border-slate-100 flex-wrap gap-2">
                           <span className="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
                             <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 text-[11px] flex items-center justify-center font-bold">
                               {idx + 1}
                             </span>
-                            <span>Thiết bị #{idx + 1}</span>
+                            <span>Mục #{idx + 1}</span>
                           </span>
 
-                          <div className="flex items-center gap-2">
-                            {/* Quick Select from Asset */}
-                            {availableAssets.length > 0 && (
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {/* Quick Select from Asset (Filtered by department for REVOCATION) */}
+                            <select
+                              onChange={(e) => {
+                                if (e.target.value === '__SHOW_ALL__') {
+                                  setShowAllAssetsForRevocation(true);
+                                } else {
+                                  handleSelectAssetForEquipment(idx, e.target.value);
+                                }
+                              }}
+                              className={`text-[10.5px] p-1 border rounded-lg font-medium cursor-pointer max-w-[210px] truncate ${
+                                formData.minuteType === 'REVOCATION'
+                                  ? 'bg-rose-50 text-rose-800 border-rose-200'
+                                  : 'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}
+                              defaultValue=""
+                            >
+                              <option value="" disabled>
+                                {formData.minuteType === 'REVOCATION'
+                                  ? formData.department
+                                    ? `Tài sản ${formData.department} (${quickSelectAssets.length})...`
+                                    : 'Chọn Khoa/Phòng trước...'
+                                  : 'Chọn nhanh từ Tài sản...'}
+                              </option>
+                              {quickSelectAssets.map((a) => (
+                                <option key={a.id} value={a.id}>
+                                  {a.assetTag} - {a.name} ({a.serialNumber || 'N/A'})
+                                </option>
+                              ))}
+                              {formData.minuteType === 'REVOCATION' && !showAllAssetsForRevocation && (
+                                <option value="__SHOW_ALL__" className="text-slate-500 italic">
+                                  ↳ Xem tất cả tài sản ({availableAssets.length})
+                                </option>
+                              )}
+                            </select>
+
+                            {/* Quick Select from Spare Part */}
+                            {spareParts.length > 0 && (
                               <select
-                                onChange={(e) => handleSelectAssetForEquipment(idx, e.target.value)}
-                                className="text-[10.5px] p-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-medium cursor-pointer"
+                                onChange={(e) => handleSelectSparePartForEquipment(idx, e.target.value)}
+                                className="text-[10.5px] p-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-lg font-medium cursor-pointer max-w-[170px] truncate"
                                 defaultValue=""
                               >
                                 <option value="" disabled>
-                                  Chọn nhanh từ Tài sản...
+                                  Kho Linh kiện...
                                 </option>
-                                {availableAssets.map((a) => (
-                                  <option key={a.id} value={a.id}>
-                                    {a.assetTag} - {a.name} ({a.serialNumber || 'N/A'})
+                                {spareParts.map((sp) => (
+                                  <option key={sp.id} value={sp.id}>
+                                    📦 {sp.name} ({sp.sku || 'N/A'} - Tồn: {sp.quantity})
                                   </option>
                                 ))}
                               </select>
@@ -1528,6 +1701,102 @@ export default function MinutesManagementPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CHỌN LINH KIỆN PHỤ TÙNG TỪ KHO */}
+      {isSparePartsModalOpen && (
+        <div className="fixed inset-0 z-[60] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 flex flex-col max-h-[85vh] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="w-5 h-5 text-amber-200" />
+                <div>
+                  <h3 className="font-bold text-sm">Kho Linh Kiện & Phụ Tùng</h3>
+                  <p className="text-[11px] text-amber-100">Chọn linh kiện để thêm vào danh mục biên bản</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSparePartsModalOpen(false)}
+                className="p-1 text-amber-200 hover:text-white rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-3 border-b border-slate-100 bg-slate-50">
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên linh kiện, mã SKU, danh mục, vị trí..."
+                  value={sparePartSearch}
+                  onChange={(e) => setSparePartSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-amber-500"
+                />
+              </div>
+            </div>
+
+            <div className="p-4 overflow-y-auto flex-1 space-y-2">
+              {filteredSpareParts.length === 0 ? (
+                <div className="text-center py-8 text-slate-400 text-xs italic">
+                  Không tìm thấy linh kiện nào trong kho.
+                </div>
+              ) : (
+                filteredSpareParts.map((part) => (
+                  <div
+                    key={part.id}
+                    className="p-3 border border-slate-200 rounded-xl hover:border-amber-400 hover:bg-amber-50/30 transition-all flex items-center justify-between gap-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-900">{part.name}</span>
+                        <span className="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded">
+                          Mã: {part.sku || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                        <span>Loại: <strong>{part.category?.name || 'Khác'}</strong></span>
+                        <span>Vị trí: <strong>{part.location?.name || 'Kho chính'}</strong></span>
+                        <span>
+                          Tồn kho:{' '}
+                          <strong className={part.quantity > 0 ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}>
+                            {part.quantity} {part.unit || 'cái'}
+                          </strong>
+                        </span>
+                        {part.unitCost && (
+                          <span>Đơn giá: {Number(part.unitCost).toLocaleString('vi-VN')} đ</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleAddSparePartDirect(part, 1);
+                        setIsSparePartsModalOpen(false);
+                      }}
+                      className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold cursor-pointer shrink-0 transition-colors flex items-center gap-1 shadow-2xs"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Chọn</span>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="p-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsSparePartsModalOpen(false)}
+                className="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       )}

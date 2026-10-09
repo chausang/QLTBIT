@@ -146,7 +146,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
             <span className="text-xs sm:text-sm font-bold flex items-center gap-1.5">
               <span>📄 Mẫu in chuẩn khổ A4:</span>
               <span className="text-amber-400">
-                {data.minuteType === 'REVOCATION' ? 'Biên Bản Thu Hồi Tài Sản (Hình 1)' : 'Biên Bản Bàn Giao Tài Sản (Hình 2)'}
+                {data.minuteType === 'REVOCATION' ? 'Biên Bản Thu Hồi Tài Sản' : 'Biên Bản Bàn Giao Tài Sản, Công Cụ'}
               </span>
             </span>
             <span className="text-xs bg-slate-700 px-2.5 py-0.5 rounded-full text-slate-300 font-mono">
