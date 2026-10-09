@@ -33,11 +33,15 @@ import {
   FileUp,
   Tag,
   ShieldAlert,
+  Link2,
+  Copy,
+  QrCode,
+  Sparkles,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
 import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
-import MinutePrintView, { MinuteDetailProps } from '@/components/minutes/MinutePrintView';
-import { MinuteType, MinuteStatus, MinuteEquipmentItem, MinutePayload } from '@/app/api/minutes/route';
+import MinutePrintView, { MinuteDetailProps, MinuteEquipmentItem } from '@/components/minutes/MinutePrintView';
+import { MinuteType, MinuteStatus, MinutePayload } from '@/app/api/minutes/route';
 
 export default function MinutesManagementPage() {
   const { language } = useLanguage();
@@ -78,15 +82,35 @@ export default function MinutesManagementPage() {
     title: '',
     minuteType: 'HANDOVER',
     minuteCode: '',
+    hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
     department: '',
+    location: '',
+    locationCity: 'Châu Đốc',
+    recipients: '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+    legalBasis: '',
+    handoverCommitment: '',
+    copiesCount: '03',
     companyName: '',
     documentDate: new Date().toISOString().split('T')[0],
     status: 'APPROVED',
-    sender: { name: '', title: 'Kỹ thuật viên CNTT', department: 'Phòng CNTT' },
+    isBasedOnProposal: false,
+    relatedProposalId: '',
+    relatedProposalCode: '',
+    relatedProposalTitle: '',
+    sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+    receiver1: { name: '', title: 'Trưởng Khoa/Phòng', department: '' },
+    receiver2: { name: '', title: 'Nhân viên Khoa/Phòng', department: '' },
     receiver: { name: '', title: '', department: '' },
     equipmentList: [],
     reason: '',
-    signers: { creator: '', deptRep: '', itLead: 'Trưởng phòng CNTT', director: 'Ban Giám Đốc' },
+    signers: {
+      senderSignerTitle: 'Bên bàn giao',
+      senderSignerName: '',
+      receiver1Title: 'Trưởng Khoa/Phòng',
+      receiver1Name: '',
+      receiver2Title: 'Nhân viên Khoa/Phòng',
+      receiver2Name: '',
+    },
     fileUrl: '',
     fileName: '',
     attachments: [],
@@ -136,6 +160,11 @@ export default function MinutesManagementPage() {
       .catch(() => {});
   }, []);
 
+  // List of all proposal minutes to link with
+  const proposalsList = useMemo(() => {
+    return minutes.filter((m) => m.minuteType === 'PROPOSAL');
+  }, [minutes]);
+
   // Compute list of unique departments from minutes if locations list empty
   const allDepartments = useMemo(() => {
     const set = new Set<string>(departments);
@@ -153,7 +182,7 @@ export default function MinutesManagementPage() {
       if (selectedStatus !== 'ALL' && m.status !== selectedStatus) return false;
       if (search.trim()) {
         const query = search.toLowerCase();
-        const text = `${m.minuteCode} ${m.title} ${m.department} ${m.sender?.name} ${m.receiver?.name} ${m.reason} ${m.equipmentList?.map((e) => e.name + ' ' + (e.serial || '')).join(' ')}`.toLowerCase();
+        const text = `${m.minuteCode} ${m.title} ${m.department} ${m.sender?.name} ${m.receiver1?.name} ${m.receiver2?.name} ${m.relatedProposalCode} ${m.reason} ${m.equipmentList?.map((e) => e.name + ' ' + (e.serial || '') + ' ' + (e.model || '')).join(' ')}`.toLowerCase();
         if (!text.includes(query)) return false;
       }
       return true;
@@ -170,34 +199,72 @@ export default function MinutesManagementPage() {
     if (type === 'MAINTENANCE') codePrefix = 'BB-BT';
     if (type === 'PROPOSAL') codePrefix = 'DN-TB';
 
-    let defaultTitle = 'Biên bản bàn giao thiết bị CNTT';
-    if (type === 'REVOCATION') defaultTitle = 'Biên bản thu hồi thiết bị CNTT';
+    let defaultTitle = 'Biên bản bàn giao tài sản, công cụ';
+    if (type === 'REVOCATION') defaultTitle = 'Biên bản thu hồi tài sản';
     if (type === 'MAINTENANCE') defaultTitle = 'Kế hoạch bảo trì & nâng cấp phần cứng';
-    if (type === 'PROPOSAL') defaultTitle = 'Tờ đề nghị xin cấp mới trang thiết bị';
+    if (type === 'PROPOSAL') defaultTitle = 'Tờ đề nghị xin cấp trang thiết bị CNTT';
+
+    const defaultSigners =
+      type === 'REVOCATION'
+        ? {
+            senderSignerTitle: 'Bên Giao',
+            senderSignerName: '',
+            receiver1Title: 'Bên Nhận',
+            receiver1Name: 'Nguyễn Hoàn Danh',
+            receiver2Title: '',
+            receiver2Name: '',
+          }
+        : {
+            senderSignerTitle: 'Bên bàn giao',
+            senderSignerName: 'Nguyễn Hoàn Danh',
+            receiver1Title: 'Trưởng Khoa/Phòng',
+            receiver1Name: '',
+            receiver2Title: 'Nhân viên Khoa/Phòng',
+            receiver2Name: '',
+          };
 
     setFormData({
       title: defaultTitle,
       minuteType: type,
       minuteCode: `${codePrefix}-${year}-${randomSuffix}`,
-      department: '',
+      hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
+      department: type === 'REVOCATION' ? 'Dược' : 'Phòng Hành Chính Quản trị',
+      location: type === 'REVOCATION' ? 'Khoa Dược' : 'Phòng Hành Chính Quản trị',
+      locationCity: 'Châu Đốc',
+      recipients: '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+      legalBasis: 'Căn cứ tình hình thực tế của Khoa, tài sản hiện tại khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin như sau:',
+      handoverCommitment: 'Kể từ ngày ký số tài sản trên bên giao đã bàn giao lại hết cho bên nhận đầy đủ. Biên bản được lập thành 03 bản, mỗi bên giữ 01 bản.',
+      copiesCount: '03',
       companyName: '',
       documentDate: new Date().toISOString().split('T')[0],
       status: type === 'PROPOSAL' ? 'PENDING' : 'APPROVED',
-      sender: { name: '', title: 'Kỹ thuật viên CNTT', department: 'Phòng CNTT' },
+      isBasedOnProposal: false,
+      relatedProposalId: '',
+      relatedProposalCode: '',
+      relatedProposalTitle: '',
+      sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+      receiver1: { name: '', title: type === 'REVOCATION' ? 'Bên Nhận' : 'Trưởng Phòng', department: '' },
+      receiver2: { name: '', title: 'Nhân viên Khoa/Phòng', department: '' },
       receiver: { name: '', title: '', department: '' },
       equipmentList: [
         {
-          name: '',
-          code: '',
-          serial: '',
+          name: type === 'REVOCATION' ? 'Máy in Canon' : 'Màn hình Aiwa 22 inch',
+          code: type === 'REVOCATION' ? 'TS-PR-01' : 'PCKH31450',
+          serial: type === 'REVOCATION' ? 'MQCA697363' : 'AW-22019',
+          model: type === 'REVOCATION' ? 'LBP 2900' : 'Aiwa 22 inch',
           quantity: 1,
-          unit: 'Bộ',
-          condition: 'Hoạt động tốt 100%',
+          unit: 'Cái',
+          usageYear: 'Không rõ',
+          originalPrice: 'Không rõ',
+          condition: type === 'REVOCATION' ? 'Hư không sửa được' : 'Mới 100%',
           notes: '',
         },
       ],
-      reason: '',
-      signers: { creator: '', deptRep: '', itLead: 'Trưởng phòng CNTT', director: 'Ban Giám Đốc' },
+      reason:
+        type === 'REVOCATION'
+          ? 'Khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin'
+          : 'Cấp mới màn hình máy vi tính theo đề nghị của Khoa/Phòng.',
+      signers: defaultSigners,
       fileUrl: '',
       fileName: '',
       attachments: [],
@@ -214,12 +281,25 @@ export default function MinutesManagementPage() {
       title: item.title,
       minuteType: item.minuteType,
       minuteCode: item.minuteCode,
+      hospitalName: item.hospitalName || 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
       department: item.department,
+      location: item.location || item.department,
+      locationCity: item.locationCity || 'Châu Đốc',
+      recipients: item.recipients || '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+      legalBasis: item.legalBasis || '',
+      handoverCommitment: item.handoverCommitment || '',
+      copiesCount: item.copiesCount || '03',
       companyName: item.companyName,
       documentDate: item.documentDate ? item.documentDate.split('T')[0] : new Date().toISOString().split('T')[0],
       status: item.status as MinuteStatus,
+      isBasedOnProposal: !!item.isBasedOnProposal,
+      relatedProposalId: item.relatedProposalId || '',
+      relatedProposalCode: item.relatedProposalCode || '',
+      relatedProposalTitle: item.relatedProposalTitle || '',
       sender: item.sender || {},
-      receiver: item.receiver || {},
+      receiver1: item.receiver1 || item.receiver || {},
+      receiver2: item.receiver2 || {},
+      receiver: item.receiver1 || item.receiver || {},
       equipmentList: item.equipmentList && item.equipmentList.length > 0 ? [...item.equipmentList] : [],
       reason: item.reason || '',
       signers: item.signers || {},
@@ -228,6 +308,67 @@ export default function MinutesManagementPage() {
     setEditingId(item.id);
     setModalMode('edit');
     setIsModalOpen(true);
+  };
+
+  // Select Proposal Handler
+  const handleSelectProposal = (proposalCode: string) => {
+    const prop = proposalsList.find((p) => p.minuteCode === proposalCode);
+    if (!prop) {
+      setFormData((prev) => ({
+        ...prev,
+        isBasedOnProposal: false,
+        relatedProposalId: '',
+        relatedProposalCode: '',
+        relatedProposalTitle: '',
+      }));
+      return;
+    }
+
+    const propDateStr = prop.documentDate ? new Date(prop.documentDate).toLocaleDateString('vi-VN') : '';
+    const autoReason =
+      formData.minuteType === 'HANDOVER'
+        ? `Cấp mới thiết bị theo đề nghị số ${prop.minuteCode} ngày ${propDateStr} của ${prop.department}.`
+        : `Thu hồi thiết bị theo đề nghị số ${prop.minuteCode} ngày ${propDateStr} của Khoa ${prop.department}.`;
+
+    setFormData((prev) => ({
+      ...prev,
+      isBasedOnProposal: true,
+      relatedProposalId: prop.id,
+      relatedProposalCode: prop.minuteCode,
+      relatedProposalTitle: prop.title,
+      department: prev.department || prop.department,
+      location: prev.location || prop.department,
+      reason: prev.reason || autoReason,
+    }));
+  };
+
+  // Copy equipment items directly from Proposal
+  const handleCopyEquipmentFromProposal = () => {
+    if (!formData.relatedProposalCode) return;
+    const prop = proposalsList.find((p) => p.minuteCode === formData.relatedProposalCode);
+    if (!prop || !prop.equipmentList || prop.equipmentList.length === 0) {
+      alert('Tờ đề nghị này không có danh mục thiết bị để sao chép.');
+      return;
+    }
+
+    const copied = prop.equipmentList.map((item) => ({
+      name: item.name,
+      code: item.code || '',
+      serial: item.serial || '',
+      model: item.model || '',
+      quantity: item.quantity || 1,
+      unit: item.unit || 'Cái',
+      usageYear: item.usageYear || 'Không rõ',
+      originalPrice: item.originalPrice || 'Không rõ',
+      condition: formData.minuteType === 'REVOCATION' ? 'Hư không sửa được' : 'Mới 100%',
+      notes: item.notes || '',
+    }));
+
+    setFormData((prev) => ({
+      ...prev,
+      equipmentList: copied,
+    }));
+    alert(`Đã sao chép thành công ${copied.length} thiết bị từ tờ đề nghị [${prop.minuteCode}]!`);
   };
 
   // Handle delete
@@ -305,7 +446,18 @@ export default function MinutesManagementPage() {
       ...prev,
       equipmentList: [
         ...(prev.equipmentList || []),
-        { name: '', code: '', serial: '', quantity: 1, unit: 'Bộ', condition: 'Mới / Tốt', notes: '' },
+        {
+          name: '',
+          code: '',
+          serial: '',
+          model: '',
+          quantity: 1,
+          unit: 'Cái',
+          usageYear: 'Không rõ',
+          originalPrice: 'Không rõ',
+          condition: prev.minuteType === 'REVOCATION' ? 'Hư không sửa được' : 'Mới 100%',
+          notes: '',
+        },
       ],
     }));
   };
@@ -336,8 +488,9 @@ export default function MinutesManagementPage() {
         name: asset.name,
         code: asset.assetTag,
         serial: asset.serialNumber || '',
-        unit: 'Bộ',
-        condition: 'Hoạt động tốt',
+        model: asset.model || '',
+        unit: 'Cái',
+        condition: prev.minuteType === 'REVOCATION' ? 'Hư không sửa được' : 'Hoạt động tốt',
       };
       return { ...prev, equipmentList: list };
     });
@@ -357,7 +510,7 @@ export default function MinutesManagementPage() {
         return (
           <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
             <ArrowRightLeft className="w-3.5 h-3.5 text-rose-600" />
-            <span>Thu Hồi Thiết Bị</span>
+            <span>Thu Hồi Tài Sản</span>
           </span>
         );
       case 'MAINTENANCE':
@@ -425,6 +578,7 @@ export default function MinutesManagementPage() {
     { header: 'Loại Biên Bản', key: 'minuteType', width: 20 },
     { header: 'Tiêu Đề', key: 'title', width: 35 },
     { header: 'Khoa Phòng / Bộ Phận', key: 'department', width: 25 },
+    { header: 'Mã Đề Nghị Liên Kết', key: 'relatedProposalCode', width: 22 },
     { header: 'Ngày Lập', key: 'documentDate', width: 18 },
     { header: 'Trạng Thái', key: 'status', width: 18 },
     { header: 'Lý Do / Nội Dung', key: 'reason', width: 35 },
@@ -442,7 +596,7 @@ export default function MinutesManagementPage() {
             <span>Quản Lý Biên Bản & Đề Nghị Thiết Bị</span>
           </h1>
           <p className="text-xs text-slate-500 font-medium mt-0.5">
-            Quản lý biên bản bàn giao, thu hồi, kế hoạch bảo trì, nâng cấp & các tờ đề nghị xin cấp thiết bị của khoa phòng
+            Quản lý biên bản bàn giao (kèm mã QR), biên bản thu hồi, bảo trì nâng cấp & liên kết tờ đề nghị cấp thiết bị
           </p>
         </div>
 
@@ -460,11 +614,29 @@ export default function MinutesManagementPage() {
 
           <button
             type="button"
+            onClick={() => handleOpenCreate('HANDOVER')}
+            className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
+          >
+            <ClipboardCheck className="w-4 h-4" />
+            <span>+ Bàn Giao (Mẫu 2)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOpenCreate('REVOCATION')}
+            className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
+          >
+            <ArrowRightLeft className="w-4 h-4" />
+            <span>+ Thu Hồi (Mẫu 1)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => handleOpenCreate()}
             className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Tạo Biên Bản / Đề Nghị Mới</span>
+            <span>+ Tạo Biên Bản Mới</span>
           </button>
         </div>
       </div>
@@ -507,7 +679,7 @@ export default function MinutesManagementPage() {
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold text-rose-700">Thu Hồi Thiết Bị</span>
+            <span className="text-[11px] font-bold text-rose-700">Thu Hồi Tài Sản</span>
             <ArrowRightLeft className="w-3.5 h-3.5 text-rose-600" />
           </div>
           <p className="text-xl font-extrabold text-rose-700 mt-1">{stats.revocation}</p>
@@ -552,7 +724,7 @@ export default function MinutesManagementPage() {
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
-              placeholder="Tìm kiếm mã biên bản, tên thiết bị, khoa phòng, người nhận..."
+              placeholder="Tìm kiếm mã biên bản, tờ đề nghị, tên thiết bị, khoa phòng..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500 font-medium"
@@ -624,8 +796,9 @@ export default function MinutesManagementPage() {
                   <th className="p-3.5">Mã & Tiêu Đề Biên Bản</th>
                   <th className="p-3.5">Loại Biên Bản</th>
                   <th className="p-3.5">Khoa Phòng / Bộ Phận</th>
+                  <th className="p-3.5">Liên Kết Đề Nghị</th>
                   <th className="p-3.5">Bên Giao / Nhận</th>
-                  <th className="p-3.5 text-center">Số Thiết Bị</th>
+                  <th className="p-3.5 text-center">Thiết Bị</th>
                   <th className="p-3.5">Ngày Lập</th>
                   <th className="p-3.5 text-center">Trạng Thái</th>
                   <th className="p-3.5 text-center w-36">Thao Tác</th>
@@ -636,7 +809,10 @@ export default function MinutesManagementPage() {
                   <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="p-3.5 text-center font-mono text-slate-400">{idx + 1}</td>
                     <td className="p-3.5">
-                      <div className="font-bold text-slate-900 text-xs hover:text-blue-600 cursor-pointer" onClick={() => setPrintingMinute(item)}>
+                      <div
+                        className="font-bold text-slate-900 text-xs hover:text-blue-600 cursor-pointer"
+                        onClick={() => setPrintingMinute(item)}
+                      >
                         {item.title}
                       </div>
                       <div className="text-[11px] font-mono text-blue-600 font-semibold mt-0.5">
@@ -650,7 +826,7 @@ export default function MinutesManagementPage() {
                           className="inline-flex items-center gap-1 text-[10px] text-slate-500 hover:text-blue-600 mt-1 font-sans"
                         >
                           <Paperclip className="w-3 h-3 text-slate-400" />
-                          <span>File đính kèm ({item.fileName || 'Xem tệp'})</span>
+                          <span>File scan ({item.fileName || 'Xem tệp'})</span>
                         </a>
                       )}
                     </td>
@@ -666,12 +842,27 @@ export default function MinutesManagementPage() {
                       </div>
                     </td>
 
+                    {/* Proposal Connection Column */}
+                    <td className="p-3.5">
+                      {item.isBasedOnProposal && item.relatedProposalCode ? (
+                        <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-50 text-purple-700 border border-purple-200/90 rounded-lg text-[11px] font-medium font-mono">
+                          <Link2 className="w-3 h-3 text-purple-600 shrink-0" />
+                          <span>{item.relatedProposalCode}</span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 italic">Trực tiếp</span>
+                      )}
+                    </td>
+
                     <td className="p-3.5 text-[11px] space-y-0.5">
                       <div className="text-slate-600">
                         <span className="text-slate-400">Giao:</span> <strong>{item.sender?.name || '—'}</strong>
                       </div>
                       <div className="text-slate-600">
-                        <span className="text-slate-400">Nhận:</span> <strong>{item.receiver?.name || '—'}</strong>
+                        <span className="text-slate-400">Nhận:</span> <strong>{item.receiver1?.name || item.receiver?.name || '—'}</strong>
+                        {item.receiver2?.name && (
+                          <span className="text-[10px] text-slate-500">, {item.receiver2.name}</span>
+                        )}
                       </div>
                     </td>
 
@@ -695,7 +886,7 @@ export default function MinutesManagementPage() {
                           type="button"
                           onClick={() => setPrintingMinute(item)}
                           className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                          title="In / Xem trước mẫu in A4"
+                          title="In / Xem trước mẫu in A4 (Hình 1 hoặc 2)"
                         >
                           <Printer className="w-4 h-4 text-blue-600" />
                         </button>
@@ -748,6 +939,68 @@ export default function MinutesManagementPage() {
 
             {/* Modal Form */}
             <form onSubmit={handleSubmitForm} className="p-6 space-y-5 text-xs max-h-[80vh] overflow-y-auto">
+              
+              {/* SECTION: LIÊN KẾT TỜ ĐỀ NGHỊ (THEO YÊU CẦU NGƯỜI DÙNG) */}
+              <div className="p-4 bg-purple-50/70 border border-purple-200 rounded-2xl space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-purple-700" />
+                    <span className="font-bold text-xs text-purple-950">
+                      Liên kết với Tờ Đề Nghị xin cấp thiết bị của Khoa/Phòng
+                    </span>
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={formData.isBasedOnProposal}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setFormData((prev) => ({
+                          ...prev,
+                          isBasedOnProposal: checked,
+                          relatedProposalCode: checked ? prev.relatedProposalCode : '',
+                          relatedProposalId: checked ? prev.relatedProposalId : '',
+                        }));
+                      }}
+                      className="rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    />
+                    <span className="text-[11px] font-bold text-purple-900">
+                      Thiết bị cấp mới / thu hồi theo tờ đề nghị
+                    </span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+                  <div className="sm:col-span-8">
+                    <select
+                      value={formData.relatedProposalCode || ''}
+                      onChange={(e) => handleSelectProposal(e.target.value)}
+                      className="w-full p-2 bg-white border border-purple-300 rounded-xl text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                    >
+                      <option value="">-- Chọn Tờ Đề Nghị từ danh sách đã lập --</option>
+                      {proposalsList.map((p) => (
+                        <option key={p.id} value={p.minuteCode}>
+                          [{p.minuteCode}] {p.title} - {p.department} ({p.documentDate ? new Date(p.documentDate).toLocaleDateString('vi-VN') : ''})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-4">
+                    <button
+                      type="button"
+                      onClick={handleCopyEquipmentFromProposal}
+                      disabled={!formData.relatedProposalCode}
+                      className="w-full py-2 px-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-40 text-white rounded-xl text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>📥 Sao chép thiết bị từ Tờ đề nghị</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Type, Code, Status */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div>
@@ -761,18 +1014,18 @@ export default function MinutesManagementPage() {
                         minuteType: newType,
                         title:
                           newType === 'HANDOVER'
-                            ? 'Biên bản bàn giao thiết bị CNTT'
+                            ? 'Biên bản bàn giao tài sản, công cụ'
                             : newType === 'REVOCATION'
-                            ? 'Biên bản thu hồi thiết bị CNTT'
+                            ? 'Biên bản thu hồi tài sản'
                             : newType === 'MAINTENANCE'
                             ? 'Kế hoạch bảo trì & nâng cấp phần cứng'
-                            : 'Tờ đề nghị xin cấp mới trang thiết bị',
+                            : 'Tờ đề nghị xin cấp trang thiết bị CNTT',
                       });
                     }}
                     className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-900 outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                   >
-                    <option value="HANDOVER">Biên bản bàn giao thiết bị</option>
-                    <option value="REVOCATION">Biên bản thu hồi thiết bị</option>
+                    <option value="HANDOVER">Biên bản bàn giao tài sản, công cụ (Hình 2)</option>
+                    <option value="REVOCATION">Biên bản thu hồi tài sản (Hình 1)</option>
                     <option value="MAINTENANCE">Kế hoạch bảo trì & nâng cấp</option>
                     <option value="PROPOSAL">Tờ đề nghị xin cấp thiết bị</option>
                   </select>
@@ -805,7 +1058,7 @@ export default function MinutesManagementPage() {
                 </div>
               </div>
 
-              {/* Title & Department */}
+              {/* Title & Organization Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Tiêu đề biên bản (*)</label>
@@ -814,21 +1067,35 @@ export default function MinutesManagementPage() {
                     required
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    placeholder="VD: Biên bản bàn giao máy tính để bàn cho Khoa Cấp Cứu..."
                     className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Khoa Phòng / Bộ phận (*)</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Tên Bệnh viện / Cơ quan (*)</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.hospitalName || ''}
+                    onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
+                    placeholder="VD: BỆNH VIỆN ĐA KHOA CHÂU ĐỐC..."
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold uppercase text-slate-900 outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              {/* Department, Location, Location City */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Khoa / Phòng ban (*)</label>
                   <input
                     type="text"
                     required
                     list="deptSuggestions"
                     value={formData.department}
                     onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                    placeholder="VD: Khoa Khám Bệnh, Khoa Hồi Sức, Phòng Kế Toán..."
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="VD: Dược, Khám Bệnh, Phòng HCQT..."
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <datalist id="deptSuggestions">
                     {allDepartments.map((d) => (
@@ -836,101 +1103,219 @@ export default function MinutesManagementPage() {
                     ))}
                   </datalist>
                 </div>
-              </div>
 
-              {/* Date & Reason */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Ngày lập văn bản</label>
-                  <input
-                    type="date"
-                    value={formData.documentDate}
-                    onChange={(e) => setFormData({ ...formData, documentDate: e.target.value })}
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Lý do / Căn cứ / Mục đích thực hiện</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Địa điểm lập (Tại:...)</label>
                   <input
                     type="text"
-                    value={formData.reason || ''}
-                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                    placeholder="VD: Cấp phát trang thiết bị cho nhân sự mới / Đề nghị thay thế màn hình hỏng..."
-                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
+                    value={formData.location || ''}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="VD: Phòng Hành Chính Quản trị"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Địa danh & Ngày lập</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Châu Đốc"
+                      value={formData.locationCity || ''}
+                      onChange={(e) => setFormData({ ...formData, locationCity: e.target.value })}
+                      className="w-1/2 p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium"
+                    />
+                    <input
+                      type="date"
+                      value={formData.documentDate}
+                      onChange={(e) => setFormData({ ...formData, documentDate: e.target.value })}
+                      className="w-1/2 p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Sender & Receiver Card */}
+              {/* Dynamic Sections Based on Type */}
+              {formData.minuteType === 'REVOCATION' ? (
+                /* SECTION CHO BIÊN BẢN THU HỒI (HÌNH 1) */
+                <div className="p-4 bg-rose-50/60 border border-rose-200 rounded-2xl space-y-3">
+                  <span className="font-bold text-xs text-rose-950 flex items-center gap-1.5 pb-1 border-b border-rose-200">
+                    <ArrowRightLeft className="w-4 h-4 text-rose-600" />
+                    <span>Cấu hình nội dung Biên bản Thu hồi tài sản (Mẫu hình 1)</span>
+                  </span>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">Căn cứ thu hồi tài sản:</label>
+                    <textarea
+                      rows={2}
+                      value={formData.legalBasis || ''}
+                      onChange={(e) => setFormData({ ...formData, legalBasis: e.target.value })}
+                      placeholder="Căn cứ tình hình thực tế của Khoa Dược, tài sản hiện tại khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin như sau:"
+                      className="w-full p-2 bg-white border border-rose-300 rounded-xl text-xs font-medium"
+                    />
+                  </div>
+                </div>
+              ) : (
+                /* SECTION CHO BIÊN BẢN BÀN GIAO (HÌNH 2) */
+                <div className="p-4 bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-3">
+                  <span className="font-bold text-xs text-emerald-950 flex items-center gap-1.5 pb-1 border-b border-emerald-200">
+                    <ClipboardCheck className="w-4 h-4 text-emerald-600" />
+                    <span>Cấu hình nội dung Biên bản Bàn giao tài sản, công cụ (Mẫu hình 2)</span>
+                  </span>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Lý do bàn giao (*):</label>
+                      <input
+                        type="text"
+                        value={formData.reason || ''}
+                        onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                        placeholder="VD: Cấp mới màn hình máy vi tính theo đề nghị của Phòng Hành Chính Quản trị."
+                        className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs font-medium"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-700 mb-1">Lời cam kết bàn giao:</label>
+                      <input
+                        type="text"
+                        value={formData.handoverCommitment || ''}
+                        onChange={(e) => setFormData({ ...formData, handoverCommitment: e.target.value })}
+                        placeholder="Kể từ ngày ... số tài sản trên bên giao đã bàn giao lại hết cho bên nhận đầy đủ."
+                        className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SENDER & RECEIVERS CARD */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Bên Giao / Đơn vị thực hiện */}
+                {/* Bên Giao */}
                 <div className="space-y-2">
                   <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5 pb-1 border-b border-slate-200">
                     <User className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Đại diện Bên Giao / Đơn vị thực hiện:</span>
+                    <span>Bên bàn giao / Bên giao:</span>
                   </span>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Họ và tên</label>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Họ và tên (*)</label>
                     <input
                       type="text"
-                      placeholder="VD: Nguyễn Văn A (KTV IT)"
+                      placeholder="VD: Nguyễn Hoàn Danh"
                       value={formData.sender?.name || ''}
-                      onChange={(e) => setFormData({ ...formData, sender: { ...formData.sender, name: e.target.value } })}
-                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          sender: { ...formData.sender, name: e.target.value },
+                          signers: { ...formData.signers, senderSignerName: e.target.value },
+                        })
+                      }
+                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Chức danh / Bộ phận</label>
+                    <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức danh</label>
                     <input
                       type="text"
-                      placeholder="VD: Kỹ sư phần cứng - Phòng CNTT"
-                      value={formData.sender?.title || ''}
-                      onChange={(e) => setFormData({ ...formData, sender: { ...formData.sender, title: e.target.value } })}
+                      placeholder="VD: Nhân viên Phòng CNTT"
+                      value={formData.sender?.department || formData.sender?.title || ''}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          sender: { ...formData.sender, department: e.target.value, title: e.target.value },
+                        })
+                      }
                       className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
                 </div>
 
-                {/* Bên Nhận / Đại diện Khoa phòng */}
+                {/* Bên Nhận: Cho phép 2 người nhận như hình 2 */}
                 <div className="space-y-2">
                   <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5 pb-1 border-b border-slate-200">
                     <Building2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Đại diện Bên Nhận / Đại diện Khoa Phòng:</span>
+                    <span>Bên nhận (Trưởng Khoa & Nhân viên):</span>
                   </span>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Họ và tên người nhận</label>
-                    <input
-                      type="text"
-                      placeholder="VD: Trần Thị B"
-                      value={formData.receiver?.name || ''}
-                      onChange={(e) => setFormData({ ...formData, receiver: { ...formData.receiver, name: e.target.value } })}
-                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
-                    />
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Người 1 (Trưởng Khoa/Phòng)</label>
+                      <input
+                        type="text"
+                        placeholder="VD: Trần Trung Nguyên"
+                        value={formData.receiver1?.name || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            receiver1: { ...formData.receiver1, name: e.target.value },
+                            signers: { ...formData.signers, receiver1Name: e.target.value },
+                          })
+                        }
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức vụ 1</label>
+                      <input
+                        type="text"
+                        placeholder="Trưởng Phòng HCQT"
+                        value={formData.receiver1?.department || formData.receiver1?.title || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            receiver1: { ...formData.receiver1, department: e.target.value, title: e.target.value },
+                          })
+                        }
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 mb-0.5">Chức danh / Khoa phòng</label>
-                    <input
-                      type="text"
-                      placeholder="VD: Điều dưỡng trưởng - Khoa Khám Bệnh"
-                      value={formData.receiver?.title || ''}
-                      onChange={(e) => setFormData({ ...formData, receiver: { ...formData.receiver, title: e.target.value } })}
-                      className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
-                    />
+
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-100">
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Người 2 (Nhân viên nhận máy)</label>
+                      <input
+                        type="text"
+                        placeholder="VD: Nguyễn Thị Thu Thanh"
+                        value={formData.receiver2?.name || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            receiver2: { ...formData.receiver2, name: e.target.value },
+                            signers: { ...formData.signers, receiver2Name: e.target.value },
+                          })
+                        }
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức vụ 2</label>
+                      <input
+                        type="text"
+                        placeholder="Nhân viên Phòng HCQT"
+                        value={formData.receiver2?.department || formData.receiver2?.title || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            receiver2: { ...formData.receiver2, department: e.target.value, title: e.target.value },
+                          })
+                        }
+                        className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Equipment Items List Table */}
+              {/* EQUIPMENT LIST TABLE */}
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
                       <Layers className="w-4 h-4 text-indigo-600" />
-                      <span>Danh mục Trang Thiết Bị / Vật Tư trong biên bản ({formData.equipmentList?.length || 0})</span>
+                      <span>Danh mục Thiết Bị / Tài Sản ({formData.equipmentList?.length || 0})</span>
                     </h4>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Có thể gõ trực tiếp hoặc chọn nhanh từ danh mục Thiết bị / Tài sản đã lưu
+                      Đầy đủ các trường: Model, Serinumber, Mã QR, Năm sử dụng, Nguyên giá, Tình trạng kỹ thuật
                     </p>
                   </div>
 
@@ -944,7 +1329,7 @@ export default function MinutesManagementPage() {
                   </button>
                 </div>
 
-                <div className="space-y-2.5 pt-1">
+                <div className="space-y-3 pt-1">
                   {formData.equipmentList && formData.equipmentList.length > 0 ? (
                     formData.equipmentList.map((item, idx) => (
                       <div
@@ -952,8 +1337,11 @@ export default function MinutesManagementPage() {
                         className="p-3 bg-white border border-slate-200 rounded-xl space-y-2 shadow-2xs relative"
                       >
                         <div className="flex items-center justify-between pb-1 border-b border-slate-100">
-                          <span className="font-bold text-slate-700 text-[11px]">
-                            Thiết bị #{idx + 1}
+                          <span className="font-bold text-slate-700 text-[11px] flex items-center gap-1.5">
+                            <span className="w-5 h-5 rounded-md bg-indigo-50 text-indigo-600 text-[11px] flex items-center justify-center font-bold">
+                              {idx + 1}
+                            </span>
+                            <span>Thiết bị #{idx + 1}</span>
                           </span>
 
                           <div className="flex items-center gap-2">
@@ -986,32 +1374,65 @@ export default function MinutesManagementPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-6 gap-2">
-                          <div className="sm:col-span-2">
-                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Tên thiết bị (*)</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-12 gap-2">
+                          <div className="sm:col-span-4">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Tên thiết bị, công cụ (*)</label>
                             <input
                               type="text"
                               required
-                              placeholder="VD: Máy tính Dell OptiPlex 7090..."
+                              placeholder="VD: Máy in Canon / Màn hình Aiwa 22 inch..."
                               value={item.name}
                               onChange={(e) => handleEquipmentFieldChange(idx, 'name', e.target.value)}
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Model</label>
+                            <input
+                              type="text"
+                              placeholder="LBP 2900..."
+                              value={item.model || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'model', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Mã TS / Serial</label>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Số Serinumber</label>
                             <input
                               type="text"
-                              placeholder="VD: TS-2026-001..."
-                              value={item.code || item.serial || ''}
-                              onChange={(e) => handleEquipmentFieldChange(idx, 'code', e.target.value)}
+                              placeholder="MQCA697363..."
+                              value={item.serial || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'serial', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
                             />
                           </div>
 
-                          <div>
-                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Số lượng</label>
+                          <div className="sm:col-span-2">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Mã TS / Mã QR (*)</label>
+                            <input
+                              type="text"
+                              placeholder="PCKH31450..."
+                              value={item.code || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'code', e.target.value)}
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-blue-700"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-1">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">ĐVT</label>
+                            <input
+                              type="text"
+                              placeholder="Cái"
+                              value={item.unit || 'Cái'}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'unit', e.target.value)}
+                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-center"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-1">
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">SL (*)</label>
                             <input
                               type="number"
                               min={1}
@@ -1020,26 +1441,40 @@ export default function MinutesManagementPage() {
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-center font-bold"
                             />
                           </div>
+                        </div>
 
+                        {/* Extra columns for Revocation / Handover: Năm sử dụng, Nguyên giá, Tình trạng */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 border-t border-slate-100 text-[11px]">
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Hiện trạng kỹ thuật</label>
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Năm sử dụng</label>
                             <input
                               type="text"
-                              placeholder="VD: Mới 100%, Hoạt động tốt..."
-                              value={item.condition || ''}
-                              onChange={(e) => handleEquipmentFieldChange(idx, 'condition', e.target.value)}
-                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                              placeholder="Không rõ / 2022..."
+                              value={item.usageYear || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'usageYear', e.target.value)}
+                              className="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
                             />
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Ghi chú kèm theo</label>
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Nguyên giá (đồng)</label>
                             <input
                               type="text"
-                              placeholder="Kèm bàn phím, chuột..."
-                              value={item.notes || ''}
-                              onChange={(e) => handleEquipmentFieldChange(idx, 'notes', e.target.value)}
-                              className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                              placeholder="Không rõ / 15.000.000..."
+                              value={item.originalPrice || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'originalPrice', e.target.value)}
+                              className="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Tình trạng kỹ thuật</label>
+                            <input
+                              type="text"
+                              placeholder="Hư không sửa được / Mới 100%..."
+                              value={item.condition || ''}
+                              onChange={(e) => handleEquipmentFieldChange(idx, 'condition', e.target.value)}
+                              className="w-full p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-rose-700"
                             />
                           </div>
                         </div>
@@ -1102,6 +1537,10 @@ export default function MinutesManagementPage() {
         <MinutePrintView
           minute={printingMinute}
           onClose={() => setPrintingMinute(null)}
+          onEdit={(min) => {
+            setPrintingMinute(null);
+            handleOpenEdit(min);
+          }}
         />
       )}
     </div>

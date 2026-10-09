@@ -45,6 +45,9 @@ export async function GET(
     const department = meta.department || doc.projectName || '';
     const status = meta.status || 'APPROVED';
 
+    const receiver1 = meta.receiver1 || meta.receiver || { name: '', title: '', department };
+    const receiver2 = meta.receiver2 || { name: '', title: '', department };
+
     return NextResponse.json({
       success: true,
       data: {
@@ -52,12 +55,25 @@ export async function GET(
         title: doc.title,
         minuteType,
         minuteCode,
+        hospitalName: meta.hospitalName || doc.companyName || 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
         department,
+        location: meta.location || department,
+        locationCity: meta.locationCity || 'Châu Đốc',
+        recipients: meta.recipients || '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+        legalBasis: meta.legalBasis || '',
+        handoverCommitment: meta.handoverCommitment || '',
+        copiesCount: meta.copiesCount || '03',
         companyName: doc.companyName || '',
         documentDate: doc.documentDate ? doc.documentDate.toISOString() : doc.createdAt.toISOString(),
         status,
+        isBasedOnProposal: !!meta.isBasedOnProposal,
+        relatedProposalId: meta.relatedProposalId || '',
+        relatedProposalCode: meta.relatedProposalCode || '',
+        relatedProposalTitle: meta.relatedProposalTitle || '',
         sender: meta.sender || {},
-        receiver: meta.receiver || {},
+        receiver1,
+        receiver2,
+        receiver: receiver1,
         equipmentList: meta.equipmentList || [],
         reason: meta.reason || '',
         signers: meta.signers || {},
@@ -114,10 +130,23 @@ export async function PUT(
       ...existingMeta,
       minuteType,
       minuteCode,
+      hospitalName: body.hospitalName !== undefined ? body.hospitalName : (existingMeta.hospitalName || 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC'),
       department,
+      location: body.location !== undefined ? body.location : (existingMeta.location || department),
+      locationCity: body.locationCity !== undefined ? body.locationCity : (existingMeta.locationCity || 'Châu Đốc'),
+      recipients: body.recipients !== undefined ? body.recipients : (existingMeta.recipients || '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin'),
+      legalBasis: body.legalBasis !== undefined ? body.legalBasis : existingMeta.legalBasis,
+      handoverCommitment: body.handoverCommitment !== undefined ? body.handoverCommitment : existingMeta.handoverCommitment,
+      copiesCount: body.copiesCount !== undefined ? body.copiesCount : (existingMeta.copiesCount || '03'),
       status,
+      isBasedOnProposal: body.isBasedOnProposal !== undefined ? !!body.isBasedOnProposal : !!existingMeta.isBasedOnProposal,
+      relatedProposalId: body.relatedProposalId !== undefined ? body.relatedProposalId : existingMeta.relatedProposalId,
+      relatedProposalCode: body.relatedProposalCode !== undefined ? body.relatedProposalCode : existingMeta.relatedProposalCode,
+      relatedProposalTitle: body.relatedProposalTitle !== undefined ? body.relatedProposalTitle : existingMeta.relatedProposalTitle,
       sender: body.sender !== undefined ? body.sender : existingMeta.sender,
-      receiver: body.receiver !== undefined ? body.receiver : existingMeta.receiver,
+      receiver1: body.receiver1 !== undefined ? body.receiver1 : (existingMeta.receiver1 || existingMeta.receiver),
+      receiver2: body.receiver2 !== undefined ? body.receiver2 : existingMeta.receiver2,
+      receiver: body.receiver1 !== undefined ? body.receiver1 : (existingMeta.receiver1 || existingMeta.receiver),
       equipmentList: body.equipmentList !== undefined ? body.equipmentList : existingMeta.equipmentList,
       reason: body.reason !== undefined ? body.reason : existingMeta.reason,
       signers: body.signers !== undefined ? body.signers : existingMeta.signers,
@@ -133,7 +162,7 @@ export async function PUT(
         type: docType,
         projectCode: minuteCode,
         projectName: department,
-        companyName: body.companyName !== undefined ? body.companyName : existing.companyName,
+        companyName: body.hospitalName || body.companyName || existing.companyName,
         documentDate,
         fileUrl: body.fileUrl !== undefined ? body.fileUrl : existing.fileUrl,
         fileName: body.fileName !== undefined ? body.fileName : existing.fileName,
@@ -152,6 +181,7 @@ export async function PUT(
         status,
         minuteType,
         department,
+        relatedProposalCode: meta.relatedProposalCode,
       },
     });
 

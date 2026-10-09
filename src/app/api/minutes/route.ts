@@ -10,13 +10,17 @@ export type MinuteStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'COMPLETED' | 'REJ
 
 export interface MinuteEquipmentItem {
   id?: string;
-  name: string;
-  code?: string;
-  serial?: string;
-  quantity: number;
-  unit?: string;
-  condition?: string;
-  notes?: string;
+  name: string; // Tên, đặc điểm, ký hiệu TSCĐ
+  code?: string; // Mã tài sản / Mã QR
+  serial?: string; // Số Serinumber
+  model?: string; // Model (LBP 2900, ...)
+  quantity: number; // Số lượng
+  unit?: string; // ĐVT (Cái, Bộ...)
+  usageYear?: string; // Năm sử dụng ("Không rõ", "2021", ...)
+  originalPrice?: string; // Nguyên giá (đồng) ("Không rõ", ...)
+  condition?: string; // Tình trạng ("Hư không sửa được", "Mới 100%", ...)
+  notes?: string; // Ghi chú
+  qrData?: string; // Mã QR
 }
 
 export interface MinutePayload {
@@ -24,11 +28,35 @@ export interface MinutePayload {
   title: string;
   minuteType: MinuteType;
   minuteCode?: string;
-  department?: string;
+  hospitalName?: string; // Tên Bệnh viện / Đơn vị (VD: "BỆNH VIỆN ĐA KHOA CHÂU ĐỐC")
+  department?: string; // Khoa / Phòng (VD: "KHOA DƯỢC" hoặc "Phòng Hành Chính Quản trị")
+  location?: string; // Địa điểm lập biên bản (VD: "Phòng Hành Chính Quản trị")
+  locationCity?: string; // Địa danh (VD: "Châu Đốc")
+  recipients?: string; // Kính gửi (VD: "- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin")
+  legalBasis?: string; // Căn cứ thu hồi
+  handoverCommitment?: string; // Lời cam kết bàn giao
+  copiesCount?: string | number; // Số bản lập (VD: "03")
   companyName?: string;
   documentDate?: string;
   status: MinuteStatus;
+
+  // Trường liên kết Tờ đề nghị
+  isBasedOnProposal?: boolean; // Đánh dấu thiết bị được cấp mới hay thu hồi theo đề nghị
+  relatedProposalId?: string; // ID của tờ đề nghị
+  relatedProposalCode?: string; // Mã tờ đề nghị (VD: "DN-TB-2026-1004")
+  relatedProposalTitle?: string; // Tiêu đề tờ đề nghị
+
   sender?: {
+    name?: string;
+    title?: string;
+    department?: string;
+  };
+  receiver1?: {
+    name?: string;
+    title?: string;
+    department?: string;
+  };
+  receiver2?: {
     name?: string;
     title?: string;
     department?: string;
@@ -41,6 +69,12 @@ export interface MinutePayload {
   equipmentList?: MinuteEquipmentItem[];
   reason?: string;
   signers?: {
+    senderSignerTitle?: string; // VD: "Bên Giao" hoặc "Bên bàn giao"
+    senderSignerName?: string;
+    receiver1Title?: string; // VD: "Bên Nhận" hoặc "Trưởng Khoa/Phòng"
+    receiver1Name?: string;
+    receiver2Title?: string; // VD: "Nhân viên Khoa/Phòng"
+    receiver2Name?: string;
     creator?: string;
     deptRep?: string;
     itLead?: string;
@@ -111,86 +145,186 @@ export async function GET(request: NextRequest) {
       const year = new Date().getFullYear();
       const initialMinutes = [
         {
-          title: 'Biên bản bàn giao 03 bộ máy tính & máy in đa năng cho Khoa Khám Bệnh',
+          title: 'Biên bản bàn giao tài sản, công cụ',
           type: 'HANDOVER' as const,
-          projectCode: `BB-BG-${year}-1001`,
-          projectName: 'Khoa Khám Bệnh',
-          documentDate: new Date(),
+          projectCode: `BB-BG-2025-0145`,
+          projectName: 'Phòng Hành Chính Quản trị',
+          documentDate: new Date('2025-02-28'),
           notes: JSON.stringify({
             minuteType: 'HANDOVER',
-            minuteCode: `BB-BG-${year}-1001`,
-            department: 'Khoa Khám Bệnh',
+            minuteCode: `BB-BG-2025-0145`,
+            hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
+            department: 'Phòng Hành Chính Quản trị',
+            location: 'Phòng Hành Chính Quản trị',
+            locationCity: 'Châu Đốc',
             status: 'APPROVED',
-            sender: { name: 'Nguyễn Văn An', title: 'Kỹ sư phần cứng CNTT', department: 'Phòng CNTT' },
-            receiver: { name: 'Trần Thị Mai', title: 'Điều dưỡng trưởng', department: 'Khoa Khám Bệnh' },
+            isBasedOnProposal: true,
+            relatedProposalCode: `DN-TB-2025-089`,
+            relatedProposalTitle: 'Đề nghị xin cấp màn hình vi tính cho Phòng Hành Chính Quản trị',
+            sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+            receiver1: { name: 'Trần Trung Nguyên', title: 'Trưởng Phòng', department: 'Phòng Hành Chính Quản trị' },
+            receiver2: { name: 'Nguyễn Thị Thu Thanh', title: 'Nhân viên', department: 'Phòng HCQT' },
+            receiver: { name: 'Trần Trung Nguyên', title: 'Trưởng Phòng', department: 'Phòng Hành Chính Quản trị' },
+            reason: 'Cấp mới màn hình máy vi tính theo đề nghị của Phòng Hành Chính Quản trị.',
+            handoverCommitment: 'Kể từ ngày 28/02/2025 số tài sản trên bên giao đã bàn giao lại hết cho bên nhận đầy đủ.',
+            copiesCount: '03',
             equipmentList: [
-              { name: 'Bộ máy tính để bàn HP ProDesk 400 G7', code: 'TS-PC-012', serial: 'HP-883291', quantity: 3, unit: 'Bộ', condition: 'Mới 100%, kèm phím chuột HP', notes: 'Bàn giao phòng khám 1, 2, 3' },
-              { name: 'Máy in laser Canon LBP 2900', code: 'TS-PR-008', serial: 'CN-449102', quantity: 1, unit: 'Cái', condition: 'Hoạt động tốt, đã nạp đầy mực', notes: 'Đặt tại bàn tiếp đón' },
+              {
+                name: 'Màn hình Aiwa 22 inch',
+                code: 'PCKH31450',
+                serial: 'AW-22019',
+                model: 'Aiwa 22 inch',
+                quantity: 1,
+                unit: 'Cái',
+                condition: 'Mới 100%',
+                notes: '',
+              },
             ],
-            reason: 'Trang bị bổ sung phương tiện làm việc phục vụ tiếp nhận người bệnh',
-            signers: { creator: 'Nguyễn Văn An', deptRep: 'Trần Thị Mai', itLead: 'Phạm Minh Đức', director: 'Ban Giám Đốc' },
+            signers: {
+              senderSignerTitle: 'Bên bàn giao',
+              senderSignerName: 'Nguyễn Hoàn Danh',
+              receiver1Title: 'Trưởng Khoa/Phòng',
+              receiver1Name: 'Trần Trung Nguyên',
+              receiver2Title: 'Nhân viên Khoa/Phòng',
+              receiver2Name: 'Nguyễn Thị Thu Thanh',
+            },
           }),
         },
         {
-          title: 'Biên bản thu hồi 02 laptop Lenovo ThinkPad cũ hỏng từ Khoa Xét Nghiệm',
+          title: 'Biên bản thu hồi tài sản',
           type: 'HANDOVER' as const,
-          projectCode: `BB-TH-${year}-1002`,
-          projectName: 'Khoa Xét Nghiệm',
-          documentDate: new Date(Date.now() - 86400000 * 2),
+          projectCode: `BB-TH-2026-0218`,
+          projectName: 'Dược',
+          documentDate: new Date(),
           notes: JSON.stringify({
             minuteType: 'REVOCATION',
-            minuteCode: `BB-TH-${year}-1002`,
-            department: 'Khoa Xét Nghiệm',
+            minuteCode: `BB-TH-2026-0218`,
+            hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
+            department: 'Dược',
+            locationCity: 'Châu Đốc',
             status: 'APPROVED',
-            sender: { name: 'Lê Hoàng Nam', title: 'Kỹ thuật viên xét nghiệm', department: 'Khoa Xét Nghiệm' },
-            receiver: { name: 'Vũ Đức Thịnh', title: 'Cán bộ quản lý kho IT', department: 'Phòng CNTT' },
+            recipients: '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+            legalBasis: 'Căn cứ tình hình thực tế của Khoa Dược, tài sản hiện tại khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin như sau:',
+            reason: 'Khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin',
+            isBasedOnProposal: true,
+            relatedProposalCode: `DN-TB-2026-015`,
+            relatedProposalTitle: 'Đề nghị thu hồi thiết bị hỏng Khoa Dược',
+            sender: { name: 'Dược sĩ Đỗ Thúy Hằng', title: 'Phụ trách', department: 'Khoa Dược' },
+            receiver1: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+            receiver: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+            copiesCount: '03',
             equipmentList: [
-              { name: 'Laptop Lenovo ThinkPad T480s', code: 'TS-NB-005', serial: 'PF-109283', quantity: 2, unit: 'Chiếc', condition: 'Màn hình bị sọc, pin chai 80%, thu hồi chờ thanh lý', notes: 'Kèm 02 củ sạc 65W' },
+              {
+                name: 'Máy in Canon',
+                code: 'TS-PR-01',
+                serial: 'MQCA697363',
+                model: 'LBP 2900',
+                quantity: 1,
+                unit: 'Cái',
+                usageYear: 'Không rõ',
+                originalPrice: 'Không rõ',
+                condition: 'Hư không sửa được',
+                notes: '',
+              },
+              {
+                name: 'Máy in Canon',
+                code: 'TS-PR-02',
+                serial: 'NDMA266911',
+                model: 'LBP 2900',
+                quantity: 1,
+                unit: 'Cái',
+                usageYear: 'Không rõ',
+                originalPrice: 'Không rõ',
+                condition: 'Hư không sửa được',
+                notes: '',
+              },
             ],
-            reason: 'Thu hồi thiết bị hết hạn khấu hao và hư hỏng phần cứng về kho IT',
-            signers: { creator: 'Vũ Đức Thịnh', deptRep: 'Lê Hoàng Nam', itLead: 'Phạm Minh Đức', director: 'Ban Giám Đốc' },
+            signers: {
+              senderSignerTitle: 'Bên Giao',
+              senderSignerName: 'Đỗ Thúy Hằng',
+              receiver1Title: 'Bên Nhận',
+              receiver1Name: 'Nguyễn Hoàn Danh',
+            },
           }),
         },
         {
-          title: 'Kế hoạch bảo trì định kỳ & nâng cấp RAM/SSD máy tính Khoa Cấp Cứu',
-          type: 'HANDOVER' as const,
-          projectCode: `BB-BT-${year}-1003`,
-          projectName: 'Khoa Cấp Cứu',
-          documentDate: new Date(Date.now() - 86400000 * 5),
-          notes: JSON.stringify({
-            minuteType: 'MAINTENANCE',
-            minuteCode: `BB-BT-${year}-1003`,
-            department: 'Khoa Cấp Cứu',
-            status: 'COMPLETED',
-            sender: { name: 'Đội Kỹ Thuật CNTT', title: 'Tổ bảo trì & hạ tầng', department: 'Phòng CNTT' },
-            receiver: { name: 'Bác sĩ CK1 Nguyễn Thành Long', title: 'Trưởng Khoa Cấp Cứu', department: 'Khoa Cấp Cứu' },
-            equipmentList: [
-              { name: 'Ổ cứng SSD Kingston NV2 500GB NVMe M.2', code: 'PK-SSD-500', serial: 'KS-99120', quantity: 4, unit: 'Chiếc', condition: 'Mới 100%, nâng cấp tăng tốc độ khởi động', notes: 'Thay thế cho 4 máy trực cấp cứu' },
-              { name: 'Thanh RAM Kingston Fury 16GB DDR4 3200MHz', code: 'PK-RAM-16G', serial: 'KF-44819', quantity: 4, unit: 'Thanh', condition: 'Mới 100%, nâng tổng RAM lên 32GB', notes: 'Chạy phần mềm HIS mượt mà' },
-            ],
-            reason: 'Bảo trì vệ sinh phòng máy và nâng cấp linh kiện đáp ứng phần mềm bệnh viện HIS/LIS',
-            signers: { creator: 'Nguyễn Văn An', deptRep: 'Nguyễn Thành Long', itLead: 'Phạm Minh Đức', director: 'Ban Giám Đốc' },
-          }),
-        },
-        {
-          title: 'Tờ đề nghị xin cấp 03 máy quét mã vạch và 02 máy in nhiệt cho Khoa Dược',
+          title: 'Tờ đề nghị xin cấp màn hình vi tính cho Phòng Hành Chính Quản trị',
           type: 'PROPOSAL' as const,
-          projectCode: `DN-TB-${year}-1004`,
-          projectName: 'Khoa Dược',
-          documentDate: new Date(Date.now() - 86400000 * 1),
+          projectCode: `DN-TB-2025-089`,
+          projectName: 'Phòng Hành Chính Quản trị',
+          documentDate: new Date('2025-02-20'),
           notes: JSON.stringify({
             minuteType: 'PROPOSAL',
-            minuteCode: `DN-TB-${year}-1004`,
-            department: 'Khoa Dược',
-            status: 'PENDING',
-            sender: { name: 'Dược sĩ Đỗ Thúy Hằng', title: 'Phụ trách kho thuốc', department: 'Khoa Dược' },
-            receiver: { name: 'Bộ phận CNTT Tiếp nhận', title: 'Chuyên viên quản trị thiết bị', department: 'Phòng CNTT' },
+            minuteCode: `DN-TB-2025-089`,
+            hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
+            department: 'Phòng Hành Chính Quản trị',
+            status: 'APPROVED',
+            sender: { name: 'Trần Trung Nguyên', title: 'Trưởng Phòng', department: 'Phòng Hành Chính Quản trị' },
+            receiver1: { name: 'Phòng Công Nghệ Thông Tin', title: 'Tiếp nhận', department: 'Phòng CNTT' },
+            reason: 'Trang bị bổ sung màn hình máy vi tính phục vụ công tác văn thư lưu trữ',
             equipmentList: [
-              { name: 'Máy quét mã vạch Honeywell Xenon 1900G 2D QR', code: 'DN-SCAN-01', serial: '', quantity: 3, unit: 'Chiếc', condition: 'Xin cấp mới 100%', notes: 'Quét mã vạch đơn thuốc điện tử BHYT' },
-              { name: 'Máy in hóa đơn nhiệt Xprinter XP-Q80I', code: 'DN-PR-POS', serial: '', quantity: 2, unit: 'Chiếc', condition: 'Xin cấp mới 100%', notes: 'In phiếu cấp phát thuốc ngoại trú' },
+              {
+                name: 'Màn hình Aiwa 22 inch',
+                code: 'PCKH31450',
+                serial: '',
+                model: 'Aiwa 22 inch',
+                quantity: 1,
+                unit: 'Cái',
+                condition: 'Xin cấp mới 100%',
+                notes: 'Phục vụ bàn làm việc văn thư',
+              },
             ],
-            reason: 'Lượng bệnh nhân ngoại trú tăng cao, xin cấp bổ sung thiết bị quét mã để tránh ùn ứ quầy thuốc',
-            signers: { creator: 'Đỗ Thúy Hằng', deptRep: 'Trưởng Khoa Dược', itLead: 'Phạm Minh Đức', director: 'Ban Giám Đốc' },
+            signers: {
+              senderSignerTitle: 'Đại diện đề nghị',
+              senderSignerName: 'Trần Trung Nguyên',
+              receiver1Title: 'Lãnh đạo duyệt',
+              receiver1Name: 'Ban Giám Đốc',
+            },
+          }),
+        },
+        {
+          title: 'Tờ đề nghị thu hồi máy in hỏng Khoa Dược',
+          type: 'PROPOSAL' as const,
+          projectCode: `DN-TB-2026-015`,
+          projectName: 'Dược',
+          documentDate: new Date('2026-02-15'),
+          notes: JSON.stringify({
+            minuteType: 'PROPOSAL',
+            minuteCode: `DN-TB-2026-015`,
+            hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
+            department: 'Dược',
+            status: 'APPROVED',
+            sender: { name: 'Dược sĩ Đỗ Thúy Hằng', title: 'Phụ trách', department: 'Khoa Dược' },
+            receiver1: { name: 'Phòng Công Nghệ Thông Tin', title: 'Tiếp nhận', department: 'Phòng CNTT' },
+            reason: 'Đề nghị Phòng CNTT thu hồi 02 máy in Canon LBP 2900 bị hỏng linh kiện không còn khả năng sửa chữa',
+            equipmentList: [
+              {
+                name: 'Máy in Canon',
+                code: 'TS-PR-01',
+                serial: 'MQCA697363',
+                model: 'LBP 2900',
+                quantity: 1,
+                unit: 'Cái',
+                condition: 'Hư không sửa được',
+                notes: 'Cháy nguồn và hỏng hộp quang',
+              },
+              {
+                name: 'Máy in Canon',
+                code: 'TS-PR-02',
+                serial: 'NDMA266911',
+                model: 'LBP 2900',
+                quantity: 1,
+                unit: 'Cái',
+                condition: 'Hư không sửa được',
+                notes: 'Hỏng mainboard chính',
+              },
+            ],
+            signers: {
+              senderSignerTitle: 'Đại diện đề nghị',
+              senderSignerName: 'Đỗ Thúy Hằng',
+              receiver1Title: 'Lãnh đạo duyệt',
+              receiver1Name: 'Ban Giám Đốc',
+            },
           }),
         },
       ];
@@ -249,7 +383,9 @@ export async function GET(request: NextRequest) {
       const dept: string = meta.department || doc.projectName || '';
       const minuteStatus: MinuteStatus = meta.status || 'APPROVED';
       const sender = meta.sender || { name: doc.createdBy?.fullName || '', title: 'Kỹ thuật viên CNTT', department: 'Phòng CNTT' };
-      const receiver = meta.receiver || { name: '', title: '', department: dept };
+      const receiver1 = meta.receiver1 || meta.receiver || { name: '', title: '', department: dept };
+      const receiver2 = meta.receiver2 || { name: '', title: '', department: dept };
+      const receiver = receiver1;
       const equipmentList: MinuteEquipmentItem[] = Array.isArray(meta.equipmentList) ? meta.equipmentList : [];
       const reason: string = meta.reason || '';
       const signers = meta.signers || {};
@@ -260,11 +396,24 @@ export async function GET(request: NextRequest) {
         title: doc.title,
         minuteType,
         minuteCode,
+        hospitalName: meta.hospitalName || doc.companyName || 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
         department: dept,
+        location: meta.location || dept,
+        locationCity: meta.locationCity || 'Châu Đốc',
+        recipients: meta.recipients || '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+        legalBasis: meta.legalBasis || '',
+        handoverCommitment: meta.handoverCommitment || '',
+        copiesCount: meta.copiesCount || '03',
         companyName: doc.companyName || '',
         documentDate: doc.documentDate ? doc.documentDate.toISOString() : doc.createdAt.toISOString(),
         status: minuteStatus,
+        isBasedOnProposal: !!meta.isBasedOnProposal,
+        relatedProposalId: meta.relatedProposalId || '',
+        relatedProposalCode: meta.relatedProposalCode || '',
+        relatedProposalTitle: meta.relatedProposalTitle || '',
         sender,
+        receiver1,
+        receiver2,
         receiver,
         equipmentList,
         reason,
@@ -301,7 +450,7 @@ export async function GET(request: NextRequest) {
     }
     if (search) {
       filtered = filtered.filter((i) => {
-        const text = `${i.minuteCode} ${i.title} ${i.department} ${i.sender.name} ${i.receiver.name} ${i.reason} ${i.equipmentList.map((e) => e.name + ' ' + (e.serial || '')).join(' ')}`.toLowerCase();
+        const text = `${i.minuteCode} ${i.title} ${i.department} ${i.sender?.name} ${i.receiver1?.name} ${i.receiver2?.name} ${i.relatedProposalCode} ${i.reason} ${i.equipmentList?.map((e) => e.name + ' ' + (e.serial || '') + ' ' + (e.model || '')).join(' ')}`.toLowerCase();
         return text.includes(search);
       });
     }
@@ -339,10 +488,23 @@ export async function POST(request: NextRequest) {
     const meta = {
       minuteType,
       minuteCode,
+      hospitalName: body.hospitalName || 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
       department,
+      location: body.location || department,
+      locationCity: body.locationCity || 'Châu Đốc',
+      recipients: body.recipients || '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
+      legalBasis: body.legalBasis || '',
+      handoverCommitment: body.handoverCommitment || '',
+      copiesCount: body.copiesCount || '03',
       status,
+      isBasedOnProposal: !!body.isBasedOnProposal,
+      relatedProposalId: body.relatedProposalId || '',
+      relatedProposalCode: body.relatedProposalCode || '',
+      relatedProposalTitle: body.relatedProposalTitle || '',
       sender: body.sender || {},
-      receiver: body.receiver || {},
+      receiver1: body.receiver1 || body.receiver || {},
+      receiver2: body.receiver2 || {},
+      receiver: body.receiver1 || body.receiver || {},
       equipmentList: body.equipmentList || [],
       reason: body.reason || '',
       signers: body.signers || {},
@@ -357,7 +519,7 @@ export async function POST(request: NextRequest) {
         type: docType,
         projectCode: minuteCode,
         projectName: department,
-        companyName: body.companyName || null,
+        companyName: body.hospitalName || body.companyName || null,
         documentDate,
         fileUrl: body.fileUrl || '',
         fileName: body.fileName || (body.fileUrl ? body.title : 'bien-ban.pdf'),
@@ -380,6 +542,7 @@ export async function POST(request: NextRequest) {
         title: body.title,
         department,
         status,
+        relatedProposalCode: body.relatedProposalCode,
       },
     });
 
