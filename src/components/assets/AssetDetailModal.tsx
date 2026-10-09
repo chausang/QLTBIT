@@ -1206,6 +1206,43 @@ const activeAssignment = selectedDetailAsset.assignments?.find((a: any) => !a.re
                         </div>
                       )}
 
+                      {/* KHỐI THIẾT BỊ / PHỤ TÙNG ĐI KÈM */}
+                      {Array.isArray(rawSpecs.attachedEquipment) && rawSpecs.attachedEquipment.length > 0 && (
+                        <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                              <Package className="w-4 h-4 text-emerald-600" />
+                              <span>{txt('Thiết bị & Phụ tùng đi kèm', 'Attached Equipment & Accessories', '付属機器・部品一覧')}</span>
+                            </h4>
+                            <span className="text-[10px] font-bold text-emerald-700 bg-white border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                              {rawSpecs.attachedEquipment.length} {txt('thiết bị', 'items', '点')}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {rawSpecs.attachedEquipment.map((item: any, idx: number) => (
+                              <div
+                                key={item.id || idx}
+                                className="p-3 bg-white border border-emerald-100 rounded-xl space-y-1 shadow-2xs"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs font-bold text-slate-900 truncate">{item.name}</span>
+                                  {item.type && (
+                                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                                      {item.type}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-2 text-[11px] text-slate-500 font-mono">
+                                  {item.sku && <span>SKU: {item.sku}</span>}
+                                  {item.serialNumber && <span>SN: {item.serialNumber}</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* ⚠️ CẢNH BÁO THAY ĐỔI CẤU HÌNH PHẦN CỨNG (NẾU CÓ) */}
                       {hwAlert && (
                         <div className="p-4 bg-amber-50 border-2 border-amber-300 rounded-2xl space-y-1.5 animate-in fade-in">

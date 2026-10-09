@@ -33,7 +33,20 @@ export async function PUT(
       vendorId,
       locationId,
       notes,
+      specs,
     } = body;
+
+    let notesToStore: string | null | undefined = undefined;
+    if (specs !== undefined || notes !== undefined) {
+      if (specs && typeof specs === 'object' && Object.keys(specs).length > 0) {
+        notesToStore = JSON.stringify({
+          text: notes !== undefined ? (notes || '') : '',
+          specs: specs,
+        });
+      } else if (notes !== undefined) {
+        notesToStore = notes || null;
+      }
+    }
 
     const updated = await prisma.sparePart.update({
       where: { id },
@@ -48,11 +61,18 @@ export async function PUT(
         ...(currency && { currency }),
         ...(vendorId !== undefined && { vendorId: vendorId || null }),
         ...(locationId !== undefined && { locationId: locationId || null }),
-        ...(notes !== undefined && { notes: notes || null }),
+        ...(notesToStore !== undefined && { notes: notesToStore }),
       },
     });
 
-    return NextResponse.json({ success: true, sparePart: updated });
+    return NextResponse.json({
+      success: true,
+      sparePart: {
+        ...updated,
+        specs: specs || {},
+        notes: notes || '',
+      },
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

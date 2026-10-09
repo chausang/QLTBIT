@@ -258,9 +258,16 @@ export default function AssetHandoverModal({ isOpen, onClose, asset, initialMode
       if (asset.specs.cpu) parts.push(`CPU: ${asset.specs.cpu}`);
       if (asset.specs.ram) parts.push(`RAM: ${asset.specs.ram}`);
       if (asset.specs.storage || asset.specs.ssd) parts.push(`Ổ cứng: ${asset.specs.storage || asset.specs.ssd}`);
-      if (asset.specs.screen || asset.specs.display) parts.push(`Màn hình: ${asset.specs.screen || asset.specs.display}`);
+      if (asset.specs.monitorBrand || asset.specs.monitorModel) {
+        parts.push(`Màn hình: ${[asset.specs.monitorBrand, asset.specs.monitorModel].filter(Boolean).join(' ')}${asset.specs.monitorSerial ? ` (SN: ${asset.specs.monitorSerial})` : ''}`);
+      } else if (asset.specs.screen || asset.specs.display) {
+        parts.push(`Màn hình: ${asset.specs.screen || asset.specs.display}`);
+      }
+      if (Array.isArray(asset.specs.attachedEquipment) && asset.specs.attachedEquipment.length > 0) {
+        parts.push(`Phụ kiện đi kèm: ${asset.specs.attachedEquipment.map((e: any) => `${e.name}${e.serialNumber ? ` (SN: ${e.serialNumber})` : ''}`).join(', ')}`);
+      }
       if (asset.specs.os) parts.push(`HĐH: ${asset.specs.os}`);
-      specs = parts.length > 0 ? parts.join(' | ') : JSON.stringify(asset.specs);
+      specs = parts.length > 0 ? parts.join(' | ') : 'Cấu hình tiêu chuẩn theo thiết bị';
     } else if (typeof asset.specs === 'string') {
       specs = asset.specs;
     }

@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
 
         case 'locations':
           columns = [
-            { header: 'Tên Vị Trí / Phòng Ban (*)', key: 'name', width: 32 },
+            { header: 'Tên Vị Trí / Khoa Phòng (*)', key: 'name', width: 32 },
             { header: 'Tòa Nhà', key: 'building', width: 25 },
             { header: 'Tầng', key: 'floor', width: 15 },
             { header: 'Ghi Chú', key: 'notes', width: 35 },

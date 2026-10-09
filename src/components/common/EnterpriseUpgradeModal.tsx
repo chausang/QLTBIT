@@ -275,16 +275,9 @@ export function EnterpriseUpgradeModal({ isOpen, onClose, featureRequested }: En
 
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500">
-                    <a
-                      href="mailto:takien26@gmail.com?subject=[SIMPLY%20IT]%20Dang%20ky%20tu%20van%20ban%20quyen%20Enterprise"
-                      className="flex items-center gap-1.5 hover:text-blue-600 transition-colors"
-                    >
-                      <Mail className="w-3.5 h-3.5 text-blue-600" />
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">takien26@gmail.com</span>
-                    </a>
-                    <span className="flex items-center gap-1">
-                      <span className="text-slate-400">Tác giả:</span>
-                      <strong className="text-slate-700 dark:text-slate-300">Tạ Trung Kiên</strong>
+                    <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>{isEn ? 'Enterprise SLA & Dedicated Support' : 'Hỗ trợ kỹ thuật & Triển khai Enterprise'}</span>
                     </span>
                   </div>
 

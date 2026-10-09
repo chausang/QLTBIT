@@ -1043,11 +1043,11 @@ export default function CategoriesPage() {
       case 'locations':
         return {
           moduleKey: 'locations',
-          moduleName: isEn ? 'Locations & Branches' : 'Vị Trí & Phòng Ban',
+          moduleName: isEn ? 'Locations & Wards' : 'Vị Trí & Khoa Phòng',
           excelType: 'locations',
           currentData: locations,
           excelColumns: [
-            { header: 'Tên Vị Trí / Phòng Ban', key: 'name', width: 32 },
+            { header: 'Tên Vị Trí / Khoa Phòng', key: 'name', width: 32 },
             { header: 'Tòa Nhà', key: 'building', width: 25 },
             { header: 'Tầng', key: 'floor', width: 15 },
             { header: 'Ghi Chú', key: 'notes', width: 35 },
@@ -1096,7 +1096,7 @@ export default function CategoriesPage() {
               {activeTab === 'services' && (isEn ? '+ Add Service Category' : 'Thêm Danh Mục Dịch Vụ')}
               {activeTab === 'vendors' && (isEn ? '+ Add Vendor / Partner' : 'Thêm Đối Tác / Nhà Cung Cấp')}
               {activeTab === 'companies' && (isEn ? '+ Add Corporate Entity' : 'Thêm Công Ty / Chi Nhánh')}
-              {activeTab === 'locations' && (isEn ? '+ Add Location / Branch' : 'Thêm Vị Trí / Phòng Ban')}
+              {activeTab === 'locations' && (isEn ? '+ Add Location / Ward' : 'Thêm Vị Trí / Khoa Phòng')}
             </span>
           </button>
         </div>
@@ -1179,7 +1179,7 @@ export default function CategoriesPage() {
           }`}
         >
           <MapPin className="w-4 h-4" />
-          <span>{isEn ? 'Locations & Branches' : 'Vị Trí & Phòng Ban'} ({locations.length})</span>
+          <span>{isEn ? 'Locations & Wards' : 'Vị Trí & Khoa Phòng'} ({locations.length})</span>
         </button>
       </div>
 
@@ -2519,8 +2519,8 @@ export default function CategoriesPage() {
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
                 <span>
                   {simpleModalMode === 'create' ? '➕ Thêm Mới: ' : '✏️ Chỉnh Sửa: '}
-                  {activeTab === 'companies' && 'Công Ty Thành Viên'}
-                  {activeTab === 'locations' && 'Vị Trí / Phòng Ban'}
+                  {activeTab === 'companies' && (isEn ? 'Corporate Entity' : 'Công Ty Thành Viên')}
+                  {activeTab === 'locations' && (isEn ? 'Location / Ward' : 'Vị Trí / Khoa Phòng')}
                 </span>
               </h3>
               <button
@@ -2533,11 +2533,13 @@ export default function CategoriesPage() {
 
             <form onSubmit={handleSaveSimple} className="p-6 space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Tên mục (*)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {activeTab === 'locations' ? 'Tên Vị Trí / Khoa Phòng (*)' : 'Tên mục (*)'}
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="Nhập tên..."
+                  placeholder={activeTab === 'locations' ? 'VD: Khoa Khám Bệnh, Khoa Cấp Cứu, Phòng Kỹ Thuật IT, Kho...' : 'Nhập tên...'}
                   value={simpleForm.name}
                   onChange={(e) => setSimpleForm({ ...simpleForm, name: e.target.value })}
                   className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"

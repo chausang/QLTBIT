@@ -36,15 +36,36 @@ export async function GET(request: NextRequest) {
       orderBy: { name: 'asc' },
     });
 
+    const parsedSpareParts = spareParts.map((p) => {
+      let parsedSpecs: Record<string, any> = {};
+      let cleanNotes = p.notes || '';
+
+      if (p.notes && typeof p.notes === 'string' && p.notes.startsWith('{') && p.notes.includes('"specs"')) {
+        try {
+          const parsed = JSON.parse(p.notes);
+          if (parsed && typeof parsed === 'object') {
+            parsedSpecs = parsed.specs || {};
+            cleanNotes = parsed.text !== undefined ? parsed.text : (parsed.note || '');
+          }
+        } catch {}
+      }
+
+      return {
+        ...p,
+        specs: parsedSpecs,
+        notes: cleanNotes,
+      };
+    });
+
     const filtered = lowStockOnly
-      ? spareParts.filter((p) => p.quantity <= p.minStock)
-      : spareParts;
+      ? parsedSpareParts.filter((p) => p.quantity <= p.minStock)
+      : parsedSpareParts;
 
     const stats = {
-      totalItems: spareParts.length,
-      totalQuantity: spareParts.reduce((sum, p) => sum + p.quantity, 0),
-      lowStockCount: spareParts.filter((p) => p.quantity <= p.minStock).length,
-      totalValue: spareParts.reduce((sum, p) => sum + p.quantity * (Number(p.unitPrice) || 0), 0),
+      totalItems: parsedSpareParts.length,
+      totalQuantity: parsedSpareParts.reduce((sum, p) => sum + p.quantity, 0),
+      lowStockCount: parsedSpareParts.filter((p) => p.quantity <= p.minStock).length,
+      totalValue: parsedSpareParts.reduce((sum, p) => sum + p.quantity * (Number(p.unitPrice) || 0), 0),
     };
 
     return NextResponse.json({ success: true, spareParts: filtered, stats });
@@ -80,10 +101,19 @@ export async function POST(request: NextRequest) {
       vendorId,
       locationId,
       notes,
+      specs,
     } = body;
 
     if (!name) {
       return NextResponse.json({ error: 'Tên phụ tùng không được để trống' }, { status: 400 });
+    }
+
+    let notesToStore: string | null = notes || null;
+    if (specs && typeof specs === 'object' && Object.keys(specs).length > 0) {
+      notesToStore = JSON.stringify({
+        text: notes || '',
+        specs: specs,
+      });
     }
 
     const part = await prisma.sparePart.create({
@@ -99,7 +129,7 @@ export async function POST(request: NextRequest) {
         currency: currency || 'VND',
         vendorId: vendorId || null,
         locationId: locationId || null,
-        notes: notes || null,
+        notes: notesToStore,
       },
       include: {
         category: { select: { id: true, name: true } },
@@ -121,7 +151,14 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json({ success: true, sparePart: part }, { status: 201 });
+    return NextResponse.json({
+      success: true,
+      sparePart: {
+        ...part,
+        specs: specs || {},
+        notes: notes || '',
+      },
+    }, { status: 201 });
   } catch (error: any) {
     if (error.code === 'P2002') {
       return NextResponse.json({ error: 'Mã phụ tùng/linh kiện (SKU) đã tồn tại trong hệ thống' }, { status: 400 });

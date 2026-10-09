@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/context';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 import { fetchWithSwr, invalidateClientCache, useAutoRefresh, triggerDataRefresh } from '@/lib/client-cache';
 import ModuleDataToolbar from '@/components/common/ModuleDataToolbar';
+import CustomSpecsBuilder from '@/components/common/CustomSpecsBuilder';
 import {
   Boxes,
   Plus,
@@ -60,6 +61,7 @@ interface SparePart {
   locationId?: string;
   location?: { id: string; name: string };
   notes?: string;
+  specs?: Record<string, any>;
   _count?: { transactions: number };
 }
 
@@ -121,6 +123,7 @@ export default function SparePartsPage() {
   const [formVendor, setFormVendor] = useState('');
   const [formLocation, setFormLocation] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  const [formSpecs, setFormSpecs] = useState<Record<string, any>>({});
   const [creating, setCreating] = useState(false);
 
   // Edit form state
@@ -135,6 +138,7 @@ export default function SparePartsPage() {
   const [editVendor, setEditVendor] = useState('');
   const [editLocation, setEditLocation] = useState('');
   const [editNotes, setEditNotes] = useState('');
+  const [editSpecs, setEditSpecs] = useState<Record<string, any>>({});
   const [updating, setUpdating] = useState(false);
 
   // Dropdowns
@@ -304,6 +308,7 @@ export default function SparePartsPage() {
     setEditVendor(part.vendorId || '');
     setEditLocation(part.locationId || '');
     setEditNotes(part.notes || '');
+    setEditSpecs(part.specs || {});
     setIsEditOpen(true);
   };
 
@@ -327,6 +332,7 @@ export default function SparePartsPage() {
           vendorId: editVendor || undefined,
           locationId: editLocation || undefined,
           notes: editNotes.trim() || undefined,
+          specs: editSpecs,
         }),
       });
       const data = await res.json();
@@ -351,6 +357,7 @@ export default function SparePartsPage() {
             locationId: editLocation || undefined,
             location: locations.find((l) => l.id === editLocation),
             notes: editNotes.trim() || undefined,
+            specs: editSpecs,
           });
         }
       } else {
@@ -384,6 +391,7 @@ export default function SparePartsPage() {
           vendorId: formVendor || undefined,
           locationId: formLocation || undefined,
           notes: formNotes.trim() || undefined,
+          specs: formSpecs,
         }),
       });
       const data = await res.json();
@@ -532,6 +540,7 @@ export default function SparePartsPage() {
     setFormVendor('');
     setFormLocation('');
     setFormNotes('');
+    setFormSpecs({});
   };
 
   const filteredParts = parts.filter((p) => {
@@ -1168,6 +1177,23 @@ export default function SparePartsPage() {
                     <div className="p-2.5 bg-slate-50 rounded-xl space-y-0.5">
                       <p className="text-[10px] font-bold text-slate-400 uppercase">{isEn ? 'Notes / Specs' : 'Ghi chú & Thông số kỹ thuật'}</p>
                       <p className="text-slate-700 whitespace-pre-wrap">{drawerPart.notes}</p>
+                    </div>
+                  )}
+
+                  {drawerPart.specs && Object.keys(drawerPart.specs).length > 0 && (
+                    <div className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/80 space-y-2">
+                      <p className="text-[10px] font-bold text-indigo-700 uppercase flex items-center gap-1">
+                        <Cpu className="w-3 h-3 text-indigo-600" />
+                        <span>{isEn ? 'Custom Specifications' : 'Thông số kỹ thuật mở rộng'}</span>
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {Object.entries(drawerPart.specs).map(([key, value]) => (
+                          <div key={key} className="bg-white p-2 rounded-lg border border-indigo-100/60 shadow-xs">
+                            <span className="text-slate-400 block text-[10px] truncate" title={key}>{key}</span>
+                            <span className="font-semibold text-slate-800 break-words">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1905,6 +1931,15 @@ export default function SparePartsPage() {
                 />
               </div>
 
+              {/* Thông số kỹ thuật tùy chỉnh mở rộng */}
+              <div className="pt-1">
+                <CustomSpecsBuilder
+                  specs={editSpecs}
+                  onChange={setEditSpecs}
+                  title={isEn ? "Custom Specifications" : "Thông số kỹ thuật mở rộng"}
+                />
+              </div>
+
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
@@ -2096,6 +2131,15 @@ export default function SparePartsPage() {
                   value={formNotes}
                   onChange={(e) => setFormNotes(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none resize-none"
+                />
+              </div>
+
+              {/* Thông số kỹ thuật tùy chỉnh mở rộng */}
+              <div className="pt-1">
+                <CustomSpecsBuilder
+                  specs={formSpecs}
+                  onChange={setFormSpecs}
+                  title={isEn ? "Custom Specifications" : "Thông số kỹ thuật mở rộng"}
                 />
               </div>
 

@@ -20,6 +20,7 @@ import {
   Sparkles,
   FileSpreadsheet,
   FileText,
+  FileCheck,
   Settings,
   LogOut,
   User as UserIcon,
@@ -282,6 +283,12 @@ export function Sidebar({
       icon: ClipboardCheck,
       permission: 'approvals.create',
     },
+    {
+      label: t('nav.my_minutes', 'Biên bản & Đề nghị thiết bị'),
+      href: '/minutes',
+      icon: FileCheck,
+      permission: 'portal.view',
+    },
   ];
 
   // Navigation đầy đủ cho Quản trị viên và Quản lý tài sản
@@ -329,6 +336,7 @@ export function Sidebar({
       permission: 'assets.view',
       children: [
         { label: t('nav.assets_list', 'Danh sách Thiết bị'), href: '/assets', icon: Laptop, permission: 'assets.view' },
+        { label: t('nav.assets_minutes', 'Biên bản & Đề nghị thiết bị'), href: '/minutes', icon: FileCheck, permission: 'assets.view' },
         { label: t('nav.assets_audit', 'Kiểm kê Tài sản'), href: '/assets/audit', icon: ClipboardCheck, permission: 'assets.view' },
         { label: t('nav.assets_scan', 'Scan Thiết bị / Quét LAN'), href: '/discovery', icon: ScanLine, permission: 'assets.view' },
         { label: t('nav.tamper_alerts', 'Cảnh Báo Linh Kiện & Nhật Ký'), href: '/discovery?tab=ALERTS', icon: AlertTriangle, permission: 'assets.view' },
@@ -360,6 +368,7 @@ export function Sidebar({
       permission: 'passwords.view',
     },
     { label: t('nav.documents', 'Hóa đơn & Hợp đồng'), href: '/documents', icon: FileText, permission: 'documents.view' },
+    { label: t('nav.minutes', 'Quản lý Biên bản & Đề nghị'), href: '/minutes', icon: FileCheck, permission: 'documents.view' },
     { label: t('nav.categories', 'Quản lý Danh mục'), href: '/categories', icon: Layers, permission: 'categories.view' },
     { label: t('nav.users', 'Nhân sự & Cấp phát'), href: '/users', icon: Users, permission: 'users.view' },
     { label: t('nav.trash', 'Thùng rác (Recycle Bin)'), href: '/trash', icon: Trash2, permission: 'settings.view' },

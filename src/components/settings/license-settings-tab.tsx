@@ -551,43 +551,31 @@ export function LicenseSettingsTab() {
                 </div>
               </div>
 
-              {/* Direct Author & Commercial Contact Info */}
+              {/* Direct Support & Commercial Contact Info */}
               <div className="p-3.5 bg-white dark:bg-slate-800/90 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-800 dark:text-slate-200">
-                      {isEn ? 'Commercial & Technical Contact:' : 'Đơn vị phát triển & Cung cấp bản quyền:'}
+                      {isEn ? 'System Operations & Support Unit:' : 'Đơn vị quản trị & Cung cấp bản quyền:'}
                     </span>
-                    <strong className="text-blue-600 dark:text-blue-400">Tạ Trung Kiên</strong>
+                    <strong className="text-blue-600 dark:text-blue-400">Bộ Phận Quản Trị Hệ Thống CNTT</strong>
                   </div>
                   <p className="text-[11px] text-slate-500">
                     {isEn
-                      ? 'Contact directly via email for custom licensing, pricing quotes, or deployment support.'
-                      : 'Liên hệ trực tiếp qua email để nhận báo giá, cấp mã bản quyền hoặc hỗ trợ triển khai cho doanh nghiệp.'}
+                      ? 'Submit an internal request or contact the IT Department to receive license activation keys or deployment support.'
+                      : 'Gửi yêu cầu nội bộ hoặc liên hệ Bộ phận CNTT để nhận mã bản quyền, nâng cấp quy mô hoặc hỗ trợ kỹ thuật chuyên sâu.'}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText('takien26@gmail.com');
-                      setCopiedEmail(true);
-                      setTimeout(() => setCopiedEmail(false), 2500);
-                    }}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    {copiedEmail ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
-                    <span>{copiedEmail ? (isEn ? 'Copied!' : 'Đã sao chép') : 'takien26@gmail.com'}</span>
-                  </button>
-
-                  <a
-                    href="mailto:takien26@gmail.com?subject=[SIMPLY%20IT]%20Dang%20ky%20mua%20ban%20quyen%20Enterprise"
+                    onClick={() => setShowUpgradeModal(true)}
                     className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                   >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>{isEn ? 'Send Email' : 'Gửi Email'}</span>
-                  </a>
+                    <Crown className="w-3.5 h-3.5 text-amber-300" />
+                    <span>{isEn ? 'Consult Enterprise' : 'Đăng Ký Tư Vấn'}</span>
+                  </button>
                 </div>
               </div>
             </div>

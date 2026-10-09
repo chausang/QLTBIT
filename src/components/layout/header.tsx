@@ -55,6 +55,7 @@ const PAGE_TITLES: Record<string, { titleVi: string; titleEn: string; titleJa?: 
   '/passwords': { titleVi: 'Kho Mật Khẩu An Toàn (Vault)', titleEn: 'Password Vault', titleJa: 'パスワード保管庫 (Vault)', icon: '🔐' },
   '/documents': { titleVi: 'Hóa Đơn & Chứng Từ IT', titleEn: 'Invoices & Documents', titleJa: '請求書＆IT契約書管理', icon: '📄' },
   '/spare-parts': { titleVi: 'Kho Phụ Tùng & Linh Kiện', titleEn: 'Spare Parts Inventory', titleJa: '予備部品・パーツ在庫', icon: '🔩' },
+  '/minutes': { titleVi: 'Quản Lý Biên Bản & Đề Nghị', titleEn: 'Minutes & Equipment Proposals', titleJa: '議事録・機器申請管理', icon: '📝' },
   '/incidents': { titleVi: 'Quản Lý Sự Cố IT (Incidents)', titleEn: 'Incident Management', titleJa: 'ITインシデント重大障害管理', icon: '🚨' },
   '/categories': { titleVi: 'Danh Mục Thiết Bị', titleEn: 'Asset Categories', titleJa: '機器カテゴリー分類', icon: '🏢' },
   '/floor-maps': { titleVi: 'Sơ Đồ Vị Trí Tầng', titleEn: '2D Floor Maps', titleJa: '2Dフロアマップ・座席配置', icon: '🗺️' },
@@ -775,51 +776,52 @@ export function Header({
               <div className="p-4 text-xs max-h-[520px] overflow-y-auto space-y-3">
                 {systemTab === 'ABOUT' && (
                   <div className="space-y-3.5">
-                    {/* COMPACT AUTHOR CARD (NO TK BADGE) */}
+                    {/* PLATFORM & INTERNAL IT SUPPORT CARD */}
                     <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-700/70 shadow-lg space-y-3">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2.5 border-b border-slate-700/60">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-base font-extrabold text-white">Tạ Trung Kiên</h3>
-                            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-400/30">{language === 'en' ? 'Author & Software Engineer' : 'Tác Giả & Kỹ Sư Phát Triển'}</span>
+                            <h3 className="text-base font-extrabold text-white">SIMPLY IT PLATFORM</h3>
+                            <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-400/30">
+                              {language === 'en' ? 'ITSM & Enterprise Operations' : 'Hệ Thống Vận Hành CNTT'}
+                            </span>
                           </div>
-                          <p className="text-[11px] text-slate-400 mt-0.5">Hệ thống Quản lý Dịch vụ & Tài sản CNTT Doanh Nghiệp (SIMPLY IT)</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">
+                            {language === 'en' ? 'Hospital & Enterprise IT Asset & Service Management' : 'Quản trị Tài sản CNTT, Dịch vụ & Khoa Phòng Doanh Nghiệp'}
+                          </p>
                         </div>
 
-                        <a
-                          href="mailto:takien26@gmail.com?subject=[SIMPLY%20IT]%20Lien%20he%20va%20hop%20tac%20phat%20trien%20he%20thong"
+                        <Link
+                          href="/tickets/create"
+                          onClick={() => setIsSystemHealthOpen(false)}
                           className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer shrink-0"
                         >
-                          <Mail className="w-3.5 h-3.5" />
-                          <span>{language === 'en' ? 'Send Email' : 'Gửi Email'}</span>
-                        </a>
+                          <LifeBuoy className="w-3.5 h-3.5" />
+                          <span>{language === 'en' ? 'IT Support' : 'Hỗ Trợ Kỹ Thuật'}</span>
+                        </Link>
                       </div>
 
                       <div className="space-y-2 text-xs">
                         <div className="p-2.5 bg-slate-800/90 rounded-xl border border-slate-700/50 flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-400 text-[11px]">{language === 'en' ? 'Contact Email:' : 'Email liên hệ:'}</span>
-                            <span className="font-mono text-emerald-400 font-bold text-xs sm:text-sm select-all">takien26@gmail.com</span>
+                            <span className="text-slate-400 text-[11px]">{language === 'en' ? 'Management Unit:' : 'Bộ phận phụ trách:'}</span>
+                            <span className="font-semibold text-emerald-400 text-xs sm:text-sm">Phòng Công Nghệ Thông Tin</span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText('takien26@gmail.com');
-                              setCopiedEmail(true);
-                              setTimeout(() => setCopiedEmail(false), 2500);
-                            }}
+                          <Link
+                            href="/tickets"
+                            onClick={() => setIsSystemHealthOpen(false)}
                             className="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-[11px] font-medium border border-slate-600 flex items-center gap-1 transition-colors cursor-pointer"
                           >
-                            {copiedEmail ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedEmail ? (language === 'en' ? 'Copied!' : 'Đã sao chép!') : (language === 'en' ? 'Copy' : 'Sao chép')}</span>
-                          </button>
+                            <LifeBuoy className="w-3.5 h-3.5 text-blue-400" />
+                            <span>{language === 'en' ? 'Service Desk' : 'Trung tâm Ticket'}</span>
+                          </Link>
                         </div>
 
                         <div className="p-2.5 bg-slate-800/70 rounded-xl border border-slate-700/40 text-[11px] text-slate-300 leading-relaxed">
                           {language === 'en' ? (
-                            <>📩 <strong>Collaboration & Feedback:</strong> Reach out via email for feature requests, architectural contributions, or dedicated technical support.</>
+                            <>🛡️ <strong>Internal Support Process:</strong> For equipment allocation, maintenance, hardware issues or system permissions, please create a ticket or submit a request form directly through the system.</>
                           ) : (
-                            <>📩 <strong>Hình thức trao đổi & Hợp tác:</strong> Liên hệ qua email để trao đổi nghiệp vụ, yêu cầu thêm tính năng mới, đóng góp phát triển hoặc nhận hỗ trợ kỹ thuật chuyên sâu về hệ thống.</>
+                            <>🛡️ <strong>Quy trình hỗ trợ nội bộ:</strong> Mọi nhu cầu cấp phát, thu hồi, bảo dưỡng thiết bị máy móc hoặc khắc phục sự cố kỹ thuật của các khoa phòng vui lòng gửi qua mục Hỗ trợ Ticket hoặc Biên bản & Tờ đề nghị để được xử lý nhanh nhất.</>
                           )}
                         </div>
                       </div>
@@ -1098,13 +1100,14 @@ export function Header({
                             )}
 
                             <div className="flex items-center justify-between text-[10.5px] pt-1 border-t border-slate-800">
-                              <a
-                                href="mailto:takien26@gmail.com?subject=[SIMPLY%20IT]%20Lien%20he%20mua%20key%20Enterprise"
+                              <Link
+                                href="/settings?tab=license"
+                                onClick={() => setIsSystemHealthOpen(false)}
                                 className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
                               >
-                                <Mail className="w-3 h-3" />
-                                <span>{language === 'en' ? 'Contact to buy key' : 'Liên hệ mua key Enterprise'}</span>
-                              </a>
+                                <Key className="w-3 h-3" />
+                                <span>{language === 'en' ? 'License Guide' : 'Hướng dẫn bản quyền'}</span>
+                              </Link>
                               <Link
                                 href="/settings?tab=license"
                                 onClick={() => setIsSystemHealthOpen(false)}

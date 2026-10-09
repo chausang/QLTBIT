@@ -26,6 +26,8 @@ import CurrencyInput from '@/components/ui/currency-input';
 import { ManageableDropdown } from './ManageableDropdown';
 import { ManageableDropdown as SearchableSelect } from '@/components/ui/manageable-dropdown';
 import { getCategoryFields, getFriendlySpecLabel, formatPrice, renderCategoryIcon } from './types';
+import { CustomSpecsBuilder } from '@/components/common/CustomSpecsBuilder';
+import { AttachedEquipmentPicker } from './AttachedEquipmentPicker';
 
 export interface AssetAddModalProps {
   isOpen: boolean;
@@ -919,87 +921,13 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
                     </div>
                   </div>
 
-                  {/* KHỐI THÔNG TIN MÀN HÌNH ĐI KÈM */}
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl space-y-3">
-                    <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
-                      <Laptop className="w-4 h-4 text-indigo-600" />
-                      <span>{txt('THÔNG TIN MÀN HÌNH ĐI KÈM (MONITOR SPECS)', 'ATTACHED MONITOR SPECIFICATIONS', '付属モニター仕様')}</span>
-                    </span>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          {txt('Màn hình - Hãng SX', 'Monitor Brand', 'モニターメーカー')}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="HP, Dell, Philip, AOC..."
-                          value={formData.specs?.monitorBrand || ''}
-                          onChange={(e) =>
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              specs: { ...prev.specs, monitorBrand: e.target.value },
-                            }))
-                          }
-                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          {txt('Màn hình - Năm SX', 'Monitor Year', 'モニター製造年')}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="2021, 2023..."
-                          value={formData.specs?.monitorYear || ''}
-                          onChange={(e) =>
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              specs: { ...prev.specs, monitorYear: e.target.value },
-                            }))
-                          }
-                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          {txt('Màn hình - Model', 'Monitor Model', 'モニター型番')}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="HP V190, 190V4L..."
-                          value={formData.specs?.monitorModel || ''}
-                          onChange={(e) =>
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              specs: { ...prev.specs, monitorModel: e.target.value },
-                            }))
-                          }
-                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs outline-none"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                          {txt('Màn hình - Số Seri', 'Monitor Serial Number', 'モニターSN')}
-                        </label>
-                        <input
-                          type="text"
-                          placeholder="3CQ60118YQ..."
-                          value={formData.specs?.monitorSerial || ''}
-                          onChange={(e) =>
-                            setFormData((prev: any) => ({
-                              ...prev,
-                              specs: { ...prev.specs, monitorSerial: e.target.value },
-                            }))
-                          }
-                          className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono outline-none"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                  {/* KHỐI THÔNG TIN THIẾT BỊ / MÀN HÌNH ĐI KÈM & CHỌN TỪ KHO LINH KIỆN */}
+                  <AttachedEquipmentPicker
+                    specs={formData.specs || {}}
+                    onChange={(updatedSpecs) =>
+                      setFormData((prev: any) => ({ ...prev, specs: updatedSpecs }))
+                    }
+                  />
 
                   {/* Extra Category Custom Fields if any */}
                   {(() => {
@@ -1037,6 +965,34 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
                       </div>
                     );
                   })()}
+
+                  {/* Dynamic Custom Specs Builder (User can add and rename fields freely) */}
+                  <CustomSpecsBuilder
+                    specs={formData.specs || {}}
+                    onChange={(updatedSpecs) =>
+                      setFormData((prev: any) => ({ ...prev, specs: updatedSpecs }))
+                    }
+                    excludeKeys={[
+                      ...getCategoryFields(categories, formData.categoryId).map((f) => f.key),
+                    ]}
+                    defaultKeys={[
+                      ...getCategoryFields(categories, formData.categoryId).map((f) => f.key),
+                    ]}
+                    suggestions={[
+                      'Bus RAM',
+                      'Số khe RAM',
+                      'Card âm thanh',
+                      'Khay giấy máy in',
+                      'Tốc độ quét DPI',
+                      'Cổng PoE',
+                      'Băng thông switching',
+                      'Chuẩn Bluetooth',
+                      'Cổng Type-C',
+                      'Độ phân giải màn hình',
+                      'Công suất nguồn (W)',
+                      'Trọng lượng (kg)',
+                    ]}
+                  />
                 </div>
               )}
 
