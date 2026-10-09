@@ -11,7 +11,7 @@ const MODULE_NAMES: Record<string, string> = {
   'service-categories': 'Danh Mục Dịch Vụ IT',
   'vendors': 'Đối Tác & Nhà Cung Cấp',
   'companies': 'Công Ty Thành Viên & Sơ Đồ OU',
-  'locations': 'Vị Trí & Khoa Phòng',
+  'locations': 'Danh Mục Khoa Phòng',
   'assets': 'Danh Mục Thiết Bị CNTT',
   'spare-parts': 'Kho Phụ Tùng & Linh Kiện',
   'minutes': 'Biên Bản & Tờ Đề Nghị Thiết Bị',

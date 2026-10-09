@@ -63,6 +63,14 @@ interface VendorContact {
   notes?: string;
 }
 
+interface LocationAreaItem {
+  id?: string;
+  building: string;
+  floor: string;
+  room?: string;
+  notes?: string;
+}
+
 function renderCategoryIcon(icon?: string, className = 'w-6 h-6') {
   if (!icon) return <span className="text-xl">📦</span>;
   if (
@@ -178,7 +186,22 @@ export default function CategoriesPage() {
     generalNotes: '',
   });
 
-  // Simple Modal for Companies & Locations
+  // Dedicated Location / Ward Modal State (with multiple areas)
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [locationModalMode, setLocationModalMode] = useState<'create' | 'edit'>('create');
+  const [locationForm, setLocationForm] = useState<{
+    id: string;
+    name: string;
+    notes: string;
+    areas: LocationAreaItem[];
+  }>({
+    id: '',
+    name: '',
+    notes: '',
+    areas: [{ building: '', floor: '', room: '', notes: '' }],
+  });
+
+  // Simple Modal for Companies
   const [isSimpleModalOpen, setIsSimpleModalOpen] = useState(false);
   const [simpleModalMode, setSimpleModalMode] = useState<'create' | 'edit'>('create');
   const [simpleForm, setSimpleForm] = useState({
@@ -195,6 +218,7 @@ export default function CategoriesPage() {
       if (e.key === 'Escape') {
         if (isCategoryModalOpen) setIsCategoryModalOpen(false);
         else if (isVendorModalOpen) setIsVendorModalOpen(false);
+        else if (isLocationModalOpen) setIsLocationModalOpen(false);
         else if (isSimpleModalOpen) setIsSimpleModalOpen(false);
         else if (isDeptModalOpen) setIsDeptModalOpen(false);
         else if (isSubDeptModalOpen) setIsSubDeptModalOpen(false);
@@ -202,7 +226,7 @@ export default function CategoriesPage() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isCategoryModalOpen, isVendorModalOpen, isSimpleModalOpen, isDeptModalOpen, isSubDeptModalOpen]);
+  }, [isCategoryModalOpen, isVendorModalOpen, isLocationModalOpen, isSimpleModalOpen, isDeptModalOpen, isSubDeptModalOpen]);
 
   // Load all data
   const loadAllData = async () => {
@@ -398,6 +422,15 @@ export default function CategoriesPage() {
       });
       setVendorModalMode('create');
       setIsVendorModalOpen(true);
+    } else if (activeTab === 'locations') {
+      setLocationForm({
+        id: '',
+        name: '',
+        notes: '',
+        areas: [{ building: '', floor: '', room: '', notes: '' }],
+      });
+      setLocationModalMode('create');
+      setIsLocationModalOpen(true);
     } else {
       setSimpleForm({
         id: '',
@@ -517,6 +550,94 @@ export default function CategoriesPage() {
     }
   };
 
+  // Location / Ward Multiple Areas Handlers
+  const handleAddLocationAreaRow = () => {
+    setLocationForm((prev) => ({
+      ...prev,
+      areas: [...prev.areas, { building: '', floor: '', room: '', notes: '' }],
+    }));
+  };
+
+  const handleRemoveLocationAreaRow = (index: number) => {
+    setLocationForm((prev) => ({
+      ...prev,
+      areas: prev.areas.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleLocationAreaFieldChange = (index: number, field: keyof LocationAreaItem, value: string) => {
+    setLocationForm((prev) => ({
+      ...prev,
+      areas: prev.areas.map((a, i) => (i === index ? { ...a, [field]: value } : a)),
+    }));
+  };
+
+  const handleOpenEditLocation = (loc: any) => {
+    let initialAreas: LocationAreaItem[] = [];
+    if (Array.isArray(loc.areas) && loc.areas.length > 0) {
+      initialAreas = loc.areas.map((a: any) => ({
+        building: a.building || '',
+        floor: a.floor || '',
+        room: a.room || '',
+        notes: a.notes || '',
+      }));
+    } else if (loc.building || loc.floor) {
+      initialAreas = [{ building: loc.building || '', floor: loc.floor || '', room: '', notes: '' }];
+    } else {
+      initialAreas = [{ building: '', floor: '', room: '', notes: '' }];
+    }
+
+    setLocationForm({
+      id: loc.id,
+      name: loc.name || '',
+      notes: loc.cleanNotes || (typeof loc.notes === 'string' && !loc.notes.startsWith('{') ? loc.notes : ''),
+      areas: initialAreas,
+    });
+    setLocationModalMode('edit');
+    setIsLocationModalOpen(true);
+  };
+
+  const handleSaveLocation = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!locationForm.name.trim()) {
+      alert(isEn ? 'Please enter department / ward name' : 'Vui lòng nhập tên khoa phòng');
+      return;
+    }
+
+    const filteredAreas = locationForm.areas.filter(
+      (a) => a.building.trim() || a.floor.trim() || a.room?.trim() || a.notes?.trim()
+    );
+
+    try {
+      const url = locationModalMode === 'create' ? '/api/locations' : `/api/locations/${locationForm.id}`;
+      const method = locationModalMode === 'create' ? 'POST' : 'PUT';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: locationForm.name.trim(),
+          areas: filteredAreas,
+          notes: locationForm.notes.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        invalidateClientCache('/api/locations');
+        invalidateClientCache('/api/master-data');
+        triggerDataRefresh('master-data');
+        setIsLocationModalOpen(false);
+        loadAllData();
+      } else {
+        const data = await res.json();
+        alert(data.error || (isEn ? 'Failed to save department / ward' : 'Lưu khoa phòng thất bại'));
+      }
+    } catch (err) {
+      console.error('Save location error:', err);
+      alert(isEn ? 'Network error while saving' : 'Lỗi kết nối khi lưu khoa phòng');
+    }
+  };
+
   // Save Category for Assets, Licenses, Services
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -617,25 +738,15 @@ export default function CategoriesPage() {
     }
   };
 
-  // Simple CRUD for Companies & Locations
+  // Simple CRUD for Companies
   const handleOpenEditSimple = (item: any) => {
-    if (activeTab === 'companies') {
-      setSimpleForm({
-        id: item,
-        name: item,
-        building: '',
-        floor: '',
-        oldName: item,
-      });
-    } else {
-      setSimpleForm({
-        id: item.id,
-        name: item.name,
-        building: item.building || '',
-        floor: item.floor || '',
-        oldName: item.name,
-      });
-    }
+    setSimpleForm({
+      id: item,
+      name: item,
+      building: '',
+      floor: '',
+      oldName: item,
+    });
     setSimpleModalMode('edit');
     setIsSimpleModalOpen(true);
   };
@@ -643,7 +754,7 @@ export default function CategoriesPage() {
   const handleSaveSimple = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!simpleForm.name.trim()) {
-      alert('Vui lòng nhập tên');
+      alert('Vui lòng nhập tên công ty / chi nhánh');
       return;
     }
 
@@ -658,18 +769,6 @@ export default function CategoriesPage() {
             name: simpleForm.name,
             oldName: simpleForm.oldName,
             newName: simpleForm.name,
-          }),
-        });
-      } else if (activeTab === 'locations') {
-        const url = simpleModalMode === 'create' ? '/api/locations' : `/api/locations/${simpleForm.id}`;
-        const method = simpleModalMode === 'create' ? 'POST' : 'PUT';
-        await fetch(url, {
-          method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: simpleForm.name,
-            building: simpleForm.building,
-            floor: simpleForm.floor,
           }),
         });
       }
@@ -1043,14 +1142,15 @@ export default function CategoriesPage() {
       case 'locations':
         return {
           moduleKey: 'locations',
-          moduleName: isEn ? 'Locations & Wards' : 'Vị Trí & Khoa Phòng',
+          moduleName: isEn ? 'Departments & Wards' : 'Danh Mục Khoa Phòng',
           excelType: 'locations',
           currentData: locations,
           excelColumns: [
-            { header: 'Tên Vị Trí / Khoa Phòng', key: 'name', width: 32 },
-            { header: 'Tòa Nhà', key: 'building', width: 25 },
-            { header: 'Tầng', key: 'floor', width: 15 },
-            { header: 'Ghi Chú', key: 'notes', width: 35 },
+            { header: 'Tên Khoa Phòng', key: 'name', width: 32 },
+            { header: 'Tòa Nhà / Phân Khu', key: 'building', width: 25 },
+            { header: 'Tầng / Vị Trí', key: 'floor', width: 20 },
+            { header: 'Chi Tiết Khu Vực & Vị Trí', key: 'areasSummary', width: 40 },
+            { header: 'Ghi Chú', key: 'cleanNotes', width: 35 },
           ],
         };
     }
@@ -1096,7 +1196,7 @@ export default function CategoriesPage() {
               {activeTab === 'services' && (isEn ? '+ Add Service Category' : 'Thêm Danh Mục Dịch Vụ')}
               {activeTab === 'vendors' && (isEn ? '+ Add Vendor / Partner' : 'Thêm Đối Tác / Nhà Cung Cấp')}
               {activeTab === 'companies' && (isEn ? '+ Add Corporate Entity' : 'Thêm Công Ty / Chi Nhánh')}
-              {activeTab === 'locations' && (isEn ? '+ Add Location / Ward' : 'Thêm Vị Trí / Khoa Phòng')}
+              {activeTab === 'locations' && (isEn ? '+ Add Department / Ward' : 'Thêm Khoa Phòng')}
             </span>
           </button>
         </div>
@@ -1179,7 +1279,7 @@ export default function CategoriesPage() {
           }`}
         >
           <MapPin className="w-4 h-4" />
-          <span>{isEn ? 'Locations & Wards' : 'Vị Trí & Khoa Phòng'} ({locations.length})</span>
+          <span>{isEn ? 'Departments & Wards' : 'Danh Mục Khoa Phòng'} ({locations.length})</span>
         </button>
       </div>
 
@@ -1901,46 +2001,131 @@ export default function CategoriesPage() {
             </div>
           )}
 
-          {/* TAB 6: LOCATIONS */}
+          {/* TAB 6: DEPARTMENTS & WARDS (KHOA PHÒNG & ĐA KHU VỰC) */}
           {activeTab === 'locations' && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {locations
-                .filter((l) => l.name.toLowerCase().includes(search.toLowerCase()))
-                .map((loc) => (
-                  <div
-                    key={loc.id}
-                    className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs hover:shadow-md transition-all flex items-center justify-between gap-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-rose-50/80 border border-rose-100 flex items-center justify-center text-2xl shrink-0 shadow-inner">
-                        📍
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-sm leading-snug">{loc.name}</h3>
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          {loc.building || ''} {loc.floor ? `• ${loc.floor}` : ''}
-                        </p>
-                      </div>
-                    </div>
+                .filter((l) => {
+                  const q = search.toLowerCase();
+                  if (!q) return true;
+                  if (l.name?.toLowerCase().includes(q)) return true;
+                  if (l.building?.toLowerCase().includes(q)) return true;
+                  if (l.floor?.toLowerCase().includes(q)) return true;
+                  if (l.areasSummary?.toLowerCase().includes(q)) return true;
+                  if (l.cleanNotes?.toLowerCase().includes(q)) return true;
+                  return false;
+                })
+                .map((loc) => {
+                  const areaList: LocationAreaItem[] = Array.isArray(loc.areas) && loc.areas.length > 0
+                    ? loc.areas
+                    : (loc.building || loc.floor)
+                    ? [{ building: loc.building || '', floor: loc.floor || '', room: '' }]
+                    : [];
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenEditSimple(loc)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSimple(loc)}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                  return (
+                    <div
+                      key={loc.id}
+                      className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-3.5 group"
+                    >
+                      {/* Header Card */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="w-11 h-11 rounded-2xl bg-rose-50/90 border border-rose-100 flex items-center justify-center text-xl shrink-0 shadow-inner mt-0.5">
+                            🏥
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-slate-900 text-sm leading-snug truncate" title={loc.name}>
+                              {loc.name}
+                            </h3>
+                            <div className="flex items-center gap-1.5 pt-1 flex-wrap">
+                              <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                <MapPin className="w-3 h-3 text-rose-600" />
+                                <span>
+                                  {areaList.length > 0
+                                    ? `${areaList.length} ${isEn ? 'areas / zones' : 'khu vực, vị trí'}`
+                                    : (isEn ? 'No zones configured' : 'Chưa gán khu vực')}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditLocation(loc)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title={isEn ? 'Edit department' : 'Chỉnh sửa khoa phòng'}
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSimple(loc)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title={isEn ? 'Delete department' : 'Xóa khoa phòng'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Area & Location List */}
+                      <div className="space-y-1.5 pt-2 border-t border-slate-100 flex-1">
+                        {areaList.length === 0 ? (
+                          <p className="text-[11px] text-slate-400 italic">
+                            {isEn ? 'No specific building or floor assigned' : 'Chưa cấu hình tòa nhà, tầng hay khu vực'}
+                          </p>
+                        ) : (
+                          areaList.map((a, idx) => (
+                            <div
+                              key={idx}
+                              className="p-2 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/70 rounded-xl space-y-1 text-xs transition-colors"
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                  {a.building && (
+                                    <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1">
+                                      <Building2 className="w-3 h-3 text-slate-500 shrink-0" />
+                                      <span>{a.building}</span>
+                                    </span>
+                                  )}
+                                  {a.floor && (
+                                    <span className="text-[10px] font-semibold text-slate-600 bg-white border border-slate-200 px-1.5 py-0.2 rounded shrink-0">
+                                      {a.floor}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[9px] font-mono font-bold text-rose-600 bg-rose-50 border border-rose-200/80 px-1 rounded shrink-0">
+                                  #{idx + 1}
+                                </span>
+                              </div>
+
+                              {a.room && (
+                                <div className="text-[11px] text-slate-700 font-medium flex items-center gap-1 truncate pt-0.5">
+                                  <span className="text-slate-400">🚪</span>
+                                  <span className="font-semibold text-rose-950">{a.room}</span>
+                                </div>
+                              )}
+
+                              {a.notes && (
+                                <p className="text-[10px] text-slate-500 italic truncate pt-0.5">
+                                  {a.notes}
+                                </p>
+                              )}
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {loc.cleanNotes && (
+                        <p className="text-[11px] text-slate-500 italic line-clamp-1 border-t border-slate-100 pt-1">
+                          {loc.cleanNotes}
+                        </p>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
         </div>
@@ -2511,7 +2696,205 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      {/* SIMPLE MODAL FOR COMPANIES & LOCATIONS */}
+      {/* DEDICATED LOCATION / WARD MODAL (KHOA PHÒNG & ĐA KHU VỰC) */}
+      {isLocationModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92vh] border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-rose-50/80">
+              <div className="min-w-0 pr-2">
+                <h3 className="font-bold text-sm text-rose-950 flex items-center gap-2">
+                  <span className="text-base">🏥</span>
+                  <span>
+                    {locationModalMode === 'create'
+                      ? (isEn ? 'Add Department / Ward' : 'Thêm Mới Khoa Phòng')
+                      : (isEn ? 'Edit Department / Ward' : 'Chỉnh Sửa Khoa Phòng')}
+                  </span>
+                </h3>
+                <p className="text-[11px] text-rose-700 font-medium truncate mt-0.5">
+                  {isEn
+                    ? 'Configure department details and multiple physical buildings, floors and room areas'
+                    : 'Thiết lập danh mục khoa phòng cùng danh sách nhiều tòa nhà, tầng, phòng làm việc trực thuộc'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form onSubmit={handleSaveLocation} className="p-6 space-y-4 overflow-y-auto text-xs flex-1">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {isEn ? 'Department / Ward Name (*)' : 'Tên Khoa Phòng (*)'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={
+                    isEn
+                      ? 'e.g. Internal Medicine, Emergency Dept, IT Department, Central Pharmacy...'
+                      : 'VD: Khoa Khám Bệnh, Khoa Cấp Cứu, Khoa Hồi Sức Tích Cực, Phòng Kỹ Thuật IT, Kho Dược...'
+                  }
+                  value={locationForm.name}
+                  onChange={(e) => setLocationForm({ ...locationForm, name: e.target.value })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-rose-500 text-slate-900"
+                />
+              </div>
+
+              {/* Multi-Area & Multi-Zone Section */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                      <Building2 className="w-4 h-4 text-rose-600" />
+                      <span>
+                        {isEn
+                          ? `Assigned Buildings & Areas (${locationForm.areas.length})`
+                          : `Các Khu Vực & Vị Trí Làm Việc Trực Thuộc (${locationForm.areas.length})`}
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 font-normal mt-0.5">
+                      {isEn
+                        ? 'A department can operate across multiple buildings, floors, or rooms'
+                        : 'Một khoa phòng có thể có nhiều khu vực tại các tòa nhà, tầng hoặc phân khu khác nhau'}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddLocationAreaRow}
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors shadow-2xs shrink-0 self-start sm:self-auto"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isEn ? '+ Add Zone / Area' : '+ Thêm Khu Vực / Vị Trí'}</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 pt-1">
+                  {locationForm.areas.map((area, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs relative group"
+                    >
+                      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                        <span className="text-[11px] font-bold text-rose-900 flex items-center gap-1.5">
+                          <span className="w-4 h-4 rounded-full bg-rose-100 text-rose-700 text-[10px] flex items-center justify-center font-bold">
+                            {idx + 1}
+                          </span>
+                          <span>{isEn ? `Zone / Location #${idx + 1}` : `Khu Vực / Vị Trí #${idx + 1}`}</span>
+                        </span>
+
+                        {locationForm.areas.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLocationAreaRow(idx)}
+                            className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title={isEn ? 'Remove this zone' : 'Xóa khu vực này'}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
+                            {isEn ? 'Building / Facility' : 'Tòa nhà / Phân khu'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={isEn ? 'e.g. Building A, Block B...' : 'VD: Tòa A, Nhà C2, Khu Điều Trị...'}
+                            value={area.building}
+                            onChange={(e) => handleLocationAreaFieldChange(idx, 'building', e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
+                            {isEn ? 'Floor / Level' : 'Tầng / Phân tầng'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={isEn ? 'e.g. 1st Floor, 3rd Floor...' : 'VD: Tầng 1, Tầng 3, Tầng Lửng...'}
+                            value={area.floor}
+                            onChange={(e) => handleLocationAreaFieldChange(idx, 'floor', e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2 md:col-span-1">
+                          <label className="block text-[10px] font-bold text-slate-700 mb-0.5">
+                            {isEn ? 'Specific Room / Desk' : 'Phòng / Vị trí cụ thể'}
+                          </label>
+                          <input
+                            type="text"
+                            placeholder={isEn ? 'e.g. Room 102 - Reception...' : 'VD: Phòng 102 - Quầy BHYT, P. Thủ thuật...'}
+                            value={area.room || ''}
+                            onChange={(e) => handleLocationAreaFieldChange(idx, 'room', e.target.value)}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-rose-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <input
+                          type="text"
+                          placeholder={isEn ? 'Optional note for this zone...' : 'Ghi chú thêm cho khu vực/vị trí này (nếu có)...'}
+                          value={area.notes || ''}
+                          onChange={(e) => handleLocationAreaFieldChange(idx, 'notes', e.target.value)}
+                          className="w-full px-2 py-1.5 bg-slate-50/70 border border-slate-200 rounded-lg text-[11px] outline-none focus:ring-1 focus:ring-rose-500 text-slate-600"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {isEn ? 'General Notes / Internal Extension' : 'Ghi chú chung / Số máy lẻ nội bộ'}
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder={
+                    isEn
+                      ? 'General notes, internal extension numbers, in-charge personnel...'
+                      : 'Số máy lẻ nội bộ, ghi chú thêm về khoa phòng...'
+                  }
+                  value={locationForm.notes}
+                  onChange={(e) => setLocationForm({ ...locationForm, notes: e.target.value })}
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsLocationModalOpen(false)}
+                  className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  {isEn ? 'Cancel' : 'Hủy'}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-700 hover:to-pink-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
+                >
+                  💾 {isEn ? 'Save Department' : 'Lưu Khoa Phòng'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SIMPLE MODAL FOR COMPANIES */}
       {isSimpleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 sm:p-4">
           <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full flex flex-col border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
@@ -2519,11 +2902,11 @@ export default function CategoriesPage() {
               <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
                 <span>
                   {simpleModalMode === 'create' ? '➕ Thêm Mới: ' : '✏️ Chỉnh Sửa: '}
-                  {activeTab === 'companies' && (isEn ? 'Corporate Entity' : 'Công Ty Thành Viên')}
-                  {activeTab === 'locations' && (isEn ? 'Location / Ward' : 'Vị Trí / Khoa Phòng')}
+                  {isEn ? 'Corporate Entity' : 'Công Ty Thành Viên'}
                 </span>
               </h3>
               <button
+                type="button"
                 onClick={() => setIsSimpleModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl cursor-pointer"
               >
@@ -2534,54 +2917,31 @@ export default function CategoriesPage() {
             <form onSubmit={handleSaveSimple} className="p-6 space-y-4 text-xs">
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                  {activeTab === 'locations' ? 'Tên Vị Trí / Khoa Phòng (*)' : 'Tên mục (*)'}
+                  {isEn ? 'Company / Entity Name (*)' : 'Tên Công Ty / Chi Nhánh (*)'}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder={activeTab === 'locations' ? 'VD: Khoa Khám Bệnh, Khoa Cấp Cứu, Phòng Kỹ Thuật IT, Kho...' : 'Nhập tên...'}
+                  placeholder={isEn ? 'e.g. Medlatec Group, Medlatec Ha Noi...' : 'VD: Bệnh viện Đa khoa Medlatec, Phòng khám Đa khoa Medlatec Tây Hồ...'}
                   value={simpleForm.name}
                   onChange={(e) => setSimpleForm({ ...simpleForm, name: e.target.value })}
-                  className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
-              {activeTab === 'locations' && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Tòa nhà / Khu vực</label>
-                    <input
-                      type="text"
-                      placeholder="VD: Tòa A"
-                      value={simpleForm.building}
-                      onChange={(e) => setSimpleForm({ ...simpleForm, building: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Tầng / Vị trí</label>
-                    <input
-                      type="text"
-                      placeholder="VD: Tầng 3"
-                      value={simpleForm.floor}
-                      onChange={(e) => setSimpleForm({ ...simpleForm, floor: e.target.value })}
-                      className="w-full p-2 bg-slate-50 border border-slate-300 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-500"
-                    />
-                  </div>
-                </div>
-              )}
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsSimpleModalOpen(false)}
                   className="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
-                >{isEn ? 'Cancel' : 'Hủy'}</button>
+                >
+                  {isEn ? 'Cancel' : 'Hủy'}
+                </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition-all cursor-pointer"
                 >
-                  💾 Lưu Thay Đổi
+                  💾 {isEn ? 'Save Changes' : 'Lưu Thay Đổi'}
                 </button>
               </div>
             </form>
