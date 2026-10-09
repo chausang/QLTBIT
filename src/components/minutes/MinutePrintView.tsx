@@ -424,8 +424,8 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
               <div className="text-[13px] space-y-1">
                 <p className="font-bold">Bên bàn giao:</p>
                 <div className="grid grid-cols-2 gap-4 pl-4">
-                  <p>Họ và tên: <strong>{data.sender?.name || 'Nguyễn Hoàn Danh'}</strong></p>
-                  <p>Bộ phận: {data.sender?.department || data.sender?.title || 'Nhân viên Phòng CNTT'}</p>
+                  <p>Họ và tên: <strong>{data.sender?.name || ''}</strong></p>
+                  <p>Bộ phận: {data.sender?.department || data.sender?.title || ''}</p>
                 </div>
               </div>
 
@@ -435,15 +435,15 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                 <div className="space-y-1 pl-4">
                   {/* Người nhận 1 (Trưởng Khoa/Phòng) */}
                   <div className="grid grid-cols-2 gap-4">
-                    <p>Họ và tên: <strong>{data.receiver1?.name || data.receiver?.name || 'Trần Trung Nguyên'}</strong></p>
-                    <p>Bộ phận: {data.receiver1?.department || data.receiver1?.title || 'Trưởng Phòng Hành Chính Quản trị'}</p>
+                    <p>Họ và tên: <strong>{data.receiver1?.name || data.receiver?.name || ''}</strong></p>
+                    <p>Bộ phận: {data.receiver1?.department || data.receiver1?.title || ''}</p>
                   </div>
 
                   {/* Người nhận 2 (Nhân viên Khoa/Phòng - Nếu có) */}
                   {(data.receiver2?.name || isLiveEdit) && (
                     <div className="grid grid-cols-2 gap-4">
-                      <p>Họ và tên: <strong>{data.receiver2?.name || 'Nguyễn Thị Thu Thanh'}</strong></p>
-                      <p>Bộ phận: {data.receiver2?.department || data.receiver2?.title || 'Nhân viên Phòng HCQT'}</p>
+                      <p>Họ và tên: <strong>{data.receiver2?.name || ''}</strong></p>
+                      <p>Bộ phận: {data.receiver2?.department || data.receiver2?.title || ''}</p>
                     </div>
                   )}
                 </div>
@@ -456,7 +456,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                   {data.reason || (
                     data.isBasedOnProposal && data.relatedProposalCode
                       ? `Cấp mới thiết bị theo đề nghị số ${data.relatedProposalCode} của ${data.department}.`
-                      : `Cấp mới màn hình máy vi tính theo đề nghị của ${data.department || 'Phòng Hành Chính Quản trị'}.`
+                      : ''
                   )}
                 </p>
                 <p className="pt-1">Cùng bàn giao tài sản, công cụ với nội dung như sau:</p>
@@ -546,7 +546,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                 </p>
               </div>
 
-              {/* Chữ ký 2 bên (Bên bàn giao bên trái, Bên nhận có 2 cấp xếp dọc bên phải như Hình 2) */}
+              {/* Chữ ký 2 bên (Bên bàn giao bên trái, Bên nhận có 2 cấp xếp dọc bên phải) */}
               <div className="grid grid-cols-2 gap-4 text-center text-[13px] pt-4">
                 {/* Trái: Bên bàn giao */}
                 <div className="space-y-16">
@@ -555,7 +555,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                     <p className="italic text-[12px] text-slate-700">(Ký ghi rõ họ tên)</p>
                   </div>
                   <p className="font-bold pt-6">
-                    {data.signers?.senderSignerName || data.sender?.name || 'Nguyễn Hoàn Danh'}
+                    {data.signers?.senderSignerName || data.sender?.name || ''}
                   </p>
                 </div>
 
@@ -566,7 +566,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                     <p className="font-bold">{data.signers?.receiver1Title || 'Trưởng Khoa/Phòng'}</p>
                     <p className="italic text-[12px] text-slate-700">(Ký ghi rõ họ tên)</p>
                     <p className="font-bold pt-12">
-                      {data.signers?.receiver1Name || data.receiver1?.name || data.receiver?.name || 'Trần Trung Nguyên'}
+                      {data.signers?.receiver1Name || data.receiver1?.name || data.receiver?.name || ''}
                     </p>
                   </div>
 
@@ -574,7 +574,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
                     <p className="font-bold">{data.signers?.receiver2Title || 'Nhân viên Khoa/Phòng'}</p>
                     <p className="italic text-[12px] text-slate-700">(Ký ghi rõ họ tên)</p>
                     <p className="font-bold pt-12">
-                      {data.signers?.receiver2Name || data.receiver2?.name || 'Nguyễn Thị Thu Thanh'}
+                      {data.signers?.receiver2Name || data.receiver2?.name || ''}
                     </p>
                   </div>
                 </div>

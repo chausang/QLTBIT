@@ -102,7 +102,7 @@ export default function MinutesManagementPage() {
     relatedProposalId: '',
     relatedProposalCode: '',
     relatedProposalTitle: '',
-    sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+    sender: { name: '', title: '', department: '' },
     receiver1: { name: '', title: 'Trưởng Khoa/Phòng', department: '' },
     receiver2: { name: '', title: 'Nhân viên Khoa/Phòng', department: '' },
     receiver: { name: '', title: '', department: '' },
@@ -281,24 +281,14 @@ export default function MinutesManagementPage() {
     if (type === 'MAINTENANCE') defaultTitle = 'Kế hoạch bảo trì & nâng cấp phần cứng';
     if (type === 'PROPOSAL') defaultTitle = 'Tờ đề nghị xin cấp trang thiết bị CNTT';
 
-    const defaultSigners =
-      type === 'REVOCATION'
-        ? {
-            senderSignerTitle: 'Bên Giao',
-            senderSignerName: '',
-            receiver1Title: 'Bên Nhận',
-            receiver1Name: 'Nguyễn Hoàn Danh',
-            receiver2Title: '',
-            receiver2Name: '',
-          }
-        : {
-            senderSignerTitle: 'Bên bàn giao',
-            senderSignerName: 'Nguyễn Hoàn Danh',
-            receiver1Title: 'Trưởng Khoa/Phòng',
-            receiver1Name: '',
-            receiver2Title: 'Nhân viên Khoa/Phòng',
-            receiver2Name: '',
-          };
+    const defaultSigners = {
+      senderSignerTitle: type === 'REVOCATION' ? 'Bên Giao' : 'Bên bàn giao',
+      senderSignerName: '',
+      receiver1Title: type === 'REVOCATION' ? 'Bên Nhận' : 'Trưởng Khoa/Phòng',
+      receiver1Name: '',
+      receiver2Title: type === 'REVOCATION' ? '' : 'Nhân viên Khoa/Phòng',
+      receiver2Name: '',
+    };
 
     setShowAllAssetsForRevocation(false);
     setFormData({
@@ -306,11 +296,11 @@ export default function MinutesManagementPage() {
       minuteType: type,
       minuteCode: `${codePrefix}-${year}-${randomSuffix}`,
       hospitalName: 'BỆNH VIỆN ĐA KHOA CHÂU ĐỐC',
-      department: type === 'REVOCATION' ? 'Dược' : 'Phòng Hành Chính Quản trị',
-      location: type === 'REVOCATION' ? 'Khoa Dược' : 'Phòng Hành Chính Quản trị',
+      department: '',
+      location: '',
       locationCity: 'Châu Đốc',
       recipients: '- Ban Giám Đốc\n- Phòng Công Nghệ Thông Tin',
-      legalBasis: 'Căn cứ tình hình thực tế của Khoa, tài sản hiện tại khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin như sau:',
+      legalBasis: 'Căn cứ tình hình thực tế của Khoa/Phòng, tài sản hiện tại không có nhu cầu sử dụng nên cần bàn giao lại cho Phòng Công Nghệ Thông Tin như sau:',
       handoverCommitment: 'Kể từ ngày ký số tài sản trên bên giao đã bàn giao lại hết cho bên nhận đầy đủ. Biên bản được lập thành 03 bản, mỗi bên giữ 01 bản.',
       copiesCount: '03',
       companyName: '',
@@ -320,28 +310,12 @@ export default function MinutesManagementPage() {
       relatedProposalId: '',
       relatedProposalCode: '',
       relatedProposalTitle: '',
-      sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
-      receiver1: { name: '', title: type === 'REVOCATION' ? 'Bên Nhận' : 'Trưởng Phòng', department: '' },
-      receiver2: { name: '', title: 'Nhân viên Khoa/Phòng', department: '' },
+      sender: { name: '', title: '', department: '' },
+      receiver1: { name: '', title: type === 'REVOCATION' ? 'Bên Nhận' : 'Trưởng Khoa/Phòng', department: '' },
+      receiver2: { name: '', title: type === 'REVOCATION' ? '' : 'Nhân viên Khoa/Phòng', department: '' },
       receiver: { name: '', title: '', department: '' },
-      equipmentList: [
-        {
-          name: type === 'REVOCATION' ? 'Máy in Canon' : 'Màn hình Aiwa 22 inch',
-          code: type === 'REVOCATION' ? 'TS-PR-01' : 'PCKH31450',
-          serial: type === 'REVOCATION' ? 'MQCA697363' : 'AW-22019',
-          model: type === 'REVOCATION' ? 'LBP 2900' : 'Aiwa 22 inch',
-          quantity: 1,
-          unit: 'Cái',
-          usageYear: 'Không rõ',
-          originalPrice: 'Không rõ',
-          condition: type === 'REVOCATION' ? 'Hư không sửa được' : 'Mới 100%',
-          notes: '',
-        },
-      ],
-      reason:
-        type === 'REVOCATION'
-          ? 'Khoa không có nhu cầu sử dụng nên cần trả lại Phòng Công Nghệ Thông Tin'
-          : 'Cấp mới màn hình máy vi tính theo đề nghị của Khoa/Phòng.',
+      equipmentList: [],
+      reason: '',
       signers: defaultSigners,
       fileUrl: '',
       fileName: '',
@@ -1296,7 +1270,7 @@ export default function MinutesManagementPage() {
                         type="text"
                         value={formData.reason || ''}
                         onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                        placeholder="VD: Cấp mới màn hình máy vi tính theo đề nghị của Phòng Hành Chính Quản trị."
+                        placeholder="Nhập lý do bàn giao (hoặc chọn tờ đề nghị)..."
                         className="w-full p-2 bg-white border border-emerald-300 rounded-xl text-xs font-medium"
                       />
                     </div>
@@ -1327,7 +1301,7 @@ export default function MinutesManagementPage() {
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Họ và tên (*)</label>
                     <input
                       type="text"
-                      placeholder="VD: Nguyễn Hoàn Danh"
+                      placeholder="Họ và tên bên giao..."
                       value={formData.sender?.name || ''}
                       onChange={(e) =>
                         setFormData({
@@ -1343,7 +1317,7 @@ export default function MinutesManagementPage() {
                     <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức danh</label>
                     <input
                       type="text"
-                      placeholder="VD: Nhân viên Phòng CNTT"
+                      placeholder="Bộ phận / chức danh bên giao..."
                       value={formData.sender?.department || formData.sender?.title || ''}
                       onChange={(e) =>
                         setFormData({
@@ -1356,7 +1330,7 @@ export default function MinutesManagementPage() {
                   </div>
                 </div>
 
-                {/* Bên Nhận: Cho phép 2 người nhận như hình 2 */}
+                {/* Bên Nhận: Cho phép 2 người nhận */}
                 <div className="space-y-2">
                   <span className="font-bold text-xs text-slate-900 flex items-center gap-1.5 pb-1 border-b border-slate-200">
                     <Building2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -1367,7 +1341,7 @@ export default function MinutesManagementPage() {
                       <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Người 1 (Trưởng Khoa/Phòng)</label>
                       <input
                         type="text"
-                        placeholder="VD: Trần Trung Nguyên"
+                        placeholder="Họ và tên người nhận 1..."
                         value={formData.receiver1?.name || ''}
                         onChange={(e) =>
                           setFormData({
@@ -1383,7 +1357,7 @@ export default function MinutesManagementPage() {
                       <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức vụ 1</label>
                       <input
                         type="text"
-                        placeholder="Trưởng Phòng HCQT"
+                        placeholder="Bộ phận / chức danh 1..."
                         value={formData.receiver1?.department || formData.receiver1?.title || ''}
                         onChange={(e) =>
                           setFormData({
@@ -1401,7 +1375,7 @@ export default function MinutesManagementPage() {
                       <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Người 2 (Nhân viên nhận máy)</label>
                       <input
                         type="text"
-                        placeholder="VD: Nguyễn Thị Thu Thanh"
+                        placeholder="Họ và tên người nhận 2 (nếu có)..."
                         value={formData.receiver2?.name || ''}
                         onChange={(e) =>
                           setFormData({
@@ -1417,7 +1391,7 @@ export default function MinutesManagementPage() {
                       <label className="block text-[10px] font-semibold text-slate-600 mb-0.5">Bộ phận / Chức vụ 2</label>
                       <input
                         type="text"
-                        placeholder="Nhân viên Phòng HCQT"
+                        placeholder="Bộ phận / chức danh 2..."
                         value={formData.receiver2?.department || formData.receiver2?.title || ''}
                         onChange={(e) =>
                           setFormData({
@@ -1553,7 +1527,7 @@ export default function MinutesManagementPage() {
                             <input
                               type="text"
                               required
-                              placeholder="VD: Máy in Canon / Màn hình Aiwa 22 inch..."
+                              placeholder="Nhập tên thiết bị, công cụ..."
                               value={item.name}
                               onChange={(e) => handleEquipmentFieldChange(idx, 'name', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold"
@@ -1564,7 +1538,7 @@ export default function MinutesManagementPage() {
                             <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Model</label>
                             <input
                               type="text"
-                              placeholder="LBP 2900..."
+                              placeholder="Model..."
                               value={item.model || ''}
                               onChange={(e) => handleEquipmentFieldChange(idx, 'model', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs"
@@ -1575,7 +1549,7 @@ export default function MinutesManagementPage() {
                             <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Số Serinumber</label>
                             <input
                               type="text"
-                              placeholder="MQCA697363..."
+                              placeholder="Số Serial..."
                               value={item.serial || ''}
                               onChange={(e) => handleEquipmentFieldChange(idx, 'serial', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono"
@@ -1586,7 +1560,7 @@ export default function MinutesManagementPage() {
                             <label className="block text-[10px] font-bold text-slate-600 mb-0.5">Mã TS / Mã QR (*)</label>
                             <input
                               type="text"
-                              placeholder="PCKH31450..."
+                              placeholder="Mã TS / Mã QR..."
                               value={item.code || ''}
                               onChange={(e) => handleEquipmentFieldChange(idx, 'code', e.target.value)}
                               className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-blue-700"
