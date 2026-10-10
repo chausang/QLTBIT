@@ -18,9 +18,13 @@
    - [3.1 Khởi động hệ thống qua Trung tâm Điều hành](#31-khởi-động-hệ-thống-qua-trung-tâm-điều-hành)
    - [3.2 Đăng nhập & Bàn làm việc chính](#32-đăng-nhập--bàn-làm-việc-chính)
    - [3.3 Quản lý Tài sản & Giám sát Cảnh báo Thay đổi](#33-quản-lý-tài-sản--giám-sát-cảnh-báo-thay-đổi)
-   - [3.4 Sử dụng Sơ đồ Mặt bằng 2D & Tủ Rack Data Center](#34-sử-dụng-sơ-đồ-mặt-bằng-2d--tủ-rack-data-center)
-   - [3.5 Sử dụng Công cụ Quét Mạng Tự Động Đa VLAN](#35-sử-dụng-công-cụ-quét-mạng-tự-động-đa-vlan)
-   - [3.6 Tổ chức Đợt Kiểm Kê Tài Sản](#36-tổ-chức-đợt-kiểm-kê-tài-sản)
+   - [3.4 Import Dữ Liệu Excel Chuẩn Khoa Phòng (21 Cột)](#34-import-dữ-liệu-excel-chuẩn-khoa-phòng-21-cột)
+   - [3.5 Tùy Biến Bảng: Ẩn/Hiện Cột & Sắp Xếp Trực Quan](#35-tùy-biến-bảng-ẩn-hiện-cột--sắp-xếp-trực-quan)
+   - [3.6 Quản Lý Danh Mục Khoa Phòng Đa Khu Vực / Tòa Nhà](#36-quản-lý-danh-mục-khoa-phòng-đa-khu-vực--tòa-nhà)
+   - [3.7 Quản Lý Biên Bản Thiết Bị & Phụ Tùng Xuất Kho](#37-quản-lý-biên-bản-thiết-bị--phụ-tùng-xuất-kho)
+   - [3.8 Sử dụng Sơ đồ Mặt bằng 2D & Tủ Rack Data Center](#38-sử-dụng-sơ-đồ-mặt-bằng-2d--tủ-rack-data-center)
+   - [3.9 Sử dụng Công cụ Quét Mạng Tự Động Đa VLAN](#39-sử-dụng-công-cụ-quét-mạng-tự-động-đa-vlan)
+   - [3.10 Tổ chức Đợt Kiểm Kê Tài Sản](#310-tổ-chức-đợt-kiểm-kê-tài-sản)
 4. [HƯỚNG DẪN CÀI ĐẶT AGENT MÁY TRẠM (AGENT INSTALLATION)](#4-hướng-dẫn-cài-đặt-agent-máy-trạm-agent-installation)
    - [4.1 Chuẩn bị gói cài đặt GOI_CAI_DAT_AGENT](#41-chuẩn-bị-gói-cài-đặt-goi_cai_dat_agent)
    - [4.2 Phương án 1: Cài đặt thủ công bằng 1-Click (USB / Máy đơn lẻ)](#42-phương-án-1-cài-đặt-thủ-công-bằng-1-click-usb--máy-đơn-lẻ)
@@ -212,7 +216,74 @@ Nhấp đúp vào file **[`start_qltbit.bat`](file:///D:/QLTBIT/start_qltbit.bat
 
 ---
 
-### 3.4 Sử dụng Sơ đồ Mặt bằng 2D & Tủ Rack Data Center
+### 3.4 Import Dữ Liệu Excel Chuẩn Khoa Phòng (21 Cột)
+Hệ thống tích hợp bộ phân tích và nhập file Excel thông minh, hỗ trợ trực tiếp các file kiểm kê định dạng thực tế từ bệnh viện, trung tâm y tế và doanh nghiệp lớn:
+
+1. **Vào chức năng Nhập Excel:**
+   * Truy cập **Quản lý Tài sản** ➔ **Danh sách Thiết bị** (`/assets`).
+   * Trên thanh công cụ, nhấn nút **"Nhập Excel"** (icon 📥) hoặc vào menu **Nhập / Xuất dữ liệu** (`/import`).
+2. **Cấu trúc file Excel hỗ trợ (21 Cột):**
+   * Hỗ trợ file Excel có tiêu đề đa tầng (Header & Sub-header cho cụm Màn hình):
+     - `STT`, `QR`, `Tên khoa phòng`, `Tên loại thiết bị`, `Mã thiết bị`, `Tên thiết bị`, `Tên hãng sản xuất`, `Năm sản xuất`, `Model`, `Số seri`.
+     - Cấu hình máy tính: `CPU`, `RAM`, `HDD`.
+     - Cụm Màn hình đi kèm: `Hãng sản xuất`, `Năm sản xuất`, `Model`, `Số seri`.
+     - `Tình trạng`, `Mã thiết bị cũ`, `Tính cấp lại`, `Ghi chú`.
+3. **Cơ chế xử lý thông minh:**
+   * **Nhận diện linh hoạt:** Tự động phát hiện cột theo từ khóa tiếng Việt không dấu, có dấu, hoặc tiếng Anh (không bắt buộc vị trí cố định).
+   * **Phân rã linh kiện & màn hình:** Toàn bộ thông số CPU, RAM, Ổ cứng và Màn hình đi kèm được tự động trích xuất và lưu vào trường cấu hình `specs` của thiết bị.
+   * **Khử trùng lặp mã nhóm (Unique constraint):** Nếu file Excel dùng chung một mã nhóm cho nhiều máy (ví dụ: `PC.KH2400`), hệ thống tự động gán tên định danh duy nhất (ví dụ: `K_NHIEM_01_T7`) làm mã thẻ tài sản `assetTag`, bảo đảm không bao giờ bị nghẽn lỗi cơ sở dữ liệu.
+   * **Chuẩn hóa tình trạng:** Giá trị `0`, `0.0`, hoặc `Tốt` tự động chuyển đổi thành trạng thái chuẩn `IN_USE` (Đang sử dụng) và tình trạng `GOOD`.
+
+---
+
+### 3.5 Tùy Biến Bảng: Ẩn/Hiện Cột & Sắp Xếp Trực Quan
+Để phục vụ nhu cầu xem dữ liệu khác nhau của Kế toán, Quản lý kho và Kỹ thuật viên CNTT:
+
+1. **Tùy Chọn Ẩn / Hiện Cột (Column Visibility):**
+   * Nhấn nút **"Tùy chọn cột"** (icon ⚙️) trên thanh công cụ bảng thiết bị.
+   * Đánh dấu hoặc bỏ chọn các cột bạn muốn hiển thị: *Mã tài sản, Tên & Model, Khoa phòng / Vị trí, Danh mục, Nguyên giá, Bảo hành & Ngày mua, Trạng thái, Người giữ, Cấu hình (CPU/RAM/HDD), Màn hình đi kèm, Thao tác*.
+   * **Ghi nhớ cấu hình:** Trình duyệt tự động lưu tùy chọn của bạn vào `localStorage`. Khi tải lại trang hoặc mở ở phiên làm việc sau, giao diện hiển thị vẫn được giữ nguyên vẹn.
+2. **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting):**
+   * Click trực tiếp vào tiêu đề bất kỳ cột nào có biểu tượng mũi tên:
+     - *Lần 1*: Sắp xếp tăng dần (A ➔ Z hoặc giá trị nhỏ ➔ lớn, hiển thị `↑`).
+     - *Lần 2*: Sắp xếp giảm dần (Z ➔ A hoặc giá trị lớn ➔ nhỏ, hiển thị `↓`).
+     - *Lần 3*: Hủy sắp xếp, quay về thứ tự mặc định ban đầu.
+3. **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh):**
+   * Khi đang sắp xếp, hệ thống hiển thị huy hiệu báo rõ cột đang áp dụng.
+   * Nhấn nút **"Xóa sắp xếp & Làm mới"** (icon 🔄) để lập tức khôi phục trật tự bảng về mặc định và cập nhật lại dữ liệu mới nhất từ máy chủ.
+
+---
+
+### 3.6 Quản Lý Danh Mục Khoa Phòng Đa Khu Vực / Tòa Nhà
+Phục vụ mô hình quản trị tại các bệnh viện, trường đại học hoặc doanh nghiệp sở hữu nhiều tòa nhà, khuôn viên:
+
+1. Vào menu **Thiết lập** ➔ **Danh mục Khoa Phòng** (`/categories`).
+2. **Mô hình Một Khoa Phòng - Nhiều Vị Trí:**
+   * Một khoa/phòng có thể sở hữu nhiều vị trí làm việc tại các tòa nhà và tầng khác nhau (ví dụ: *Khoa Khám Bệnh* có phòng khám tại *Nhà A - Tầng 1*, *Nhà B - Tầng 2*).
+3. **Thao tác quản lý:**
+   * Bấm **"Thêm Khoa/Phòng"** hoặc nhấp vào khoa phòng hiện có để chỉnh sửa.
+   * Thêm động các trường **Tòa nhà**, **Khu vực**, **Vị trí chi tiết** (Tầng/Phòng).
+   * Khi thêm thiết bị hoặc lập biên bản, hệ thống cho phép chọn chính xác vị trí trực thuộc này.
+
+---
+
+### 3.7 Quản Lý Biên Bản Thiết Bị & Phụ Tùng Xuất Kho
+Hỗ trợ quy trình luân chuyển tài sản chuyên nghiệp, chống thất thoát:
+
+1. Vào menu **Quản lý Tài sản** ➔ **Biên bản Bàn giao** (`/asset-handover`).
+2. **Lập Biên bản Thêm Thiết Bị & Xuất Phụ Tùng từ Kho:**
+   * Khi thêm máy tính mới hoặc nâng cấp cho khoa phòng, bạn có thể chọn **Xuất trực tiếp phụ tùng/linh kiện từ kho** (RAM, SSD, Card màn hình, Bàn phím, Chuột...).
+   * Hệ thống tự động trừ tồn kho phụ tùng và liên kết mã linh kiện vào thiết bị được bàn giao.
+3. **Lập Biên bản Thu Hồi Tài Sản Thông Minh:**
+   * Khi chọn khoa phòng cần thu hồi, danh sách thiết bị sẽ **tự động lọc chỉ hiển thị các thiết bị thuộc khoa phòng đó**.
+   * Loại bỏ hoàn toàn nguy cơ chọn nhầm thiết bị của khoa phòng khác.
+4. **Chuẩn hóa form & In ấn PDF:**
+   * Toàn bộ form không còn văn bản mẫu giả định; thông tin bên giao, bên nhận được chọn trực tiếp từ danh sách nhân sự thực tế.
+   * Hỗ trợ xem trước và in ấn biên bản chuẩn A4 có chữ ký hai bên.
+
+---
+
+### 3.8 Sử dụng Sơ đồ Mặt bằng 2D & Tủ Rack Data Center
 1. Vào menu **Quản lý Tài sản** ➔ **Sơ đồ Mặt bằng 2D** (`/floor-maps`).
 2. **Tạo mặt bằng tòa nhà:**
    * Bấm **Thêm mặt bằng mới** ➔ Đặt tên (ví dụ: *Văn phòng Tầng 3 - Tòa nhà A*).
@@ -225,7 +296,7 @@ Nhấp đúp vào file **[`start_qltbit.bat`](file:///D:/QLTBIT/start_qltbit.bat
 
 ---
 
-### 3.5 Sử dụng Công cụ Quét Mạng Tự Động Đa VLAN
+### 3.9 Sử dụng Công cụ Quét Mạng Tự Động Đa VLAN
 Dành cho các thiết bị mạng không thể cài Agent (như Máy in văn phòng, Camera an ninh IP, Access Point Wi-Fi, Switch, Router):
 
 1. **Khởi động giao diện quét:**
@@ -240,7 +311,7 @@ Dành cho các thiết bị mạng không thể cài Agent (như Máy in văn ph
 
 ---
 
-### 3.6 Tổ chức Đợt Kiểm Kê Tài Sản
+### 3.10 Tổ chức Đợt Kiểm Kê Tài Sản
 1. Vào menu **Quản lý Tài sản** ➔ **Kiểm kê Tài sản** (`/assets/audit`).
 2. Bấm **Tạo đợt kiểm kê mới** (ví dụ: *Kiểm kê cuối năm 2026 - Chi nhánh Miền Nam*).
 3. Sử dụng điện thoại hoặc máy tính bảng kết nối vào mạng nội bộ, truy cập qua giao diện **HTTPS (Cổng 3443)**:

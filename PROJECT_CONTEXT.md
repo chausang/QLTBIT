@@ -50,10 +50,17 @@
 - **Zero-Setup Database:** Đi kèm PostgreSQL 17 Portable trong thư mục `pgsql`, tự động tạo dữ liệu và kết nối `127.0.0.1:5432` mà không cần cài đặt rườm rà.
 - **Tường lửa & Task Scheduler:** Tự động mở Inbound Port 3001 & 3443, tự động đăng ký tác vụ `SimplyIT_Audit` chạy ngầm định kỳ 15 phút.
 
-### 📚 2.6. Tinh Gọn Cấu Trúc Dự Án & Tài Liệu Word Cho Người Không Chuyên
-- **Thư mục lưu trữ `archive/`**: Chứa toàn bộ 13 file markdown/PDF kỹ thuật cũ và file tạm (`archive/tai_lieu_cu/` và `archive/temp/`). Thư mục gốc dự án sạch sẽ và chuyên nghiệp.
-- **Tài liệu Word (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**: Tài liệu chuẩn Microsoft Word định dạng đẹp mắt, bố cục bảng biểu và hộp lưu ý trực quan, hướng dẫn từng bước dành riêng cho người không rành công nghệ cài đặt 1-Click và sử dụng 8 nghiệp vụ hằng ngày.
-- **Tích hợp Bảng Điều Khiển**: `qltbit_manager.py` phím tắt `[7]` mở file Word trực tiếp.
+### 🏢 2.7. Danh Mục Khoa Phòng Đa Khu Vực & Nghiệp Vụ Biên Bản Thiết Bị (v1.0.7)
+- **Danh Mục Khoa Phòng (`/categories`)**: Hỗ trợ quan hệ 1 khoa phòng có nhiều khu vực/tòa nhà/tầng trực thuộc. Thêm/sửa/xóa động các trường vị trí.
+- **Biên Bản Thêm Thiết Bị Xuất Phụ Tùng Từ Kho**: Hỗ trợ chọn xuất phụ tùng/linh kiện trực tiếp từ kho (RAM, SSD, card mạng...) gắn kèm khi lập biên bản.
+- **Biên Bản Thu Hồi Lọc Theo Khoa Phòng**: Khi chọn khoa phòng, danh sách thiết bị tự động lọc chỉ hiển thị thiết bị thuộc khoa phòng đó, loại bỏ rủi ro chọn nhầm tài sản.
+- **Chuẩn Hóa Form**: Xóa bỏ các placeholder tên người ví dụ, hỗ trợ in PDF chuẩn A4.
+
+### 📊 2.8. Import Excel 21 Cột & Tùy Biến Bảng Thiết Bị (v1.0.8)
+- **Import Excel 21 Cột Khoa Phòng**: Thuật toán quét 5 dòng đầu nhận diện header đa tầng (cụm Màn hình sub-header). Tách cấu hình CPU, RAM, HDD và Màn hình vào `specs`.
+- **Khử Trùng Lặp Mã Nhóm**: Khi file Excel lặp mã nhóm (ví dụ `PC.KH2400`), tự động lấy tên định danh duy nhất (ví dụ `K_NHIEM_01_T7`) làm `assetTag` hoặc sinh hậu tố duy nhất, lưu mã nhóm vào `fixedAssetName`, giải quyết triệt để lỗi ràng buộc duy nhất.
+- **Tùy Chọn Ẩn/Hiện Cột (Column Visibility)**: Popover tùy chọn cột trên bảng danh sách thiết bị, tự động lưu cấu hình người dùng vào `localStorage`.
+- **Sắp Xếp & Làm Mới (Sort & Reset)**: Click tiêu đề cột để sắp xếp 3 trạng thái (Tăng dần `↑`, Giảm dần `↓`, Hủy), nút Xóa sắp xếp & Làm mới khôi phục danh sách tức thì.
 
 ---
 

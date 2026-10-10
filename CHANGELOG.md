@@ -1,5 +1,57 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.8] - 10/10/2026
+
+Bản cập nhật **v1.0.8** tập trung nâng cấp trải nghiệm quản lý bảng thiết bị, hỗ trợ nhập khẩu dữ liệu thực tế từ file Excel khoa phòng/bệnh viện với cấu trúc 21 cột phức tạp, đồng thời trao quyền tùy biến hiển thị cột và sắp xếp trực quan linh hoạt cho người dùng:
+- **Bộ Phân Tích & Nhập File Excel Chuẩn Khoa Phòng (21 Cột)**:
+  - Hỗ trợ nhập danh sách máy tính từ các bảng kiểm kê thực tế của Bệnh viện, Trung tâm Y tế và Doanh nghiệp lớn với cấu trúc 21 cột:
+    `STT`, `QR`, `Tên khoa phòng`, `Tên loại thiết bị`, `Mã thiết bị`, `Tên thiết bị`, `Tên hãng sản xuất`, `Năm sản xuất`, `Model`, `Số seri`, `CPU`, `RAM`, `HDD`, `Màn hình (Hãng sx, Năm sx, Model, Số seri)`, `Tình trạng`, `Mã thiết bị cũ`, `Tính cấp lại`, `Ghi chú`.
+  - **Thuật toán nhận diện Header đa tầng thông minh (`detectAssetColumns`)**:
+    - Tự động quét 5 dòng đầu tìm hàng tiêu đề chính và hàng sub-header của cụm Màn hình.
+    - Nhận diện cột linh hoạt không phụ thuộc vị trí cố định (bằng từ khóa tiếng Việt không dấu, có dấu, tiếng Anh).
+  - **Trích xuất phần cứng & màn hình vào `specs`**:
+    - Tự động lưu trữ các trường cấu hình CPU, RAM, Ổ cứng và Màn hình đi kèm vào cấu trúc JSON của thiết bị để tra cứu và xuất báo cáo.
+  - **Cơ chế chống xung đột mã nhóm (Unique Constraint Fallback)**:
+    - Khi file Excel dùng chung một mã nhóm (nhiều máy cùng mang mã `PC.KH2400`), parser tự động dùng tên định danh duy nhất (ví dụ: `K_NHIEM_01_T7`) làm `assetTag` hoặc bổ sung hậu tố tự động, đồng thời lưu mã nhóm vào `fixedAssetName`, bảo đảm 100% không bị lỗi nghẽn ràng buộc duy nhất.
+  - **Chuẩn hóa tình trạng**:
+    - Tự động chuyển đổi các giá trị mã hóa như `0`, `0.0`, `Tốt` thành tình trạng `GOOD` và trạng thái `IN_USE` (Đang sử dụng).
+- **Tùy Chọn Ẩn / Hiện Cột Thiết Bị (Column Visibility)**:
+  - Bổ sung nút popover **Tùy Chọn Cột** trên thanh công cụ bảng danh sách thiết bị.
+  - Cho phép người dùng bật hoặc tắt hiển thị từng cột: Mã tài sản, Tên & Model, Công ty & Vị trí, Danh mục, Nguyên giá, Bảo hành & Ngày mua, Trạng thái, Người giữ, Cấu hình (CPU/RAM/HDD), Màn hình đi kèm, Thao tác.
+  - **Lưu trữ tùy biến cá nhân**: Tự động ghi nhớ cấu hình cột vào `localStorage` của trình duyệt, giữ nguyên giao diện người dùng ưa thích sau khi F5 hoặc đăng nhập lại.
+- **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting)**:
+  - Cho phép click trực tiếp vào tiêu đề các cột trong bảng:
+    - *Click lần 1*: Sắp xếp tăng dần (hiển thị icon `↑`).
+    - *Click lần 2*: Sắp xếp giảm dần (hiển thị icon `↓`).
+    - *Click lần 3*: Hủy sắp xếp về thứ tự mặc định.
+  - Hỗ trợ sắp xếp cho: Tên thiết bị, Mã tài sản, Khoa phòng/Vị trí, Danh mục, Nguyên giá, Ngày mua/Bảo hành, Trạng thái.
+- **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh)**:
+  - Hiển thị huy hiệu trực quan đang sắp xếp theo cột nào.
+  - Bấm nút **Xóa Sắp Xếp & Làm Mới** sẽ ngay lập tức khôi phục toàn bộ danh sách về trạng thái mặc định ban đầu và tải dữ liệu mới nhất từ máy chủ.
+- **Làm sạch mã nguồn & giao diện**:
+  - Tích hợp nút **Nhập Excel** trên thanh công cụ bảng thiết bị kết nối API `/api/import` xử lý nền tốc độ cao.
+  - Loại bỏ hoàn toàn các từ ngữ tạm "hình 1", "hình 2" trong mã nguồn và giao diện người dùng.
+
+---
+
+## [v1.0.7] - 09/10/2026
+
+Bản cập nhật **v1.0.7** tái cấu trúc mô hình Khoa Phòng / Địa điểm theo đặc thù bệnh viện và doanh nghiệp nhiều chi nhánh, đồng thời hoàn thiện nghiệp vụ Lập Biên Bản Thiết Bị:
+- **Tái Cấu Trúc Danh Mục Khoa Phòng (Đa Tòa Nhà / Khu Vực / Vị Trí)**:
+  - Chuyển đổi tên gọi quản lý thành **Danh Mục Khoa Phòng** chuyên biệt (`/categories`).
+  - Hỗ trợ mô hình một khoa phòng sở hữu nhiều khu vực/tòa nhà/tầng làm việc khác nhau (ví dụ: *Khoa Hồi Sức Tích Cực* có phòng tại *Tòa nhà A - Tầng 2* và *Khu Cấp Cứu - Tầng 1*).
+  - Cho phép thêm/sửa/xóa động nhiều trường tòa nhà, khu vực, vị trí trực thuộc ngay trong cửa sổ Khoa Phòng.
+- **Tích Hợp Linh Kiện Phụ Tùng Vào Biên Bản Thêm Thiết Bị**:
+  - Khi lập **Biên bản thêm thiết bị**, người dùng có thể chọn xuất trực tiếp linh kiện, phụ tùng từ kho (RAM, SSD, Card mạng, Chuột, Bàn phím...) để gắn kèm cho thiết bị mới.
+- **Lọc Thiết Bị Thông Minh Trong Biên Bản Thu Hồi Tài Sản**:
+  - Khi chọn khoa phòng trong Biên bản thu hồi, danh sách chọn nhanh thiết bị tự động lọc chính xác chỉ hiển thị các thiết bị đang thuộc quyền quản lý của khoa phòng đó.
+  - Loại bỏ các thiết bị của khoa phòng khác, chống nhầm lẫn tài sản khi bàn giao/thu hồi.
+- **Chuẩn Hóa Form & In Ấn Biên Bản**:
+  - Chuẩn hóa form biên bản: Loại bỏ toàn bộ các placeholder tên người ví dụ ở bên giao và bên nhận, cho phép nhập hoặc chọn nhân sự thực tế.
+  - Tinh chỉnh giao diện in ấn biên bản PDF chuẩn A4, hiển thị rõ ràng thông tin khoa phòng, số hiệu biên bản và đại diện hai bên.
+
+---
+
 ## [v1.0.6] - 03/10/2026
 
 Bản cập nhật **v1.0.6** bổ sung toàn diện hệ sinh thái **Sao Lưu & Phục Hồi Dữ Liệu (Full System Backup & Disaster Recovery)**:
