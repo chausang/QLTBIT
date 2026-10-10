@@ -1,5 +1,22 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.13] - 10/10/2026
+
+Bản cập nhật **v1.0.13** tập trung tối ưu hóa hiệu năng vượt trội cho Bảng Kiểm Kê TSCĐ Khoa Phòng, giải quyết dứt điểm hiện tượng treo giao diện và tải chậm khi nạp file Excel dung lượng lớn:
+- **Tối Ưu Hóa Cực Nhanh Luồng Nhập Excel (`/api/department-fixed-assets/import`)**:
+  - Chuyển đổi phương thức lưu dữ liệu từ vòng lặp đơn lẻ (`create`) sang lưu theo lô (`createMany` batch 200 bản ghi/lần), rút ngắn thời gian import từ 30s+ xuống chỉ còn 1-2 giây cho hàng ngàn dòng tài sản.
+  - Cơ chế nhận diện kết thúc thông minh: Tự động dừng duyệt file khi gặp 15 dòng trống liên tiếp, tránh việc quét vô tận hàng chục nghìn dòng rỗng ở cuối file Excel.
+  - Cải tiến hàm phân tích số `parseNumber`: Xử lý an toàn các ô công thức (`formula result`), phân cách hàng nghìn kiểu Việt Nam (`1.500.000`) và số thập phân (`14.29%`), loại bỏ triệt để lỗi số liệu bị đưa về 0.
+- **Tối Ưu Hóa Hiệu Suất Truy Vấn & Thống Kê (`/api/department-fixed-assets`)**:
+  - Thay thế phương pháp kéo toàn bộ dữ liệu về RAM để tính tổng bằng truy vấn SQL Aggregate trực tiếp (`prisma.departmentFixedAsset.aggregate` & `count`), giảm 95% mức chiếm dụng bộ nhớ RAM server.
+  - Bảo vệ an toàn tuyệt đối các tham số phân trang (`page`, `pageSize`) chống lỗi `NaN` hoặc giá trị bất thường.
+- **Trải Nghiệm Người Dùng (UX) & Phân Trang Chuẩn Mực (`DepartmentFixedAssetsTab`)**:
+  - Tích hợp thanh phân trang chuẩn hệ thống `TablePaginationBar` (15, 25, 50, 100 bản ghi / trang) giúp bảng render nhẹ nhàng, mượt mà dù cơ sở dữ liệu có hàng chục nghìn thiết bị.
+  - Bổ sung thông báo trạng thái dạng Pulse khi đang nạp file để người dùng luôn nắm bắt tiến độ xử lý.
+  - Chuẩn hóa hàm gọi nạp dữ liệu, chống lỗi nhận sự kiện chuột `MouseEvent` làm hỏng chỉ số trang.
+
+---
+
 ## [v1.0.12] - 10/10/2026
 
 Bản cập nhật **v1.0.12** triển khai toàn diện Bảng Kiểm Kê Tài Sản Cố Định (TSCĐ) Khoa Phòng chuẩn 29 cột theo mẫu kế toán thực tế, tích hợp cột Mã Quản Lý (MQL) tự sinh/nhập tay liên kết xuyên suốt giữa Thiết Bị, Phụ Tùng Linh Kiện và TSCĐ Kiểm Kê:

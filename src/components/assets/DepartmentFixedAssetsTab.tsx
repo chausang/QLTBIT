@@ -26,6 +26,7 @@ import {
   Check,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
+import { TablePaginationBar } from '@/components/common/TablePaginationBar';
 
 interface LinkedItem {
   id: string;
@@ -115,8 +116,16 @@ export default function DepartmentFixedAssetsTab() {
   const [isImporting, setIsImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
   // Tải dữ liệu
-  const loadData = async () => {
+  const loadData = async (page: any = currentPage, limit: any = pageSize) => {
+    const targetPage = typeof page === 'number' ? page : currentPage;
+    const targetLimit = typeof limit === 'number' ? limit : pageSize;
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -124,7 +133,8 @@ export default function DepartmentFixedAssetsTab() {
       if (departmentFilter !== 'ALL') params.set('department', departmentFilter);
       if (warehouseFilter !== 'ALL') params.set('warehouse', warehouseFilter);
       if (groupFilter !== 'ALL') params.set('assetGroup', groupFilter);
-      params.set('all', 'true');
+      params.set('page', String(targetPage));
+      params.set('pageSize', String(targetLimit));
 
       const res = await fetch(`/api/department-fixed-assets?${params.toString()}`);
       const data = await res.json();
@@ -132,6 +142,8 @@ export default function DepartmentFixedAssetsTab() {
         setItems(data.data || []);
         if (data.stats) setStats(data.stats);
         if (data.filters) setFilterOptions(data.filters);
+        if (data.total !== undefined) setTotalCount(data.total);
+        if (data.totalPages !== undefined) setTotalPages(data.totalPages);
       }
     } catch (err) {
       console.error('Load department fixed assets error:', err);
@@ -141,13 +153,15 @@ export default function DepartmentFixedAssetsTab() {
   };
 
   useEffect(() => {
-    loadData();
+    setCurrentPage(1);
+    loadData(1, pageSize);
   }, [departmentFilter, warehouseFilter, groupFilter]);
 
   // Handle Search Debounce
   useEffect(() => {
     const timer = setTimeout(() => {
-      loadData();
+      setCurrentPage(1);
+      loadData(1, pageSize);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -266,8 +280,9 @@ export default function DepartmentFixedAssetsTab() {
           setIsImportModalOpen(false);
           setImportFile(null);
           setImportMessage(null);
-          loadData();
-        }, 1500);
+          setCurrentPage(1);
+          loadData(1, pageSize);
+        }, 1200);
       } else {
         setImportMessage({ type: 'error', text: data.error || txt('Nhập Excel thất bại', 'Import failed', 'インポート失敗') });
       }
@@ -441,7 +456,7 @@ export default function DepartmentFixedAssetsTab() {
             {/* Refresh */}
             <button
               type="button"
-              onClick={loadData}
+              onClick={() => loadData(currentPage, pageSize)}
               className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               title="Làm mới dữ liệu"
             >
@@ -740,6 +755,25 @@ export default function DepartmentFixedAssetsTab() {
             </tbody>
           </table>
         </div>
+
+        {/* Thanh Phân Trang */}
+        <TablePaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          pageSize={pageSize}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            loadData(page, pageSize);
+          }}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize);
+            setCurrentPage(1);
+            loadData(1, newSize);
+          }}
+          pageSizeOptions={[15, 25, 50, 100]}
+          itemName={txt('tài sản', 'assets', '件')}
+        />
       </div>
 
       {/* 4. MODAL THÊM / CHỈNH SỬA TSCĐ KHOA PHÒNG */}
@@ -1068,6 +1102,16 @@ export default function DepartmentFixedAssetsTab() {
                   <span>⚠️ {txt('Xóa toàn bộ dữ liệu TSCĐ hiện tại trước khi nhập mới', 'Clear all existing records before import', '既存データを全削除して新規取込')}</span>
                 </label>
               </div>
+
+              {/* Trạng thái đang import */}
+              {isImporting && (
+                <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-200 animate-pulse">
+                  <Loader2 className="w-4 h-4 animate-spin text-amber-600 shrink-0" />
+                  <span className="font-semibold">
+                    {txt('Hệ thống đang đọc tệp và lưu dữ liệu Excel theo lô cực nhanh... Vui lòng đợi trong giây lát.', 'Processing and batch saving Excel records... Please wait.', 'Excelデータをバッチ処理中... 少々お待ちください。')}
+                  </span>
+                </div>
+              )}
 
               {/* Thông báo kết quả */}
               {importMessage && (

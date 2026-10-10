@@ -7,8 +7,42 @@ export const dynamic = 'force-dynamic';
 
 function parseNumber(val: any): number {
   if (val === null || val === undefined || val === '') return 0;
+  if (typeof val === 'object' && val !== null) {
+    if (typeof val.result === 'number') return isNaN(val.result) ? 0 : val.result;
+    if (val.result !== undefined && val.result !== null) val = val.result;
+    else if (val.text !== undefined && val.text !== null) val = val.text;
+  }
   if (typeof val === 'number') return isNaN(val) ? 0 : val;
-  const str = String(val).trim().replace(/\./g, '').replace(/,/g, '.');
+  const str = String(val).trim();
+  if (!str) return 0;
+
+  // Nếu chứa cả dấu chấm và phẩy (vd: 1.500.000,50)
+  if (str.includes('.') && str.includes(',')) {
+    const cleaned = str.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  // Nếu chỉ chứa dấu phẩy (vd: 14,29 hoặc 1500,5)
+  if (str.includes(',')) {
+    const cleaned = str.replace(',', '.');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  // Nếu có nhiều dấu chấm (vd: 1.500.000)
+  const dotCount = (str.match(/\./g) || []).length;
+  if (dotCount > 1) {
+    const cleaned = str.replace(/\./g, '');
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? 0 : num;
+  }
+  if (dotCount === 1) {
+    const parts = str.split('.');
+    if (parts[1].length === 3 && parts[0].length >= 1) {
+      const cleaned = str.replace(/\./g, '');
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? 0 : num;
+    }
+  }
   const num = parseFloat(str);
   return isNaN(num) ? 0 : num;
 }
@@ -78,12 +112,25 @@ export async function POST(request: NextRequest) {
     });
     let currentOrder = maxOrder._max.orderIndex || 0;
 
+    let emptyConsecutiveRows = 0;
+    const nowTimestamp = Date.now().toString().slice(-6);
+
     for (let r = startRowIndex; r <= totalRows; r++) {
       const row = sheet.getRow(r);
       const name = parseText(row.getCell(2).value);
 
-      // Nếu cả dòng trống tên, bỏ qua
-      if (!name) continue;
+      // Nếu không có tên tài sản
+      if (!name) {
+        emptyConsecutiveRows++;
+        // Nếu gặp 15 dòng liên tiếp trống, xem như đã kết thúc bảng dữ liệu
+        if (emptyConsecutiveRows >= 15) {
+          break;
+        }
+        continue;
+      }
+
+      // Reset lại bộ đếm dòng trống khi gặp dòng có dữ liệu
+      emptyConsecutiveRows = 0;
 
       const orderIndexRaw = row.getCell(1).value;
       const fixedAssetCode = parseText(row.getCell(3).value);
@@ -137,7 +184,7 @@ export async function POST(request: NextRequest) {
 
       // Tự sinh mã quản lý nếu để trống và có tùy chọn
       if (!isHeader && !managementCode && autoGenManagementCode) {
-        managementCode = `MQL-${Date.now().toString().slice(-6)}${Math.floor(10 + Math.random() * 90)}`;
+        managementCode = `MQL-${nowTimestamp}${String(recordsToCreate.length + 1).padStart(4, '0')}`;
       }
 
       if (!isHeader) {
@@ -182,9 +229,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Không tìm thấy dòng dữ liệu tài sản nào trong file' }, { status: 400 });
     }
 
-    // Lưu vào cơ sở dữ liệu
-    for (const rec of recordsToCreate) {
-      await prisma.departmentFixedAsset.create({ data: rec });
+    // Lưu vào cơ sở dữ liệu cực nhanh theo lô (batch insert 200 bản ghi/lần)
+    const BATCH_SIZE = 200;
+    for (let i = 0; i < recordsToCreate.length; i += BATCH_SIZE) {
+      const chunk = recordsToCreate.slice(i, i + BATCH_SIZE);
+      await prisma.departmentFixedAsset.createMany({
+        data: chunk,
+      });
     }
 
     return NextResponse.json({

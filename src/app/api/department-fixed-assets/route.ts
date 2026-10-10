@@ -309,16 +309,18 @@ export async function GET(request: NextRequest) {
     const department = searchParams.get('department') || '';
     const warehouse = searchParams.get('warehouse') || '';
     const assetGroup = searchParams.get('assetGroup') || '';
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+    const parsedPage = parseInt(searchParams.get('page') || '1', 10);
+    const parsedPageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+    const page = !isNaN(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+    const pageSize = !isNaN(parsedPageSize) && parsedPageSize > 0 ? Math.min(parsedPageSize, 500) : 50;
     const all = searchParams.get('all') === 'true';
 
     // Kiểm tra và seed dữ liệu ban đầu nếu bảng đang rỗng
     const totalExisting = await prisma.departmentFixedAsset.count();
-    if (totalExisting === 0) {
-      for (const item of INITIAL_SAMPLE_DATA) {
-        await prisma.departmentFixedAsset.create({ data: item });
-      }
+    if (totalExisting === 0 && INITIAL_SAMPLE_DATA.length > 0) {
+      await prisma.departmentFixedAsset.createMany({
+        data: INITIAL_SAMPLE_DATA,
+      });
     }
 
     // Xây dựng điều kiện lọc
@@ -400,27 +402,30 @@ export async function GET(request: NextRequest) {
       linkedSparePart: item.managementCode ? linkedSparePartsMap.get(item.managementCode) || null : null,
     }));
 
-    // Thống kê nhanh
-    const allRecords = await prisma.departmentFixedAsset.findMany({
-      where: { isGroupHeader: false },
-      select: {
-        bookPrice: true,
-        bookRemainingValue: true,
-        actualPrice: true,
-        actualRemainingValue: true,
-        diffPrice: true,
-        bookQuantity: true,
-        actualQuantity: true,
-      },
-    });
+    // Thống kê nhanh bằng SQL aggregate (tối ưu cực nhanh, không kéo toàn bộ bảng về RAM)
+    const [statsAggregate, statsCount] = await Promise.all([
+      prisma.departmentFixedAsset.aggregate({
+        where: { isGroupHeader: false },
+        _sum: {
+          bookPrice: true,
+          bookRemainingValue: true,
+          actualPrice: true,
+          actualRemainingValue: true,
+          diffPrice: true,
+        },
+      }),
+      prisma.departmentFixedAsset.count({
+        where: { isGroupHeader: false },
+      }),
+    ]);
 
     const stats = {
-      totalItems: allRecords.length,
-      totalBookPrice: allRecords.reduce((sum, r) => sum + (r.bookPrice || 0), 0),
-      totalBookRemaining: allRecords.reduce((sum, r) => sum + (r.bookRemainingValue || 0), 0),
-      totalActualPrice: allRecords.reduce((sum, r) => sum + (r.actualPrice || 0), 0),
-      totalActualRemaining: allRecords.reduce((sum, r) => sum + (r.actualRemainingValue || 0), 0),
-      totalDiffPrice: allRecords.reduce((sum, r) => sum + (r.diffPrice || 0), 0),
+      totalItems: statsCount,
+      totalBookPrice: statsAggregate._sum.bookPrice || 0,
+      totalBookRemaining: statsAggregate._sum.bookRemainingValue || 0,
+      totalActualPrice: statsAggregate._sum.actualPrice || 0,
+      totalActualRemaining: statsAggregate._sum.actualRemainingValue || 0,
+      totalDiffPrice: statsAggregate._sum.diffPrice || 0,
     };
 
     // Danh sách các khoa phòng, kho, nhóm duy nhất để làm filter

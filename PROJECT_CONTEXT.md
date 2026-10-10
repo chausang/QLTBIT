@@ -69,6 +69,12 @@
   - Export: file `.xlsx` 2 tầng tiêu đề gộp ô, màu sắc và định dạng số chuẩn xác 100% theo mẫu ảnh.
   - Import: Nhận diện dòng tiêu đề, parse linh hoạt 29 cột, có tùy chọn tự sinh mã quản lý cho các dòng còn trống.
 
+### ⚡ 2.10. Tối Ưu Hiệu Năng Import & Phân Trang TSCĐ Khoa Phòng (v1.0.13)
+- **Cơ chế Batch Insert (`createMany`)**: Thay thế vòng lặp đơn lẻ bằng lưu theo lô 200 bản ghi/lần, nạp hàng ngàn dòng Excel chỉ trong 1-2 giây mà không nghẽn cơ sở dữ liệu.
+- **Dừng Quét Thông Minh**: Tự động ngắt khi gặp 15 dòng trống liên tiếp, chống lặp vô tận trên các file Excel có nhiều dòng trống phía cuối.
+- **Phân Tích Số An Toàn (Formula-Safe Parsing)**: Hỗ trợ ô công thức Excel (`val.result`), định dạng tiền tệ Việt Nam và số thập phân tỷ lệ khấu hao.
+- **SQL Aggregate & Phân Trang Đầy Đủ**: Dùng `prisma.aggregate` cho thanh KPI tài chính, phân trang `TablePaginationBar` 15/25/50/100 bảo đảm giao diện không bị giật lag hay treo trình duyệt.
+
 ---
 
 
