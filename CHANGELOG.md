@@ -1,5 +1,20 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.15] - 10/10/2026
+
+Bản cập nhật **v1.0.15** xử lý dứt điểm lỗi xóa tài sản cố định khoa phòng bị tự động hiện lại khi refresh trang và chuẩn hóa tên tab:
+- **Khắc Phục Triệt Để Lỗi Dữ Liệu Bị Hiện Lại Sau Khi Refresh (`/api/department-fixed-assets`)**:
+  - Loại bỏ hoàn toàn cơ chế tự động nạp dữ liệu mẫu (`auto-seed`) trong hàm GET khi bảng rỗng (`totalExisting === 0`).
+  - Đảm bảo khi người dùng xóa tài sản hoặc làm sạch bảng dữ liệu, hệ thống giữ nguyên trạng thái bảng rỗng sau khi F5 / Refresh trang, không tự sinh lại các dòng mẫu.
+- **Bổ Sung Tính Năng & Nút "Xóa Tất Cả" (Clear All)**:
+  - Bổ sung tham số `{ all: true }` tại API `/api/department-fixed-assets/bulk-delete` hỗ trợ xóa sạch toàn bộ dữ liệu bảng chỉ với 1 thao tác.
+  - Thêm nút **"Xóa tất cả"** trên thanh công cụ của bảng TSCĐ khoa phòng (kèm 2 bước xác nhận an toàn), giúp người dùng dọn sạch bảng nhanh chóng trước khi nạp file Excel mới.
+  - Đồng bộ Checkbox: Cho phép tick chọn tất cả bao gồm cả các dòng tiêu đề phân nhóm (Group Header) để xóa sạch triệt để.
+- **Chuẩn Hóa Tên Tab Điều Hướng**:
+  - Đổi tên tab từ **"🏛️ TSCĐ Khoa Phòng (Theo Mẫu)"** thành **"🏛️ TSCĐ Khoa Phòng"** trên trang Kiểm kê tài sản (`/assets/audit`).
+
+---
+
 ## [v1.0.14] - 10/10/2026
 
 Bản cập nhật **v1.0.14** hoàn thiện chính xác cấu trúc bảng và luồng nhập Excel tài sản cố định (TSCĐ) khoa phòng theo đúng biểu mẫu kế toán thực tế:

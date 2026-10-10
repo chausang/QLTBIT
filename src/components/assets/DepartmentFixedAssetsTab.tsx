@@ -172,11 +172,10 @@ export default function DepartmentFixedAssetsTab() {
     return new Intl.NumberFormat('vi-VN').format(val);
   };
 
-  // Chọn tất cả
+  // Chọn tất cả (bao gồm cả dòng tiêu đề nhóm nếu có)
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
-      const allSelectable = items.filter((i) => !i.isGroupHeader).map((i) => i.id);
-      setSelectedIds(allSelectable);
+      setSelectedIds(items.map((i) => i.id));
     } else {
       setSelectedIds([]);
     }
@@ -216,6 +215,30 @@ export default function DepartmentFixedAssetsTab() {
       }
     } catch (err) {
       alert(txt('Lỗi khi xóa hàng loạt', 'Failed to bulk delete', '一括削除に失敗しました'));
+    }
+  };
+
+  // Xóa toàn bộ dữ liệu bảng
+  const handleClearAll = async () => {
+    if (!confirm(txt('CẢNH BÁO: Bạn có chắc chắn muốn XÓA TOÀN BỘ danh sách tài sản cố định trong bảng không? Thao tác này không thể hoàn tác!', 'WARNING: Are you sure you want to delete ALL assets in the list? This action cannot be undone!', '警告: すべての資産を削除してもよろしいですか？'))) return;
+    if (!confirm(txt('Xác nhận lần 2: Bấm OK để xóa sạch toàn bộ danh sách tài sản cố định.', 'Second confirmation: Click OK to completely wipe all fixed assets.', '再確認: すべての固定資産を完全に消去するには [OK] をクリックしてください。'))) return;
+    try {
+      setLoading(true);
+      const res = await fetch('/api/department-fixed-assets/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+      if (res.ok) {
+        setSelectedIds([]);
+        loadData(1, pageSize);
+      } else {
+        alert(txt('Lỗi khi xóa toàn bộ dữ liệu', 'Failed to clear all assets', '全削除に失敗しました'));
+      }
+    } catch {
+      alert(txt('Lỗi kết nối khi xóa dữ liệu', 'Connection error', '接続エラー'));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -453,6 +476,19 @@ export default function DepartmentFixedAssetsTab() {
               </button>
             )}
 
+            {/* Nút Xóa tất cả dữ liệu bảng */}
+            {(totalCount > 0 || items.length > 0) && (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                title={txt('Xóa sạch toàn bộ tài sản cố định trong bảng', 'Delete all fixed assets in list', 'すべての固定資産を削除')}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                <span>{txt('Xóa tất cả', 'Clear All', '全件削除')}</span>
+              </button>
+            )}
+
             {/* Refresh */}
             <button
               type="button"
@@ -478,7 +514,7 @@ export default function DepartmentFixedAssetsTab() {
                   <input
                     type="checkbox"
                     onChange={handleSelectAll}
-                    checked={selectedIds.length > 0 && selectedIds.length === items.filter((i) => !i.isGroupHeader).length}
+                    checked={items.length > 0 && selectedIds.length === items.length}
                     className="rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                   />
                 </th>
@@ -567,20 +603,30 @@ export default function DepartmentFixedAssetsTab() {
               ) : (
                 items.map((item, idx) => {
                   if (item.isGroupHeader) {
+                    const isGroupSelected = selectedIds.includes(item.id);
                     return (
-                      <tr key={item.id} className="bg-indigo-50/70 dark:bg-indigo-950/50 font-bold text-indigo-900 dark:text-indigo-200 border-y border-indigo-200 dark:border-indigo-800">
+                      <tr key={item.id} className={`font-bold border-y transition-colors ${isGroupSelected ? 'bg-indigo-100/90 dark:bg-indigo-950/80 border-indigo-300 dark:border-indigo-700' : 'bg-indigo-50/70 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200'}`}>
                         <td className="px-2 py-2 text-center border-r border-indigo-200/50">
-                          <Layers className="w-3.5 h-3.5 mx-auto text-indigo-500" />
+                          <input
+                            type="checkbox"
+                            checked={isGroupSelected}
+                            onChange={() => handleToggleSelect(item.id)}
+                            className="rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                          />
                         </td>
                         <td className="px-2 py-2 text-center border-r border-indigo-200/50">—</td>
                         <td colSpan={26} className="px-3 py-2 text-left font-black tracking-wide">
-                          📌 {item.name} {item.warehouse ? `(${item.warehouse})` : ''} {item.department ? `• ${item.department}` : ''}
+                          <span className="inline-flex items-center gap-1.5">
+                            <Layers className="w-3.5 h-3.5 text-indigo-500 inline" />
+                            <span>📌 {item.name} {item.warehouse ? `(${item.warehouse})` : ''} {item.department ? `• ${item.department}` : ''}</span>
+                          </span>
                         </td>
                         <td className="px-2 py-2 text-center sticky right-0 bg-indigo-50 dark:bg-indigo-950">
                           <button
                             type="button"
                             onClick={() => handleDeleteItem(item.id)}
-                            className="text-slate-400 hover:text-rose-600 p-1 rounded-lg"
+                            className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
+                            title="Xóa tiêu đề nhóm"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>

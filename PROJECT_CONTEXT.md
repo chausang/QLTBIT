@@ -80,6 +80,12 @@
 - **Không Import Cột 1 STT**: Hệ thống tự động sinh số thứ tự STT tăng dần, không bị phụ thuộc vào số thứ tự trong file Excel.
 - **Chỉ Import Tài Sản Thuộc CNTT Quản Lý**: Nhận diện phân nhóm, chỉ thu thập tài sản thuộc nhóm "Tài sản thuộc CNTT quản lý" hoặc có Kho là CNTT; tự động loại bỏ các khối dữ liệu của HCQT, TBYT, Dược...
 
+### 🧹 2.12. Loại Bỏ Auto-Seed Ngầm & Bổ Sung Nút Xóa Tất Cả TSCĐ Khoa Phòng (v1.0.15)
+- **Loại Bỏ Auto-Seed Ngầm**: Triệt để xóa cơ chế tự chèn `INITIAL_SAMPLE_DATA` khi `count === 0` trong GET API, đảm bảo khi người dùng xóa sạch dữ liệu thì F5 / refresh trang web không bị tự động xuất hiện lại các dòng mẫu cũ.
+- **Nút Xóa Tất Cả (Clear All)**: Hỗ trợ xóa sạch bảng với 1 chạm (kèm 2 bước xác nhận an toàn), hỗ trợ `all: true` trong bulk-delete API.
+- **Đồng Bộ Checkbox**: Cho phép chọn cả các dòng tiêu đề phân nhóm (Group Header) để xóa sạch toàn diện.
+- **Đổi Tên Tab**: Chuẩn hóa tab từ "🏛️ TSCĐ Khoa Phòng (Theo Mẫu)" thành "🏛️ TSCĐ Khoa Phòng".
+
 ---
 
 

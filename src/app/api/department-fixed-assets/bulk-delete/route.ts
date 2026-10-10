@@ -10,7 +10,16 @@ export async function POST(request: NextRequest) {
     if (!currentUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json();
-    const { ids } = body;
+    const { ids, all } = body;
+
+    if (all === true) {
+      const deleteResult = await prisma.departmentFixedAsset.deleteMany({});
+      return NextResponse.json({
+        success: true,
+        message: `Đã xóa toàn bộ ${deleteResult.count} tài sản cố định`,
+        count: deleteResult.count,
+      });
+    }
 
     if (!Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: 'Danh sách ID không hợp lệ' }, { status: 400 });

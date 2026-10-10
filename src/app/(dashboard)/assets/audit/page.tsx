@@ -1828,7 +1828,7 @@ export default function AssetsAuditPage() {
                 }`}
               >
                 <Building className="w-3.5 h-3.5 text-blue-600" />
-                <span>{isEn ? 'Dept Fixed Assets' : '🏛️ TSCĐ Khoa Phòng (Theo Mẫu)'}</span>
+                <span>{isEn ? 'Dept Fixed Assets' : '🏛️ TSCĐ Khoa Phòng'}</span>
               </button>
             </div>
           </div>
