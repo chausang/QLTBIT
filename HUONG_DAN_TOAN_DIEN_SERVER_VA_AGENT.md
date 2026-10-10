@@ -242,10 +242,19 @@ Hệ thống tích hợp bộ phân tích và nhập file Excel thông minh, h�
 
 ---
 
-### 3.5 Tùy Biến Bảng & Chọn Xóa Nhiều Thiết Bị Cùng Lúc (Bulk Delete)
-Để phục vụ nhu cầu xem dữ liệu và thao tác vận hành hàng loạt của Kế toán, Quản lý kho và Kỹ thuật viên CNTT:
+### 3.5 Bộ Lọc Khoa Phòng, Cột STT & Tùy Biến Bảng Danh Sách Thiết Bị
+Để phục vụ nhu cầu xem dữ liệu, tra cứu nhanh theo phòng ban và thao tác vận hành hàng loạt của Kế toán, Quản lý kho và Kỹ thuật viên CNTT:
 
-1. **Chọn Xóa Nhiều Thiết Bị Cùng Lúc (Bulk Delete):**
+1. **Bộ Lọc Thiết Bị Theo Khoa Phòng / Phòng Ban (Department Filter):**
+   * Trên thanh lọc nâng cao (`Advanced Filter & Search Bar`), nhấn vào dropdown **"📍 Khoa phòng (Tất cả)"**.
+   * Chọn khoa phòng cụ thể (ví dụ: *Phòng Tài Chính Kế Toán*, *Khoa Cấp Cứu*, *Khoa Khám Bệnh*...).
+   * Hệ thống sẽ tự động lọc tức thì toàn bộ thiết bị đang thuộc khoa phòng đó (bao gồm thiết bị đặt tại địa điểm đó hoặc cấp phát cho nhân sự thuộc khoa phòng).
+   * Khi cần xem lại toàn bộ, chọn lại **"📍 Khoa phòng (Tất cả)"** hoặc nhấn nút **"Xóa Tất Cả Bộ Lọc"**.
+2. **Cột Số Thứ Tự (STT) Đánh Số Theo Trang:**
+   * Cột **STT** hiển thị ở vị trí đầu tiên của bảng danh sách, đánh số lũy tiến theo số trang và số dòng (trang 1: 1-25; trang 2: 26-50...).
+   * **Bám dính kép (Sticky Dual-Column):** Khi cuộn ngang sang phải để xem Cấu hình, Màn hình, Bảo hành hay Giá trị tài sản, cột STT và cột Mã tài sản luôn bám dính ở mép trái giúp bạn không bị mất dấu thiết bị.
+   * Cột STT có thể ẩn hoặc hiện tùy ý thông qua menu *Tùy chọn cột*.
+3. **Chọn Xóa Nhiều Thiết Bị Cùng Lúc (Bulk Delete):**
    * Đánh dấu tick chọn vào ô checkbox ở đầu các dòng thiết bị bạn muốn xóa (hoặc tick ô checkbox ở hàng tiêu đề để chọn tất cả thiết bị trên trang).
    * **Thao tác xóa linh hoạt:**
      - Bấm nút **"🗑️ Xóa ({N}) Đã Chọn"** màu đỏ trên thanh công cụ phía trên.
@@ -253,16 +262,16 @@ Hệ thống tích hợp bộ phân tích và nhập file Excel thông minh, h�
    * **Bảo vệ an toàn qua Thùng Rác (Trash):**
      - Thiết bị bị xóa sẽ được đưa vào **Thùng Rác**, tự động gỡ an toàn các phân bổ, vé hỗ trợ và tài liệu liên quan mà không làm hỏng dữ liệu hệ thống.
      - Ngay sau khi xóa, hệ thống hiển thị thông báo với nút **"Hoàn tác (Undo)"** 1-Click để bạn khôi phục lại ngay tức thì nếu bấm nhầm.
-2. **Tùy Chọn Ẩn / Hiện Cột (Column Visibility):**
+4. **Tùy Chọn Ẩn / Hiện Cột (Column Visibility):**
    * Nhấn nút **"Tùy chọn cột"** (icon ⚙️) trên thanh công cụ bảng thiết bị.
-   * Đánh dấu hoặc bỏ chọn các cột bạn muốn hiển thị: *Mã tài sản, Tên & Model, Khoa phòng / Vị trí, Danh mục, Nguyên giá, Bảo hành & Ngày mua, Trạng thái, Người giữ, Cấu hình (CPU/RAM/HDD), Màn hình đi kèm, Thao tác*.
+   * Đánh dấu hoặc bỏ chọn các cột bạn muốn hiển thị: *Số thứ tự (STT), Mã tài sản, Tên & Model, Khoa phòng / Vị trí, Danh mục, Nguyên giá, Bảo hành & Ngày mua, Trạng thái, Người giữ, Cấu hình (CPU/RAM/HDD), Màn hình đi kèm, Thao tác*.
    * **Ghi nhớ cấu hình:** Trình duyệt tự động lưu tùy chọn của bạn vào `localStorage`. Khi tải lại trang hoặc mở ở phiên làm việc sau, giao diện hiển thị vẫn được giữ nguyên vẹn.
-3. **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting):**
+5. **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting):**
    * Click trực tiếp vào tiêu đề bất kỳ cột nào có biểu tượng mũi tên:
      - *Lần 1*: Sắp xếp tăng dần (A ➔ Z hoặc giá trị nhỏ ➔ lớn, hiển thị `↑`).
      - *Lần 2*: Sắp xếp giảm dần (Z ➔ A hoặc giá trị lớn ➔ nhỏ, hiển thị `↓`).
      - *Lần 3*: Hủy sắp xếp, quay về thứ tự mặc định ban đầu.
-4. **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh):**
+6. **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh):**
    * Khi đang sắp xếp, hệ thống hiển thị huy hiệu báo rõ cột đang áp dụng.
    * Nhấn nút **"Xóa sắp xếp & Làm mới"** (icon 🔄) để lập tức khôi phục trật tự bảng về mặc định và cập nhật lại dữ liệu mới nhất từ máy chủ.
 

@@ -1,5 +1,20 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.10] - 10/10/2026
+
+Bản cập nhật **v1.0.10** bổ sung bộ lọc theo Khoa Phòng / Phòng Ban và tích hợp cột Số Thứ Tự (STT) theo phân trang trên bảng quản lý tài sản:
+- **Bộ Lọc Theo Khoa Phòng / Phòng Ban (Department / Location Filter)**:
+  - Thêm dropdown **"📍 Khoa phòng (Tất cả)"** trên thanh tìm kiếm & lọc nâng cao của trang quản lý tài sản (`/assets`).
+  - Lọc server-side qua API `/api/assets` với tham số `locationId`: hỗ trợ lọc trực tiếp theo `locationId` và phòng ban của nhân sự được phân bổ (`department`).
+  - Đồng bộ tự động với chức năng Xuất Excel và tổng hợp KPI tài chính.
+- **Cột Số Thứ Tự (STT) Trên Bảng Danh Sách Thiết Bị**:
+  - Bổ sung cột **STT** ở vị trí đầu tiên của bảng danh sách tài sản.
+  - Tự động tính STT lũy tiến theo số trang và số dòng `(Trang - 1) * Số dòng + Index + 1`.
+  - Hỗ trợ cơ chế bám dính kép (Sticky Dual-Column): Cột STT (`left-0`) và cột Mã tài sản (`left-[44px]`) luôn cố định khi cuộn ngang bảng.
+  - Bổ sung tùy chọn bật/tắt cột STT trong menu **Tùy chọn cột**, ghi nhớ tự động vào `localStorage`.
+
+---
+
 ## [v1.0.9] - 10/10/2026
 
 Bản cập nhật **v1.0.9** tối ưu hóa quy trình Import Excel, chống trùng lặp dữ liệu, xuất báo cáo lỗi chi tiết bằng Excel và bổ sung tính năng xóa hàng loạt nhiều thiết bị:

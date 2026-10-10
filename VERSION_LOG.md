@@ -8,13 +8,14 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 
 | Phiên Bản | Ngày Phát Hành | Tên Bản Phát Hành / Trọng Tâm | Trạng Thái |
 | :--- | :---: | :--- | :---: |
-| **v1.0.9** | **10/10/2026** | **Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị** | **Mới nhất (Latest)** |
-| **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | **Ổn định (Stable)** |
+| **v1.0.10** | **10/10/2026** | **Bộ Lọc Thiết Bị Theo Khoa Phòng & Cột Số Thứ Tự (STT) Bảng Dữ Liệu** | **Mới nhất (Latest)** |
+| **v1.0.9** | **10/10/2026** | **Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị** | **Ổn định (Stable)** |
+| **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | Ổn định |
 | **v1.0.7** | **09/10/2026** | **Danh Mục Khoa Phòng Đa Khu Vực & Tối Ưu Biên Bản Thiết Bị** | Ổn định |
 | **v1.0.6** | **03/10/2026** | **Sao Lưu & Phục Hồi Toàn Diện (Disaster Recovery & 1-Click Backup)** | Ổn định |
 | **v1.0.5** | **02/10/2026** | **Bộ Cài Đặt Tự Động 1-Click (Setup Wizard & PostgreSQL Portable)** | Ổn định |
 | **v1.0.4** | **20/09/2026** | **Quy Trình Phê Duyệt Thông Minh & Lịch Gia Hạn Chi Phí 12 Tháng** | Ổn định |
-| **v1.0.3** | **12/09/2026** | **Vòng Đời Nhân Sự Nghỉ Việc (Offboarding) & Thùng Rác 0ms Hoàn Tác** | Ổn định |
+| **v1.0.3** | **12/09/2026** | **Vòng Đời Nhân Sự Nghỉ Việc (Offboarding) & Thùng Rác 0ms Hoạt Tác** | Ổn định |
 | **v1.0.2** | **05/09/2026** | **Khung Chat AI Kéo Thả, Menu Chuột Phải & Tự Động Nhận Diện Thiết Bị** | Ổn định |
 | **v1.0.1** | **28/08/2026** | **Chuẩn Hóa Cổng Kép Dual-Port HTTP 3001 / HTTPS 3443 & Đóng Gói Docker** | Ổn định |
 | **v1.0.0** | **15/08/2026** | **Khởi Tạo Hệ Thống Simply IT Community Edition** | Bản gốc |
@@ -22,6 +23,28 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 ---
 
 ## 🚀 CHI TIẾT CÁC BẢN CẬP NHẬT
+
+---
+
+### 🌟 [v1.0.10] - 10/10/2026: Bộ Lọc Thiết Bị Theo Khoa Phòng & Cột Số Thứ Tự (STT) Bảng Dữ Liệu
+
+Bản cập nhật **v1.0.10** hoàn thiện trải nghiệm tra cứu và quản lý tài sản theo phân cấp hành chính khoa phòng / địa điểm, đồng thời bổ sung cột Số Thứ Tự chuẩn hóa theo phân trang:
+
+#### 1. 🚀 Tính Năng Mới & Nâng Cấp (Features & Improvements)
+- **Bộ Lọc Thiết Bị Theo Khoa Phòng / Phòng Ban (Department / Location Filter)**:
+  - Tích hợp trực tiếp dropdown **"📍 Khoa phòng (Tất cả)"** lên thanh công cụ lọc nâng cao (`Advanced Filter & Search Bar`).
+  - Tự động nạp danh sách các Khoa phòng/Phòng ban đã cấu hình (kèm thông tin Tòa nhà trực thuộc nếu có).
+  - **Lọc máy chủ tốc độ cao (Server-side Filter)**:
+    - API `/api/assets` xử lý tham số `locationId` thông minh: lọc trực tiếp theo `locationId` (UUID) hoặc tra cứu linh hoạt qua tên khoa phòng và phòng ban nhân sự được phân bổ (`assignments.user.department`).
+    - Đồng bộ tự động với các tính năng: Xuất Excel (Export), Thống kê KPI tài chính, và nút Xóa Tất Cả Bộ Lọc (Reset Filters).
+- **Cột Số Thứ Tự (STT) Bảng Dữ Liệu Thiết Bị**:
+  - Bổ sung cột **STT** hiển thị ở vị trí đầu tiên của bảng danh sách tài sản.
+  - Tự động tính số thứ tự lũy tiến theo số trang và số dòng: `STT = (Trang - 1) * Số dòng + Index + 1` (ví dụ: Trang 1 từ 1-25, Trang 2 từ 26-50...).
+  - **Cơ chế Sticky Dual-Column trơn tru**:
+    - Khi cuộn ngang sang phải để xem Cấu hình phần cứng, Màn hình, Nguyên giá... cột **STT** (vị trí `left-0`) và cột **Mã tài sản & Checkbox** (vị trí `left-[44px]`) đồng thời bám dính hoàn hảo ở mép trái, không bị che khuất hay đè chồng.
+  - **Tích hợp Tùy Chọn Cột (Column Visibility)**:
+    - Cho phép người dùng bật/tắt hiển thị cột STT trong menu *Tùy chọn cột*.
+    - Tự động ghi nhớ tùy biến của người dùng vào `localStorage`.
 
 ---
 

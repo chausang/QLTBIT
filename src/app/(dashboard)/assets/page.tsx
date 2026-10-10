@@ -136,6 +136,7 @@ interface CustomFieldDef {
 }
 
 export type AssetColumnKey =
+  | 'stt'
   | 'assetTag'
   | 'name'
   | 'companyLocation'
@@ -149,6 +150,7 @@ export type AssetColumnKey =
   | 'actions';
 
 const DEFAULT_VISIBLE_COLUMNS: Record<AssetColumnKey, boolean> = {
+  stt: true,
   assetTag: true,
   name: true,
   companyLocation: true,
@@ -163,6 +165,7 @@ const DEFAULT_VISIBLE_COLUMNS: Record<AssetColumnKey, boolean> = {
 };
 
 const COLUMN_DEFINITIONS: { key: AssetColumnKey; labelVi: string; labelEn: string; sortKey?: string }[] = [
+  { key: 'stt', labelVi: 'Số thứ tự (STT)', labelEn: 'No. (STT)' },
   { key: 'assetTag', labelVi: 'Mã tài sản', labelEn: 'Asset Tag', sortKey: 'assetTag' },
   { key: 'name', labelVi: 'Tên thiết bị & Model', labelEn: 'Device & Model', sortKey: 'name' },
   { key: 'companyLocation', labelVi: 'Công ty & Vị trí', labelEn: 'Company & Location', sortKey: 'location' },
@@ -531,6 +534,7 @@ export default function AssetsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedCompany, setSelectedCompany] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedSource, setSelectedSource] = useState<'ALL' | 'MANUAL' | 'AUTO_SCAN'>('ALL');
   const [selectedWarranty, setSelectedWarranty] = useState<'ALL' | 'VALID' | 'EXPIRING' | 'EXPIRED'>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
@@ -962,6 +966,7 @@ export default function AssetsPage() {
       params.append('pageSize', String(pageSize));
       if (debouncedSearch.trim()) params.append('search', debouncedSearch.trim());
       if (selectedCompany) params.append('companyName', selectedCompany);
+      if (selectedLocation) params.append('locationId', selectedLocation);
       if (selectedCategory) params.append('categoryId', selectedCategory);
       if (selectedStatus) params.append('status', selectedStatus);
       if (selectedSource !== 'ALL') params.append('source', selectedSource);
@@ -1020,7 +1025,7 @@ export default function AssetsPage() {
       console.error('Failed to load assets data:', error);
       setLoading(false);
     }
-  }, [currentPage, pageSize, debouncedSearch, selectedCompany, selectedCategory, selectedStatus, selectedSource, selectedWarranty, sortField, sortOrder]);
+  }, [currentPage, pageSize, debouncedSearch, selectedCompany, selectedLocation, selectedCategory, selectedStatus, selectedSource, selectedWarranty, sortField, sortOrder]);
 
   const handleResetSortAndRefresh = () => {
     setSortField(null);
@@ -2154,7 +2159,7 @@ export default function AssetsPage() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, selectedCompany, selectedCategory, selectedStatus, selectedSource, selectedWarranty, pageSize]);
+  }, [debouncedSearch, selectedCompany, selectedLocation, selectedCategory, selectedStatus, selectedSource, selectedWarranty, pageSize]);
 
   // Export filtered assets to formatted Excel
   const handleExportExcel = async () => {
@@ -2168,6 +2173,7 @@ export default function AssetsPage() {
       exportParams.append('pageSize', '10000');
       if (debouncedSearch.trim()) exportParams.append('search', debouncedSearch.trim());
       if (selectedCompany) exportParams.append('companyName', selectedCompany);
+      if (selectedLocation) exportParams.append('locationId', selectedLocation);
       if (selectedCategory) exportParams.append('categoryId', selectedCategory);
       if (selectedStatus) exportParams.append('status', selectedStatus);
       if (selectedSource !== 'ALL') exportParams.append('source', selectedSource);
@@ -2407,6 +2413,7 @@ export default function AssetsPage() {
   const hasActiveFilters =
     Boolean(search) ||
     Boolean(selectedCompany) ||
+    Boolean(selectedLocation) ||
     Boolean(selectedCategory) ||
     Boolean(selectedStatus) ||
     selectedSource !== 'ALL' ||
@@ -2415,6 +2422,7 @@ export default function AssetsPage() {
   const resetAllFilters = () => {
     setSearch('');
     setSelectedCompany('');
+    setSelectedLocation('');
     setSelectedCategory('');
     setSelectedStatus('');
     setSelectedSource('ALL');
@@ -2690,9 +2698,9 @@ export default function AssetsPage() {
 
       {/* ==================== 3. ADVANCED FILTER & SEARCH BAR ==================== */}
       <div className="bg-white dark:bg-slate-900 p-3.5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs space-y-2.5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-7 gap-2">
           {/* SEARCH INPUT */}
-          <div className="lg:col-span-2 relative">
+          <div className="lg:col-span-2 xl:col-span-2 relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
             <input
               type="text"
@@ -2723,6 +2731,29 @@ export default function AssetsPage() {
               {companies.map((c) => (
                 <option key={c} value={c}>
                   🏢 {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* FILTER: KHOA PHÒNG / VỊ TRÍ */}
+          <div>
+            <select
+              value={selectedLocation}
+              onChange={(e) => {
+                setSelectedLocation(e.target.value);
+                setCurrentPage(1);
+              }}
+              className={`w-full py-2 px-3 border rounded-2xl text-xs font-semibold outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer truncate transition-all ${
+                selectedLocation
+                  ? 'border-blue-400 bg-blue-50 text-blue-900 ring-2 ring-blue-200 dark:bg-blue-950/60 dark:text-blue-200 font-bold'
+                  : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <option value="">{language === 'en' ? '📍 Department (All)' : '📍 Khoa phòng (Tất cả)'}</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  📍 {loc.name} {loc.building ? `(${loc.building})` : ''}
                 </option>
               ))}
             </select>
@@ -3088,11 +3119,22 @@ export default function AssetsPage() {
               <table className="w-full text-left text-xs border-collapse min-w-[920px]">
                 <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   <tr>
+                    {/* CỘT 0: SỐ THỨ TỰ (STT) */}
+                    {visibleColumns.stt && (
+                      <th
+                        className="py-2 px-1 text-center w-11 min-w-[44px] max-w-[44px] sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[1px_0_3px_-1px_rgba(0,0,0,0.04)] select-none text-[10px] font-bold text-slate-500 uppercase tracking-wider"
+                        title={isEn ? 'Ordinal Number' : 'Số thứ tự'}
+                      >
+                        <span>{isEn ? 'NO.' : 'STT'}</span>
+                      </th>
+                    )}
+
                     {/* CỘT 1: MÃ TÀI SẢN */}
                     {visibleColumns.assetTag && (
                       <th
                         onClick={() => handleSort('assetTag')}
-                        className="py-2 px-2 sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[105px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        style={{ left: visibleColumns.stt ? 44 : 0 }}
+                        className="py-2 px-2 sticky z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[105px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
                         title={isEn ? 'Click to sort by Asset Tag' : 'Click vào tên cột để sắp xếp theo Mã tài sản'}
                       >
                         <div className="flex items-center gap-1.5">
@@ -3249,8 +3291,16 @@ export default function AssetsPage() {
                   {loading ? (
                     Array.from({ length: 6 }).map((_, idx) => (
                       <tr key={idx} className="animate-pulse">
+                        {visibleColumns.stt && (
+                          <td className="py-2.5 px-1 text-center sticky left-0 bg-white dark:bg-slate-900 w-11 min-w-[44px] max-w-[44px]">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-6 mx-auto" />
+                          </td>
+                        )}
                         {visibleColumns.assetTag && (
-                          <td className="py-2.5 px-2 sticky left-0 bg-white dark:bg-slate-900">
+                          <td
+                            style={{ left: visibleColumns.stt ? 44 : 0 }}
+                            className="py-2.5 px-2 sticky bg-white dark:bg-slate-900"
+                          >
                             <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
                           </td>
                         )}
@@ -3340,7 +3390,8 @@ export default function AssetsPage() {
                     </tr>
                   ) : (
                     /* DATA ROWS */
-                    paginatedAssets.map((asset) => {
+                    paginatedAssets.map((asset, index) => {
+                      const stt = (currentPage - 1) * pageSize + index + 1;
                       const assignedUser = asset.assignments?.find((a: any) => a.returnedAt === null)?.user;
                       const warrantyInfo = asset.warrantyExpiry ? getRemainingTimeText(asset.warrantyExpiry) : null;
                       const rawPrice = Number(asset.purchasePrice) || 0;
@@ -3370,9 +3421,21 @@ export default function AssetsPage() {
                           className="hover:bg-blue-50/50 dark:hover:bg-slate-800/40 transition-colors group cursor-pointer"
                           title="Nhấp vào để xem chi tiết • Nhấp chuột phải để mở menu thao tác nhanh"
                         >
+                          {/* CỘT SỐ THỨ TỰ (STT) */}
+                          {visibleColumns.stt && (
+                            <td className="py-2 px-1 text-center sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[1px_0_3px_-1px_rgba(0,0,0,0.04)] transition-colors w-11 min-w-[44px] max-w-[44px]">
+                              <span className="font-mono font-bold text-slate-500 dark:text-slate-400 text-[11px]">
+                                {stt}
+                              </span>
+                            </td>
+                          )}
+
                           {/* STICKY COLUMN: CHECKBOX & MÃ TÀI SẢN (2 DÒNG GỌN GÀNG) */}
                           {visibleColumns.assetTag && (
-                            <td className="py-2 px-2 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors">
+                            <td
+                              style={{ left: visibleColumns.stt ? 44 : 0 }}
+                              className="py-2 px-2 sticky z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors"
+                            >
                               <div className="flex items-start gap-1.5">
                                 <input
                                   type="checkbox"

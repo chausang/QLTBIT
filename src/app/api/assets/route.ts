@@ -116,6 +116,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    if (locationId) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(locationId);
+      if (isUuid) {
+        where.locationId = locationId;
+      } else {
+        andConditions.push({
+          OR: [
+            { location: { name: { equals: locationId, mode: 'insensitive' } } },
+            { assignments: { some: { returnedAt: null, user: { department: { equals: locationId, mode: 'insensitive' } } } } },
+          ],
+        });
+      }
+    }
+
     if (andConditions.length > 0) {
       where.AND = andConditions;
     }
@@ -123,7 +137,6 @@ export async function GET(request: NextRequest) {
     if (categoryId) where.categoryId = categoryId;
     if (status) where.status = status;
     if (condition) where.condition = condition;
-    if (locationId) where.locationId = locationId;
     if (companyName) where.companyName = { equals: companyName, mode: 'insensitive' };
 
     const [assets, total, countsByStatus, deprecAssets, categoryCounts] = await Promise.all([
