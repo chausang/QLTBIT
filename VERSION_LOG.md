@@ -8,7 +8,8 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 
 | Phiên Bản | Ngày Phát Hành | Tên Bản Phát Hành / Trọng Tâm | Trạng Thái |
 | :--- | :---: | :--- | :---: |
-| **v1.0.10** | **10/10/2026** | **Bộ Lọc Thiết Bị Theo Khoa Phòng & Cột Số Thứ Tự (STT) Bảng Dữ Liệu** | **Mới nhất (Latest)** |
+| **v1.0.11** | **10/10/2026** | **Linh Hoạt Người Nhận Bàn Giao Thiết Bị & Chuẩn Hóa Bên Giao Biên Bản** | **Mới nhất (Latest)** |
+| **v1.0.10** | **10/10/2026** | **Bộ Lọc Thiết Bị Theo Khoa Phòng & Cột Số Thứ Tự (STT) Bảng Dữ Liệu** | **Ổn định (Stable)** |
 | **v1.0.9** | **10/10/2026** | **Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị** | **Ổn định (Stable)** |
 | **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | Ổn định |
 | **v1.0.7** | **09/10/2026** | **Danh Mục Khoa Phòng Đa Khu Vực & Tối Ưu Biên Bản Thiết Bị** | Ổn định |
@@ -23,6 +24,30 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 ---
 
 ## 🚀 CHI TIẾT CÁC BẢN CẬP NHẬT
+
+---
+
+### 🌟 [v1.0.11] - 10/10/2026: Linh Hoạt Người Nhận Bàn Giao Thiết Bị & Chuẩn Hóa Bên Giao Biên Bản
+
+Bản cập nhật **v1.0.11** hoàn thiện trải nghiệm điều chuyển tài sản linh hoạt theo thực tế doanh nghiệp và bệnh viện, đồng thời loại bỏ thông tin mặc định cá nhân hóa trong các mẫu biên bản:
+
+#### 1. 🚀 Tính Năng Mới & Nâng Cấp (Features & Improvements)
+- **Linh Hoạt Người Nhận Trong Modal Điều Chuyển Thiết Bị (`AssetTransferModal`)**:
+  - **Không bắt buộc chọn nhân sự**: Bỏ hoàn toàn ràng buộc bắt buộc `toUserId` và dấu sao đỏ `(*)`.
+  - **Hỗ trợ tự gõ họ tên trực tiếp**:
+    - Người dùng có thể gõ trực tiếp họ tên người nhận vào ô tìm kiếm mà không cần chọn trong dropdown.
+    - Cơ chế nhận diện thông minh: Tự động đối chiếu nhân sự có sẵn; nếu là nhân sự mới thì backend tự động khởi tạo tài khoản nhân viên (Staff) và liên kết phân bổ chính xác.
+    - Tích hợp nút chọn nhanh trong dropdown: `✍️ Dùng tên tự do: "..." (Tự động ghi nhận)`.
+  - **Cho phép để trống người nhận**:
+    - Cho phép lưu điều chuyển thiết bị khi để trống ô người nhận (bàn giao thiết bị chung theo phòng ban/vị trí, luân chuyển kho mà không gán người phụ trách cụ thể).
+    - Tự động hoàn tất phân bổ cũ (nếu có) và đưa thiết bị về trạng thái Sẵn sàng (`AVAILABLE`).
+  - **Cải tiến giao diện**:
+    - Nút xóa nhanh `X` 1-Click để xóa trắng ô người nhận.
+    - Huy hiệu trạng thái trực quan: Phân biệt rõ "Nhân sự từ hệ thống", "Tên người nhận tự do (Tự động ghi nhận)", và "Để trống: Bàn giao không gán đích danh".
+    - Tự động đóng dropdown khi click chuột ra ngoài (`click outside`).
+- **Chuẩn Hóa Biên Bản Thiết Bị & Loại Bỏ Tên Mặc Định**:
+  - Xóa bỏ hoàn toàn tên mặc định "Nguyễn Hoàn Danh" ở bên bàn giao trong API mẫu biên bản (`/api/minutes`).
+  - Dọn dẹp sạch sẽ dữ liệu mẫu trong cơ sở dữ liệu để trường bên bàn giao luôn ở trạng thái trống, cho phép người dùng tự nhập hoặc ký tên theo thực tế.
 
 ---
 

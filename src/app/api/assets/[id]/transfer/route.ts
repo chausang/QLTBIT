@@ -4,6 +4,7 @@ import { hasPermission } from '@/lib/permissions';
 import { prisma } from '@/lib/db';
 import { createAuditLog } from '@/lib/audit';
 import { normalizeCompanyName } from '@/lib/normalize';
+import bcrypt from 'bcryptjs';
 
 // GET /api/assets/[id]/transfer - Get assignment history and current active assignment
 export async function GET(
@@ -89,7 +90,8 @@ export async function POST(
     const { id } = await params;
     const body = await request.json();
     const {
-      toUserId, // Target user ID (or empty/null for warehouse return)
+      toUserId, // Target user ID (optional)
+      toUserName, // Target user name if typed manually (optional)
       transferDate,
       condition,
       locationId,
@@ -104,6 +106,7 @@ export async function POST(
           where: { returnedAt: null },
           include: { user: true },
         },
+        location: true,
       },
     });
 
@@ -114,6 +117,58 @@ export async function POST(
     const currentAssignment = asset.assignments[0] || null;
     const effectiveDate = transferDate ? new Date(transferDate) : new Date();
 
+    // Xác định target user:
+    let targetUserId = (toUserId && typeof toUserId === 'string' && toUserId.trim() !== '') ? toUserId.trim() : null;
+    let targetUserNameDisplay = '';
+
+    const customName = (toUserName && typeof toUserName === 'string') ? toUserName.trim().replace(/\s+/g, ' ') : '';
+
+    if (!targetUserId && customName) {
+      // 1. Thử tìm user có sẵn theo fullName (không phân biệt hoa thường)
+      const existingUser = await prisma.user.findFirst({
+        where: {
+          fullName: { equals: customName, mode: 'insensitive' },
+        },
+      });
+
+      if (existingUser) {
+        targetUserId = existingUser.id;
+        targetUserNameDisplay = existingUser.fullName;
+      } else {
+        // 2. Tự động tạo user mới với tên này để hệ thống lưu trữ và theo dõi
+        const staffRole = await prisma.role.findFirst({ where: { name: 'Staff' } })
+          || await prisma.role.findFirst({ where: { name: 'User' } })
+          || await prisma.role.findFirst();
+
+        if (staffRole) {
+          const cleanSlug = customName
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]/g, '');
+          const autoEmail = `${cleanSlug || 'staff'}.${Date.now().toString().slice(-6)}@internal.local`;
+          const defaultPasswordHash = await bcrypt.hash('Staff@123', 10);
+
+          const newUser = await prisma.user.create({
+            data: {
+              fullName: customName,
+              email: autoEmail,
+              passwordHash: defaultPasswordHash,
+              department: asset.location?.name || null,
+              companyName: companyName ? normalizeCompanyName(companyName) : asset.companyName,
+              roleId: staffRole.id,
+              isActive: true,
+            },
+          });
+          targetUserId = newUser.id;
+          targetUserNameDisplay = newUser.fullName;
+        }
+      }
+    } else if (targetUserId) {
+      const u = await prisma.user.findUnique({ where: { id: targetUserId }, select: { fullName: true } });
+      targetUserNameDisplay = u?.fullName || '';
+    }
+
     // 1. If currently assigned, mark active assignment as returned / transferred
     if (currentAssignment) {
       await prisma.assetAssignment.update({
@@ -121,8 +176,8 @@ export async function POST(
         data: {
           returnedAt: effectiveDate,
           notes: currentAssignment.notes
-            ? `${currentAssignment.notes}\n[Điều chuyển ${effectiveDate.toLocaleDateString('vi-VN')}]: ${notes || 'Bàn giao cho người mới/Kho'}`
-            : `[Điều chuyển ${effectiveDate.toLocaleDateString('vi-VN')}]: ${notes || 'Bàn giao cho người mới/Kho'}`,
+            ? `${currentAssignment.notes}\n[Điều chuyển ${effectiveDate.toLocaleDateString('vi-VN')}]: ${notes || (targetUserId ? `Bàn giao cho ${targetUserNameDisplay}` : 'Chuyển giao (không gán đích danh nhân sự)')}`
+            : `[Điều chuyển ${effectiveDate.toLocaleDateString('vi-VN')}]: ${notes || (targetUserId ? `Bàn giao cho ${targetUserNameDisplay}` : 'Chuyển giao (không gán đích danh nhân sự)')}`,
         },
       });
     }
@@ -130,11 +185,11 @@ export async function POST(
     let newStatus = 'AVAILABLE';
 
     // 2. If target user provided -> create new assignment
-    if (toUserId && toUserId.trim() !== '') {
+    if (targetUserId) {
       await prisma.assetAssignment.create({
         data: {
           assetId: id,
-          userId: toUserId,
+          userId: targetUserId,
           assignedById: currentUser.userId,
           assignedAt: effectiveDate,
           notes: notes || null,
@@ -167,19 +222,21 @@ export async function POST(
     // 4. Audit Log
     await createAuditLog({
       userId: currentUser.userId,
-      action: toUserId ? 'ASSIGN' : 'REVOKE',
+      action: targetUserId ? 'ASSIGN' : 'UPDATE',
       entityType: 'ASSET',
       entityId: id,
       changes: {
         fromUser: currentAssignment?.user?.fullName || 'Kho thiết bị',
-        toUser: toUserId ? updatedAsset.assignments[0]?.user?.fullName : 'Kho thiết bị (Thu hồi)',
+        toUser: targetUserId ? targetUserNameDisplay : 'Chưa gán người (Để trống)',
         notes,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: toUserId ? 'Điều chuyển thiết bị thành công' : 'Thu hồi thiết bị về kho thành công',
+      message: targetUserId
+        ? `Điều chuyển thiết bị cho ${targetUserNameDisplay} thành công`
+        : 'Cập nhật điều chuyển thiết bị thành công (Không gán người dùng)',
       data: updatedAsset,
     });
   } catch (error) {

@@ -161,7 +161,7 @@ export async function GET(request: NextRequest) {
             isBasedOnProposal: true,
             relatedProposalCode: `DN-TB-2025-089`,
             relatedProposalTitle: 'Đề nghị xin cấp màn hình vi tính cho Phòng Hành Chính Quản trị',
-            sender: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+            sender: { name: '', title: 'Nhân viên', department: 'Phòng CNTT' },
             receiver1: { name: 'Trần Trung Nguyên', title: 'Trưởng Phòng', department: 'Phòng Hành Chính Quản trị' },
             receiver2: { name: 'Nguyễn Thị Thu Thanh', title: 'Nhân viên', department: 'Phòng HCQT' },
             receiver: { name: 'Trần Trung Nguyên', title: 'Trưởng Phòng', department: 'Phòng Hành Chính Quản trị' },
@@ -182,7 +182,7 @@ export async function GET(request: NextRequest) {
             ],
             signers: {
               senderSignerTitle: 'Bên bàn giao',
-              senderSignerName: 'Nguyễn Hoàn Danh',
+              senderSignerName: '',
               receiver1Title: 'Trưởng Khoa/Phòng',
               receiver1Name: 'Trần Trung Nguyên',
               receiver2Title: 'Nhân viên Khoa/Phòng',
@@ -210,8 +210,8 @@ export async function GET(request: NextRequest) {
             relatedProposalCode: `DN-TB-2026-015`,
             relatedProposalTitle: 'Đề nghị thu hồi thiết bị hỏng Khoa Dược',
             sender: { name: 'Dược sĩ Đỗ Thúy Hằng', title: 'Phụ trách', department: 'Khoa Dược' },
-            receiver1: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
-            receiver: { name: 'Nguyễn Hoàn Danh', title: 'Nhân viên', department: 'Phòng CNTT' },
+            receiver1: { name: '', title: 'Nhân viên', department: 'Phòng CNTT' },
+            receiver: { name: '', title: 'Nhân viên', department: 'Phòng CNTT' },
             copiesCount: '03',
             equipmentList: [
               {
@@ -243,7 +243,7 @@ export async function GET(request: NextRequest) {
               senderSignerTitle: 'Bên Giao',
               senderSignerName: 'Đỗ Thúy Hằng',
               receiver1Title: 'Bên Nhận',
-              receiver1Name: 'Nguyễn Hoàn Danh',
+              receiver1Name: '',
             },
           }),
         },

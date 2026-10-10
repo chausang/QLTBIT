@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeftRight,
   UserCheck,
   X,
   History,
   Check,
+  CheckCircle,
+  User,
   Loader2,
   AlertCircle,
   Plus,
@@ -57,6 +59,7 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
   const [transferHistory, setTransferHistory] = useState<any[]>([]);
   const [transferUserSearch, setTransferUserSearch] = useState('');
   const [isTransferUserDropdownOpen, setIsTransferUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
   const [transferError, setTransferError] = useState('');
   const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false);
 
@@ -84,6 +87,17 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
     companyName: '',
     notes: '',
   });
+
+  // Click outside to close user dropdown
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(e.target as Node)) {
+        setIsTransferUserDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (isOpen && asset) {
@@ -155,10 +169,7 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
     e.preventDefault();
     if (!asset) return;
 
-    if (transferForm.actionType === 'TRANSFER' && !transferForm.toUserId) {
-      setTransferError(txt('Vui lòng chọn nhân sự mới tiếp nhận thiết bị (*)', 'Please select the new recipient (*)', '新しい受取担当者を選択してください (*)'));
-      return;
-    }
+    // Không bắt buộc toUserId: người dùng có thể gõ tên tự do hoặc để trống
 
     setIsSubmittingTransfer(true);
     setTransferError('');
@@ -170,6 +181,7 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
         body: JSON.stringify({
           actionType: transferForm.actionType,
           toUserId: transferForm.actionType === 'TRANSFER' ? transferForm.toUserId : '',
+          toUserName: transferForm.actionType === 'TRANSFER' ? transferUserSearch.trim() : '',
           transferDate: transferForm.transferDate,
           condition: transferForm.condition,
           locationId: transferForm.locationId,
@@ -282,9 +294,14 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
               {transferForm.actionType === 'TRANSFER' && (
                 <div className="space-y-1.5 relative">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      {txt('Người nhận thiết bị mới (*)', 'New Recipient (*)', '新しい受取者 (*)')}
-                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        {txt('Người nhận thiết bị mới', 'New Recipient', '新しい受取者')}
+                      </label>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        ({txt('Có thể gõ tên tự do hoặc để trống', 'Can type custom name or leave blank', '自由入力または空欄可')})
+                      </span>
+                    </div>
                     <button
                       type="button"
                       onClick={() => setIsQuickAddUserOpen(!isQuickAddUserOpen)}
@@ -339,23 +356,60 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
                   )}
 
                   {/* User Search & Dropdown Select */}
-                  <div className="relative">
+                  <div className="relative" ref={userDropdownRef}>
                     <input
                       type="text"
-                      placeholder={txt('Gõ tìm kiếm họ tên, email hoặc phòng ban...', 'Search name, email or department...', '氏名、メール、部署で検索...')}
+                      placeholder={txt('Gõ họ tên người nhận, hoặc tìm kiếm nhân sự có sẵn...', 'Type recipient name or search staff...', '受取者の氏名を入力、または検索...')}
                       value={transferUserSearch}
                       onChange={(e) => {
-                        setTransferUserSearch(e.target.value);
+                        const val = e.target.value;
+                        setTransferUserSearch(val);
                         setIsTransferUserDropdownOpen(true);
+                        // Nếu sửa đổi text mà không khớp với user đang chọn thì xóa toUserId để gửi tên tự do
+                        const currentUser = users.find((u) => u.id === transferForm.toUserId);
+                        if (!currentUser || currentUser.fullName !== val) {
+                          setTransferForm((prev) => ({ ...prev, toUserId: '' }));
+                        }
                       }}
                       onFocus={() => setIsTransferUserDropdownOpen(true)}
-                      className="w-full p-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
+                      className="w-full pl-3 pr-8 py-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-indigo-500 font-semibold"
                     />
 
+                    {transferUserSearch && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTransferUserSearch('');
+                          setTransferForm((prev) => ({ ...prev, toUserId: '' }));
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full cursor-pointer transition-colors"
+                        title={txt('Xóa để trống', 'Clear / Leave blank', 'クリア')}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
                     {isTransferUserDropdownOpen && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl max-h-48 overflow-y-auto z-20 p-1 space-y-0.5">
+                      <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl max-h-52 overflow-y-auto z-20 p-1 space-y-0.5">
+                        {transferUserSearch.trim() && !transferForm.toUserId && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsTransferUserDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-xl text-xs bg-indigo-50/70 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 font-semibold transition-colors flex items-center justify-between cursor-pointer border border-indigo-200 dark:border-indigo-800 mb-1"
+                          >
+                            <span className="truncate">
+                              ✍️ {txt(`Dùng tên tự do: "${transferUserSearch.trim()}"`, `Use custom name: "${transferUserSearch.trim()}"`, `自由入力の氏名: "${transferUserSearch.trim()}"`)}
+                            </span>
+                            <span className="text-[10px] text-indigo-500 font-normal shrink-0 ml-2">
+                              {txt('(Tự động ghi nhận)', '(Auto recorded)', '(自動登録)')}
+                            </span>
+                          </button>
+                        )}
                         {users
                           .filter((u) => {
+                            if (!transferUserSearch.trim()) return true;
                             const query = transferUserSearch.toLowerCase();
                             return (
                               u.fullName.toLowerCase().includes(query) ||
@@ -370,7 +424,7 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
                               type="button"
                               onClick={() => {
                                 setTransferForm((prev) => ({ ...prev, toUserId: u.id }));
-                                setTransferUserSearch(`${u.fullName} (${u.department || txt('Chưa rõ phòng ban', 'No Department', '部署未設定')})`);
+                                setTransferUserSearch(u.fullName);
                                 setIsTransferUserDropdownOpen(false);
                               }}
                               className="w-full text-left px-3 py-1.5 rounded-xl text-xs hover:bg-indigo-50 dark:hover:bg-indigo-950/60 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors flex items-center justify-between cursor-pointer"
@@ -379,7 +433,39 @@ export const AssetTransferModal: React.FC<AssetTransferModalProps> = ({
                               <span className="text-[11px] text-slate-400">{u.department || u.email || ''}</span>
                             </button>
                           ))}
+                        {users.filter((u) => {
+                          if (!transferUserSearch.trim()) return true;
+                          const query = transferUserSearch.toLowerCase();
+                          return (
+                            u.fullName.toLowerCase().includes(query) ||
+                            (u.email && u.email.toLowerCase().includes(query)) ||
+                            (u.department && u.department.toLowerCase().includes(query))
+                          );
+                        }).length === 0 && !transferUserSearch.trim() && (
+                          <div className="px-3 py-2 text-xs text-slate-400 text-center">
+                            {txt('Không có nhân sự nào', 'No staff found', '該当者なし')}
+                          </div>
+                        )}
                       </div>
+                    )}
+                  </div>
+
+                  {/* Status Indicator */}
+                  <div className="flex items-center justify-between text-[11px] px-1">
+                    {transferForm.toUserId ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        {txt('Nhân sự từ hệ thống', 'System staff member', 'システム登録済の担当者')}
+                      </span>
+                    ) : transferUserSearch.trim() ? (
+                      <span className="text-indigo-600 dark:text-indigo-400 font-medium flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {txt('Tên người nhận tự do (Hệ thống sẽ tự động ghi nhận)', 'Custom recipient name (Auto recorded)', '自由入力の受取者 (自動登録)')}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400 italic">
+                        {txt('Để trống: Điều chuyển không gán đích danh người dùng', 'Blank: Transfer without specific user assigned', '空欄: 担当者未指定で異動')}
+                      </span>
                     )}
                   </div>
                 </div>

@@ -1,5 +1,27 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.11] - 10/10/2026
+
+Bản cập nhật **v1.0.11** hoàn thiện tính linh hoạt trong quy trình điều chuyển thiết bị và loại bỏ các thông tin mặc định cá nhân hóa trong các mẫu biên bản:
+- **Linh Hoạt Người Nhận Trong Modal Điều Chuyển Thiết Bị (`AssetTransferModal`)**:
+  - **Không bắt buộc chọn nhân sự**: Loại bỏ hoàn toàn ràng buộc validation bắt buộc `toUserId` và dấu sao đỏ `(*)`.
+  - **Hỗ trợ gõ tên tự do trực tiếp**:
+    - Người dùng có thể gõ trực tiếp họ tên người nhận vào ô tìm kiếm mà không bắt buộc phải click chọn từ danh sách nhân sự của hệ thống.
+    - Cơ chế nhận diện thông minh: Tự động đối chiếu nhân sự có sẵn; nếu là nhân sự mới thì backend tự động khởi tạo tài khoản nhân viên (Staff) và liên kết phân bổ chính xác.
+    - Bổ sung nút bấm xác nhận nhanh trong dropdown: `✍️ Dùng tên tự do: "..." (Tự động ghi nhận)`.
+  - **Cho phép để trống người nhận**:
+    - Cho phép lưu điều chuyển thiết bị khi để trống ô người nhận (bàn giao thiết bị chung theo phòng ban/vị trí, luân chuyển kho mà không gán người phụ trách cụ thể).
+    - Tự động hoàn tất phân bổ cũ (nếu có) và đưa thiết bị về trạng thái Sẵn sàng (`AVAILABLE`).
+  - **Cải tiến giao diện cao cấp**:
+    - Nút xóa nhanh `X` 1-Click để xóa trắng ô người nhận.
+    - Huy hiệu trạng thái thời gian thực: Thông báo rõ ràng trạng thái "Nhân sự từ hệ thống", "Tên người nhận tự do (Tự động ghi nhận)", hoặc "Để trống: Bàn giao không gán đích danh".
+    - Tự động đóng dropdown khi click chuột ra ngoài (`click outside`).
+- **Chuẩn Hóa Biên Bản Thiết Bị & Loại Bỏ Tên Mặc Định**:
+  - Xóa bỏ hoàn toàn tên mặc định "Nguyễn Hoàn Danh" ở bên bàn giao trong API mẫu biên bản (`/api/minutes`).
+  - Dọn dẹp sạch sẽ 100% các bản ghi mẫu tài liệu trong cơ sở dữ liệu để trường bên bàn giao luôn ở trạng thái trống, cho phép người dùng tự nhập hoặc ký tên theo thực tế.
+
+---
+
 ## [v1.0.10] - 10/10/2026
 
 Bản cập nhật **v1.0.10** bổ sung bộ lọc theo Khoa Phòng / Phòng Ban và tích hợp cột Số Thứ Tự (STT) theo phân trang trên bảng quản lý tài sản:
