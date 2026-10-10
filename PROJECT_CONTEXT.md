@@ -62,6 +62,13 @@
 - **Tùy Chọn Ẩn/Hiện Cột (Column Visibility)**: Popover tùy chọn cột trên bảng danh sách thiết bị, tự động lưu cấu hình người dùng vào `localStorage`.
 - **Sắp Xếp & Làm Mới (Sort & Reset)**: Click tiêu đề cột để sắp xếp 3 trạng thái (Tăng dần `↑`, Giảm dần `↓`, Hủy), nút Xóa sắp xếp & Làm mới khôi phục danh sách tức thì.
 
+### 🏛️ 2.9. Bảng Kiểm Kê TSCĐ Khoa Phòng 29 Cột & Mã Quản Lý (MQL) Toàn Diện (v1.0.12)
+- **Model `DepartmentFixedAsset`**: Bảng dữ liệu 29 cột chuẩn kế toán theo mẫu Excel bệnh viện/doanh nghiệp: STT, Tên TSCĐ, Mã số TSC, Mã quản lý, Nơi sử dụng, Hãng SX, Nước SX, Năm SD, Sổ sách (1-2-3), Kiểm kê (4-5-6), Chênh lệch (7-8-9), Ghi chú, Khoa phòng, Kho, Nhóm, Thành tiền sổ, Thành tiền tiêu hao, % Khấu hao, Ngày tính KH, Năm KH, Ghi chú 1, STT KK.
+- **Mã quản lý (`managementCode`)**: Sinh tự động `MQL-xxxxxx` hoặc nhập tay/để trống trên cả Thiết bị (`Asset`), Phụ tùng linh kiện (`SparePart`) và TSCĐ kiểm kê. Tự động hiển thị liên kết chéo khi trùng mã.
+- **Import/Export Excel**:
+  - Export: file `.xlsx` 2 tầng tiêu đề gộp ô, màu sắc và định dạng số chuẩn xác 100% theo mẫu ảnh.
+  - Import: Nhận diện dòng tiêu đề, parse linh hoạt 29 cột, có tùy chọn tự sinh mã quản lý cho các dòng còn trống.
+
 ---
 
 
