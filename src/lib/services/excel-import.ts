@@ -13,6 +13,17 @@ export interface RowValidationError {
   value?: unknown;
 }
 
+export interface ImportFailedRowItem {
+  rowNumber: number;
+  assetTag?: string;
+  name?: string;
+  serialNumber?: string;
+  categoryName?: string;
+  locationName?: string;
+  hardwareSpecs?: string;
+  reason: string;
+}
+
 export interface ImportResultSummary {
   batchId: string;
   fileName: string;
@@ -20,7 +31,10 @@ export interface ImportResultSummary {
   totalRows: number;
   successRows: number;
   failedRows: number;
+  duplicateRows?: number;
   errors: RowValidationError[];
+  failedItems?: ImportFailedRowItem[];
+  errorReportBase64?: string;
   status: ImportBatchStatus;
 }
 
@@ -76,7 +90,10 @@ export interface LicenseRowData {
 export async function generateAssetTemplate(lang: string = 'vi'): Promise<Buffer> {
   const isEn = lang === 'en';
   const workbook = new ExcelJS.Workbook();
-  const worksheet = workbook.addWorksheet(isEn ? 'Assets List' : 'Danh sách Tài sản');
+  workbook.creator = 'Simply IT';
+
+  // ==================== SHEET 1: MẪU TIÊU CHUẨN ====================
+  const worksheet = workbook.addWorksheet(isEn ? 'Standard Asset Template' : 'Mẫu Tài Sản Tiêu Chuẩn');
 
   // Define columns
   worksheet.columns = isEn
@@ -96,6 +113,9 @@ export async function generateAssetTemplate(lang: string = 'vi'): Promise<Buffer
         { header: 'Location', key: 'locationName', width: 20 },
         { header: 'Company', key: 'companyName', width: 28 },
         { header: 'Assigned User (Email)', key: 'userEmail', width: 28 },
+        { header: 'CPU', key: 'cpu', width: 18 },
+        { header: 'RAM', key: 'ram', width: 14 },
+        { header: 'Storage / SSD', key: 'storage', width: 18 },
         { header: 'Notes', key: 'notes', width: 30 },
       ]
     : [
@@ -114,90 +134,194 @@ export async function generateAssetTemplate(lang: string = 'vi'): Promise<Buffer
         { header: 'Vị trí đặt', key: 'locationName', width: 20 },
         { header: 'Công Ty Quản Lý', key: 'companyName', width: 28 },
         { header: 'Người sử dụng (Email)', key: 'userEmail', width: 28 },
+        { header: 'CPU', key: 'cpu', width: 18 },
+        { header: 'RAM', key: 'ram', width: 14 },
+        { header: 'Ổ cứng / SSD', key: 'storage', width: 18 },
         { header: 'Ghi chú', key: 'notes', width: 30 },
       ];
 
   // Header styling
   const headerRow = worksheet.getRow(1);
-  headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  headerRow.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
   headerRow.fill = {
     type: 'pattern',
     pattern: 'solid',
-    fgColor: { argb: 'FF1E40AF' }, // Blue
+    fgColor: { argb: 'FF1E40AF' }, // Blue 800
   };
   headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
   headerRow.height = 28;
 
   // Sample data row
   worksheet.addRow({
-    assetTag: 'IT-LAP-001',
-    name: 'Dell Latitude 5540',
-    categoryName: isEn ? 'Laptop' : 'Laptop',
+    assetTag: 'AST-0001',
+    name: 'PC Desktop Dell OptiPlex 7090',
+    categoryName: isEn ? 'Desktop' : 'PC / Máy tính để bàn',
     brand: 'Dell',
-    model: 'Latitude 5540',
-    serialNumber: 'SN-DELL-99881',
+    model: 'OptiPlex 7090',
+    serialNumber: 'SN-DELL-7090-01',
     status: 'IN_USE',
-    condition: 'NEW',
+    condition: 'GOOD',
     purchaseDate: '2024-01-15',
-    purchasePrice: 24500000,
+    purchasePrice: 18500000,
     warrantyExpiry: '2027-01-15',
     vendorName: isEn ? 'Dell Official Store' : 'Phong Vũ',
-    locationName: isEn ? 'IT Department' : 'Phòng IT',
-    companyName: isEn ? 'Acme Global Corporation' : 'Công ty Cổ phần Tập đoàn GELEX',
-    userEmail: 'an.nguyen@company.com',
-    notes: isEn ? 'Assigned to engineering lead' : 'Máy cấp phát cho phòng kỹ thuật',
+    locationName: isEn ? 'Emergency Dept' : 'Khoa Cấp Cứu',
+    companyName: isEn ? 'Hospital Branch 1' : 'Bệnh Viện Đa Khoa',
+    userEmail: 'it.admin@company.com',
+    cpu: 'Intel Core i5-11500',
+    ram: '16GB DDR4',
+    storage: 'SSD 512GB NVMe',
+    notes: isEn ? 'Office computer' : 'Máy tính bàn khoa cấp cứu',
   });
 
   worksheet.addRow({
-    assetTag: 'IT-MON-002',
-    name: 'Màn hình Dell UltraSharp 27" 4K',
-    categoryName: isEn ? 'Monitor' : 'Màn hình',
+    assetTag: 'AST-0002',
+    name: 'Laptop Dell Latitude 5540',
+    categoryName: isEn ? 'Laptop' : 'Laptop / Máy tính xách tay',
     brand: 'Dell',
-    model: 'U2723QE',
-    serialNumber: 'SN-MON-11223',
+    model: 'Latitude 5540',
+    serialNumber: 'SN-DELL-5540-02',
     status: 'AVAILABLE',
     condition: 'NEW',
     purchaseDate: '2024-02-10',
-    purchasePrice: 11000000,
+    purchasePrice: 24500000,
     warrantyExpiry: '2027-02-10',
     vendorName: isEn ? 'Authorized Dealer' : 'An Phát',
-    locationName: isEn ? 'Design Studio' : 'Phòng Thiết kế',
-    companyName: isEn ? 'Acme Global Corporation' : 'Công ty Cổ phần Dây Cáp Điện Việt Nam',
+    locationName: isEn ? 'IT Warehouse' : 'Kho IT',
+    companyName: isEn ? 'Hospital Branch 1' : 'Bệnh Viện Đa Khoa',
     userEmail: '',
-    notes: '',
+    cpu: 'Intel Core i7-1365U',
+    ram: '32GB DDR5',
+    storage: 'SSD 1TB NVMe',
+    notes: isEn ? 'Backup laptop' : 'Laptop dự phòng sự cố',
   });
 
-  // Instruction sheet
+  // ==================== SHEET 2: MẪU KHOA PHÒNG (21 CỘT) ====================
+  const hospitalSheet = workbook.addWorksheet(isEn ? 'Hospital Dept Template (21 Cols)' : 'Mẫu Khoa Phòng (21 Cột)');
+
+  // Hàng 1: Header chính (đa tầng)
+  const hRow1 = hospitalSheet.getRow(1);
+  hRow1.height = 26;
+  hRow1.values = [
+    'STT', 'QR', 'Tên khoa phòng', 'Tên loại thiết bị', 'Mã thiết bị', 'Tên thiết bị',
+    'Tên hãng sản xuất', 'Năm sản xuất', 'Model', 'Số seri', 'CPU', 'RAM', 'HDD',
+    'Màn hình', '', '', '', // 4 cột cho Màn hình
+    'Tình trạng', 'Mã thiết bị cũ', 'Tính cấp lại', 'Ghi chú'
+  ];
+
+  // Merge cụm Màn hình ở hàng 1 (N1:Q1 - cột 14 đến 17)
+  hospitalSheet.mergeCells('N1:Q1');
+
+  // Hàng 2: Sub-header
+  const hRow2 = hospitalSheet.getRow(2);
+  hRow2.height = 24;
+  hRow2.values = [
+    '', '', '', '', '', '',
+    '', '', '', '', '', '', '',
+    'Hãng sx', 'Năm sx', 'Model', 'Số seri',
+    '', '', '', ''
+  ];
+
+  // Merge các cột đơn lẻ giữa hàng 1 và hàng 2 (A1:A2, B1:B2, ...)
+  const singleCols = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'R', 'S', 'T', 'U'];
+  singleCols.forEach((col) => {
+    hospitalSheet.mergeCells(`${col}1:${col}2`);
+  });
+
+  // Style header 2 hàng
+  [1, 2].forEach((rNum) => {
+    const row = hospitalSheet.getRow(rNum);
+    row.eachCell((cell) => {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF0D9488' }, // Teal 600
+      };
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+      cell.border = {
+        top: { style: 'thin', color: { argb: 'FF99F6E4' } },
+        bottom: { style: 'thin', color: { argb: 'FF99F6E4' } },
+        left: { style: 'thin', color: { argb: 'FF99F6E4' } },
+        right: { style: 'thin', color: { argb: 'FF99F6E4' } },
+      };
+    });
+  });
+
+  // Độ rộng cột Sheet Khoa Phòng
+  hospitalSheet.columns = [
+    { width: 6 },  // STT
+    { width: 8 },  // QR
+    { width: 22 }, // Tên khoa phòng
+    { width: 20 }, // Tên loại thiết bị
+    { width: 16 }, // Mã thiết bị
+    { width: 20 }, // Tên thiết bị (Định danh)
+    { width: 16 }, // Tên hãng sản xuất
+    { width: 12 }, // Năm sản xuất
+    { width: 16 }, // Model
+    { width: 18 }, // Số seri
+    { width: 16 }, // CPU
+    { width: 12 }, // RAM
+    { width: 16 }, // HDD
+    { width: 14 }, // Màn hình: Hãng sx
+    { width: 10 }, // Màn hình: Năm sx
+    { width: 14 }, // Màn hình: Model
+    { width: 16 }, // Màn hình: Số seri
+    { width: 14 }, // Tình trạng
+    { width: 16 }, // Mã thiết bị cũ
+    { width: 14 }, // Tính cấp lại
+    { width: 24 }, // Ghi chú
+  ];
+
+  // Thêm dữ liệu mẫu Sheet Khoa Phòng
+  hospitalSheet.addRow([
+    1, '', 'Khoa Khám Bệnh', 'Máy vi tính', 'PC.KH2400', 'KB_PHONG01_01',
+    'Dell', '2022', 'OptiPlex 3080', 'DELL-KB-001', 'Core i5 10400', '8GB', 'SSD 256GB',
+    'Dell', '2022', 'E2220H', 'MON-KB-001', '0', 'KB-OLD-01', 'Không', 'Máy bàn khám số 1'
+  ]);
+  hospitalSheet.addRow([
+    2, '', 'Khoa Cấp Cứu', 'Máy vi tính', 'PC.KH2400', 'CC_TRUCTAP_02',
+    'HP', '2023', 'ProDesk 400 G7', 'HP-CC-002', 'Core i5 11500', '16GB', 'SSD 512GB',
+    'HP', '2023', 'P22v G4', 'MON-CC-002', '0', '', 'Không', 'Máy trực cấp cứu 24/7'
+  ]);
+  hospitalSheet.addRow([
+    3, '', 'Khoa Chẩn Đoán HA', 'Máy vi tính', 'PC.KH2400', 'CDHA_XQUANG_01',
+    'Lenovo', '2023', 'ThinkCentre M70s', 'LN-CDHA-003', 'Core i7 12700', '32GB', 'SSD 1TB NVMe',
+    'LG', '2023', '27UN880 4K', 'MON-CDHA-003', '0', '', 'Không', 'Máy đọc phim X-Quang'
+  ]);
+
+  // ==================== SHEET 3: HƯỚNG DẪN NHẬP ====================
   const instructionSheet = workbook.addWorksheet(isEn ? 'Instructions' : 'Hướng dẫn nhập');
   instructionSheet.columns = [
-    { header: isEn ? 'Column' : 'Cột', key: 'col', width: 28 },
-    { header: isEn ? 'Rules & Allowed Values' : 'Quy tắc & Giá trị cho phép', key: 'rule', width: 70 },
+    { header: isEn ? 'Column / Format' : 'Cột / Định dạng', key: 'col', width: 28 },
+    { header: isEn ? 'Rules & Allowed Values' : 'Quy tắc & Giá trị cho phép', key: 'rule', width: 75 },
   ];
   const instHeader = instructionSheet.getRow(1);
-  instHeader.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+  instHeader.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
   instHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF334155' } };
+  instHeader.height = 28;
 
   instructionSheet.addRows(
     isEn
       ? [
-          { col: 'Asset Tag (*)', rule: 'Required. Unique asset identifier, must not duplicate existing system records or rows in this file.' },
-          { col: 'Device Name (*)', rule: 'Required. Human-readable name and model of the hardware item.' },
-          { col: 'Category (*)', rule: 'Required. Category name (e.g. Laptop, Desktop, Monitor, Network Device, Accessories...).' },
+          { col: 'Asset Tag (*)', rule: 'Required. Unique asset tag. If duplicate with existing system records or rows in file, it will be rejected and logged to error Excel.' },
+          { col: 'Device Name (*)', rule: 'Required. Name of the device (or unique PC identifier).' },
+          { col: 'Category (*)', rule: 'Required. e.g. Desktop, Laptop, Monitor, Printer, Network Device...' },
+          { col: 'Serial Number', rule: 'Serial number. Must be unique across hardware devices.' },
           { col: 'Status', rule: 'AVAILABLE, IN_USE, MAINTENANCE, RETIRED, LOST. Default: AVAILABLE' },
-          { col: 'Condition', rule: 'NEW, GOOD, FAIR, POOR, BROKEN. Default: NEW' },
-          { col: 'Company', rule: 'Optional. Legal entity / business branch managing the asset.' },
-          { col: 'Assigned User (Email)', rule: 'Optional. Staff email to automatically assign the asset upon import.' },
-          { col: 'Date Format', rule: 'Standard format: YYYY-MM-DD or DD/MM/YYYY (e.g. 2024-03-15).' },
+          { col: 'Condition', rule: 'NEW (New), GOOD (Good), FAIR (Medium), POOR (Poor), BROKEN (Damaged). Default: GOOD' },
+          { col: '21-Column Hospital Format', rule: 'Supported via Sheet 2. Auto-extracts CPU, RAM, HDD and attached monitor details into specs JSON.' },
+          { col: 'Duplicate Rejection', rule: 'Duplicate devices by Asset Tag or Serial Number will NOT be added to DB and will be exported to Error Excel for review.' },
         ]
       : [
-          { col: 'Mã tài sản (*)', rule: 'Bắt buộc, không được trùng lặp với hệ thống và trong file.' },
-          { col: 'Tên thiết bị (*)', rule: 'Bắt buộc.' },
-          { col: 'Danh mục (*)', rule: 'Bắt buộc. Tên danh mục (Ví dụ: Laptop, Màn hình, Thiết bị mạng, Phụ kiện...)' },
-          { col: 'Trạng thái', rule: 'AVAILABLE (Sẵn sàng), IN_USE (Đang dùng), MAINTENANCE (Bảo trì), RETIRED (Thanh lý), LOST (Mất). Mặc định: AVAILABLE' },
-          { col: 'Tình trạng', rule: 'NEW (Mới), GOOD (Tốt), FAIR (Trung bình), POOR (Kém), BROKEN (Hỏng). Mặc định: NEW' },
-          { col: 'Công Ty Quản Lý', rule: 'Tùy chọn. Tên công ty/pháp nhân quản lý tài sản trong tập đoàn. Tự động đồng bộ vào danh sách công ty nếu là tên mới.' },
-          { col: 'Người sử dụng (Email)', rule: 'Tùy chọn. Nhập email nhân sự để tự động gán máy. Nếu bỏ trống hoặc email chưa có trên hệ thống, thiết bị vẫn được import bình thường mà không báo lỗi.' },
-          { col: 'Định dạng ngày', rule: 'Định dạng chuẩn: YYYY-MM-DD hoặc DD/MM/YYYY (Ví dụ: 2024-03-15).' },
+          { col: 'Mã tài sản (*)', rule: 'Bắt buộc. Mã định danh duy nhất. Nếu trùng với thiết bị đã có trong hệ thống hoặc trùng trong file, hệ thống sẽ BỎ QUA và xuất ra file Excel lỗi.' },
+          { col: 'Tên thiết bị (*)', rule: 'Bắt buộc. Tên máy tính hoặc định danh duy nhất (ví dụ: KB_PHONG01_01).' },
+          { col: 'Danh mục (*)', rule: 'Bắt buộc. Danh mục thiết bị (Máy vi tính, Laptop, Máy in, Màn hình...). Tự động tạo mới nếu chưa có.' },
+          { col: 'Số Serial', rule: 'Số serial của thiết bị. Nếu đã tồn tại trong hệ thống hoặc lặp lại trong file, sẽ bị từ chối chống trùng.' },
+          { col: 'Tình trạng', rule: '0 hoặc Tốt: Tốt (GOOD). 1 hoặc Trung bình: Trung bình (FAIR). Hỏng: Hỏng (BROKEN).' },
+          { col: 'Trạng thái', rule: 'AVAILABLE (Sẵn sàng), IN_USE (Đang dùng), MAINTENANCE (Bảo trì), RETIRED (Thanh lý).' },
+          { col: 'Định dạng 21 Cột Khoa Phòng', rule: 'Xem mẫu tại Sheet 2 "Mẫu Khoa Phòng (21 Cột)". Tự động nhận diện cấu hình CPU, RAM, Ổ cứng và cụm Màn hình đi kèm.' },
+          { col: 'Chính sách Chống Trùng', rule: 'Thiết bị bị trùng Mã hoặc trùng Serial sẽ KHÔNG ĐƯỢC THÊM VÀO HỆ THỐNG và sẽ được xuất ra file Excel lỗi có ghi rõ lý do để đối soát.' },
         ]
   );
 
@@ -490,31 +614,21 @@ export async function importAssetsFromExcel(
     let assetTag = rawAssetTag ? normalizeAssetTag(rawAssetTag) : undefined;
     let finalFixedAssetName = fixedAssetName;
 
-    // Xử lý tự động chống trùng mã nhóm (VD: PC.KH2400)
+    // Trong mẫu khoa phòng: nếu cột mã thiết bị là mã nhóm (như PC.KH2400),
+    // và cột tên thiết bị là mã định danh riêng (như KB_PHONG01_01)
     if (!assetTag && rawName) {
       assetTag = normalizeAssetTag(rawName);
-    }
-    if (assetTag && seenTags.has(assetTag)) {
-      if (rawName && normalizeAssetTag(rawName) !== assetTag && !seenTags.has(normalizeAssetTag(rawName))) {
-        if (!finalFixedAssetName) finalFixedAssetName = assetTag;
+    } else if (assetTag && rawName && rawName.trim().length > 0 && assetTag.includes('.')) {
+      // Lưu mã nhóm vào fixedAssetName để đối soát
+      if (!finalFixedAssetName) finalFixedAssetName = assetTag;
+      // Nếu tên thiết bị là mã định danh riêng (không có dấu cách hoặc có dấu gạch dưới)
+      if (!rawName.includes(' ') || rawName.includes('_')) {
         assetTag = normalizeAssetTag(rawName);
-      } else {
-        if (!finalFixedAssetName) finalFixedAssetName = assetTag;
-        assetTag = `${assetTag}_${rowNumber}`;
       }
     }
 
     if (!assetTag) {
       assetTag = `TB-${Date.now().toString().slice(-4)}-${rowNumber}`;
-    }
-    seenTags.add(assetTag);
-
-    if (serialNumber) {
-      if (seenSerials.has(serialNumber)) {
-        errors.push({ rowNumber, field: 'serialNumber', message: `Số Serial '${serialNumber}' bị trùng trong file` });
-      } else {
-        seenSerials.add(serialNumber);
-      }
     }
 
     // Chuẩn hóa Tình trạng & Trạng thái hoạt động
@@ -568,15 +682,20 @@ export async function importAssetsFromExcel(
   const totalRows = rowsData.length;
   let successRows = 0;
   let failedRows = 0;
+  let duplicateRows = 0;
+  const failedItems: ImportFailedRowItem[] = [];
 
   // 2. Pre-fetch DB records to check duplicates and resolve references
   const existingTags = new Set(
-    (await prisma.asset.findMany({ select: { assetTag: true } })).map((a) => a.assetTag)
+    (await prisma.asset.findMany({ select: { assetTag: true } })).map((a) => a.assetTag.toUpperCase().trim())
   );
   const existingSerials = new Set(
     (await prisma.asset.findMany({ where: { serialNumber: { not: null } }, select: { serialNumber: true } }))
-      .map((a) => a.serialNumber as string)
+      .map((a) => (a.serialNumber as string).toUpperCase().trim())
   );
+
+  const fileSeenTags = new Set<string>();
+  const fileSeenSerials = new Set<string>();
 
   const usersByEmail = new Map<string, { id: string; email: string; fullName: string }>();
   (await prisma.user.findMany({ select: { id: true, email: true, fullName: true } })).forEach((u) => {
@@ -585,76 +704,114 @@ export async function importAssetsFromExcel(
 
   const categoriesMap = new Map<string, string>();
   (await prisma.assetCategory.findMany({ select: { id: true, name: true } })).forEach((c) =>
-    categoriesMap.set(c.name.toLowerCase(), c.id)
+    categoriesMap.set(c.name.toLowerCase().trim(), c.id)
   );
 
   const vendorsMap = new Map<string, string>();
   (await prisma.vendor.findMany({ select: { id: true, name: true } })).forEach((v) =>
-    vendorsMap.set(v.name.toLowerCase(), v.id)
+    vendorsMap.set(v.name.toLowerCase().trim(), v.id)
   );
 
   const locationsMap = new Map<string, string>();
   (await prisma.location.findMany({ select: { id: true, name: true } })).forEach((l) =>
-    locationsMap.set(l.name.toLowerCase(), l.id)
+    locationsMap.set(l.name.toLowerCase().trim(), l.id)
   );
 
-  // 3. Process each row
+  // 3. Process each row with strict duplicate checking
   const newCompanies = new Set<string>();
 
   for (const item of rowsData) {
     const { rowNumber, data } = item;
     const rowErrors: string[] = [];
 
-    // Tự động thêm hậu tố nếu tag đã có trong DB
-    let finalAssetTag = data.assetTag;
-    if (existingTags.has(finalAssetTag)) {
-      finalAssetTag = `${data.assetTag}_${Date.now().toString().slice(-4)}${rowNumber}`;
+    const normTag = data.assetTag.toUpperCase().trim();
+    const normSerial = data.serialNumber ? data.serialNumber.toUpperCase().trim() : undefined;
+
+    // A. KIỂM TRA TRÙNG LẶP (DUPLICATE CHECK)
+    const duplicateReasons: string[] = [];
+
+    if (existingTags.has(normTag)) {
+      duplicateReasons.push(`Trùng mã tài sản '${data.assetTag}' với thiết bị đã có sẵn trong hệ thống`);
+    } else if (fileSeenTags.has(normTag)) {
+      duplicateReasons.push(`Trùng mã tài sản '${data.assetTag}' với dòng khác trong file Excel`);
     }
 
-    let finalSerialNumber = data.serialNumber;
-    if (finalSerialNumber && existingSerials.has(finalSerialNumber)) {
-      finalSerialNumber = undefined; // Bỏ qua serial bị trùng để không chặn insert
+    if (normSerial) {
+      if (existingSerials.has(normSerial)) {
+        duplicateReasons.push(`Trùng số serial '${data.serialNumber}' với thiết bị đã có sẵn trong hệ thống`);
+      } else if (fileSeenSerials.has(normSerial)) {
+        duplicateReasons.push(`Trùng số serial '${data.serialNumber}' với dòng khác trong file Excel`);
+      }
     }
 
-    // Resolve or auto-create Category
-    let categoryId = categoriesMap.get(data.categoryName.toLowerCase());
+    // NẾU BỊ TRÙNG: KHÔNG THÊM VÀO DATABASE VÀ GHI NHẬN LỖI
+    if (duplicateReasons.length > 0) {
+      failedRows++;
+      duplicateRows++;
+      const reasonMsg = duplicateReasons.join('; ');
+      errors.push({ rowNumber, field: 'duplicate', message: reasonMsg });
+      failedItems.push({
+        rowNumber,
+        assetTag: data.assetTag || '—',
+        name: data.name || '—',
+        serialNumber: data.serialNumber || '—',
+        categoryName: data.categoryName || '—',
+        locationName: data.locationName || '—',
+        hardwareSpecs: [data.cpu, data.ram, data.storage].filter(Boolean).join(' | ') || '—',
+        reason: reasonMsg,
+      });
+
+      await prisma.importRecord.create({
+        data: {
+          batchId: batch.id,
+          rowNumber,
+          rawData: data as unknown as object,
+          status: 'FAILED',
+          errorMessage: reasonMsg,
+        },
+      });
+      continue; // BỎ QUA DÒNG NÀY, KHÔNG INSERT
+    }
+
+    // B. Resolve or auto-create Category
+    let categoryId = categoriesMap.get(data.categoryName.toLowerCase().trim());
     if (!categoryId && data.categoryName) {
       try {
         const newCat = await prisma.assetCategory.create({
-          data: { name: data.categoryName },
+          data: { name: data.categoryName.trim() },
         });
         categoryId = newCat.id;
-        categoriesMap.set(data.categoryName.toLowerCase(), newCat.id);
+        categoriesMap.set(data.categoryName.toLowerCase().trim(), newCat.id);
       } catch {
         rowErrors.push(`Không thể tạo danh mục '${data.categoryName}'.`);
       }
     }
 
     // Resolve or auto-create Vendor
-    let vendorId = data.vendorName ? vendorsMap.get(data.vendorName.toLowerCase()) : undefined;
+    let vendorId = data.vendorName ? vendorsMap.get(data.vendorName.toLowerCase().trim()) : undefined;
     if (!vendorId && data.vendorName) {
       try {
         const newVendor = await prisma.vendor.create({
-          data: { name: data.vendorName },
+          data: { name: data.vendorName.trim() },
         });
         vendorId = newVendor.id;
-        vendorsMap.set(data.vendorName.toLowerCase(), newVendor.id);
+        vendorsMap.set(data.vendorName.toLowerCase().trim(), newVendor.id);
       } catch {
-        // Ignored, optional field
+        // Optional
       }
     }
 
     // Resolve or auto-create Location
-    let locationId = data.locationName ? locationsMap.get(data.locationName.toLowerCase()) : undefined;
+    let locationId = data.locationName ? locationsMap.get(data.locationName.toLowerCase().trim()) : undefined;
     if (!locationId && data.locationName) {
       try {
         const newLoc = await prisma.location.create({
-          data: { name: data.locationName },
+          data: { name: data.locationName.trim() },
         });
         locationId = newLoc.id;
-        locationsMap.set(data.locationName.toLowerCase(), newLoc.id);
+        locationsMap.set(data.locationName.toLowerCase().trim(), newLoc.id);
       } catch {
-        // Ignored, optional field
+        // Optional
       }
     }
 
@@ -669,11 +826,21 @@ export async function importAssetsFromExcel(
       ? (data.condition?.toUpperCase() as AssetCondition)
       : 'NEW';
 
-    // If there are errors for this row, record failure
-    if (rowErrors.length > 0 || !finalAssetTag || !data.name || !categoryId) {
+    // C. Kiểm tra các lỗi dữ liệu cơ bản khác (thiếu tên, thiếu mã, thiếu danh mục)
+    if (rowErrors.length > 0 || !data.assetTag || !data.name || !categoryId) {
       failedRows++;
-      const combinedMsg = rowErrors.join(' ');
+      const combinedMsg = rowErrors.join(' ') || 'Thiếu thông tin bắt buộc (Mã tài sản, Tên thiết bị hoặc Danh mục)';
       errors.push({ rowNumber, field: 'row', message: combinedMsg });
+      failedItems.push({
+        rowNumber,
+        assetTag: data.assetTag || '—',
+        name: data.name || '—',
+        serialNumber: data.serialNumber || '—',
+        categoryName: data.categoryName || '—',
+        locationName: data.locationName || '—',
+        hardwareSpecs: [data.cpu, data.ram, data.storage].filter(Boolean).join(' | ') || '—',
+        reason: combinedMsg,
+      });
 
       await prisma.importRecord.create({
         data: {
@@ -700,17 +867,17 @@ export async function importAssetsFromExcel(
     if (data.oldAssetCode) specsData.oldAssetCode = data.oldAssetCode;
     if (data.reissueStatus) specsData.reissueStatus = data.reissueStatus;
 
-    // Insert Asset into Database
+    // D. Insert Asset vào CSDL
     try {
       const createdAsset = await prisma.asset.create({
         data: {
-          assetTag: finalAssetTag,
+          assetTag: data.assetTag,
           name: data.name,
           fixedAssetName: data.fixedAssetName || null,
           categoryId,
           brand: data.brand || null,
           model: data.model || null,
-          serialNumber: finalSerialNumber || null,
+          serialNumber: data.serialNumber || null,
           status: assetStatus,
           condition: assetCondition,
           purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : null,
@@ -770,9 +937,13 @@ export async function importAssetsFromExcel(
         }
       }
 
-      // Update duplicate sets
-      existingTags.add(finalAssetTag);
-      if (finalSerialNumber) existingSerials.add(finalSerialNumber);
+      // Đánh dấu thiết bị đã được thêm thành công vào Set chống trùng
+      existingTags.add(normTag);
+      fileSeenTags.add(normTag);
+      if (normSerial) {
+        existingSerials.add(normSerial);
+        fileSeenSerials.add(normSerial);
+      }
 
       successRows++;
 
@@ -789,6 +960,16 @@ export async function importAssetsFromExcel(
       failedRows++;
       const errMsg = err instanceof Error ? err.message : 'Database error';
       errors.push({ rowNumber, field: 'db', message: errMsg });
+      failedItems.push({
+        rowNumber,
+        assetTag: data.assetTag || '—',
+        name: data.name || '—',
+        serialNumber: data.serialNumber || '—',
+        categoryName: data.categoryName || '—',
+        locationName: data.locationName || '—',
+        hardwareSpecs: [data.cpu, data.ram, data.storage].filter(Boolean).join(' | ') || '—',
+        reason: `Lỗi CSDL: ${errMsg}`,
+      });
 
       await prisma.importRecord.create({
         data: {
@@ -807,7 +988,97 @@ export async function importAssetsFromExcel(
     await syncCorporateCompanies(newCompanies);
   }
 
-  // 4. Update Batch status
+  // ==================== 4. TẠO FILE EXCEL BÁO CÁO LỖI NẾU CÓ DÒNG LỖI / TRÙNG ====================
+  let errorReportBase64: string | undefined = undefined;
+  if (failedItems.length > 0) {
+    try {
+      const errWorkbook = new ExcelJS.Workbook();
+      errWorkbook.creator = 'Simply IT';
+      const errSheet = errWorkbook.addWorksheet('Thiet_Bi_Loi_Trung');
+
+      // Title Row
+      errSheet.mergeCells('A1:I1');
+      const titleCell = errSheet.getCell('A1');
+      titleCell.value = 'DANH SÁCH THIẾT BỊ KHÔNG THỂ NHẬP (TRÙNG DỮ LIỆU HOẶC LỖI THÔNG TIN)';
+      titleCell.font = { name: 'Segoe UI', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDC2626' } }; // Red 600
+      titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+      errSheet.getRow(1).height = 32;
+
+      // Header Row
+      errSheet.columns = [
+        { header: 'STT', key: 'stt', width: 8 },
+        { header: 'Dòng Excel', key: 'rowNumber', width: 12 },
+        { header: 'Mã Tài Sản', key: 'assetTag', width: 20 },
+        { header: 'Tên Thiết Bị', key: 'name', width: 28 },
+        { header: 'Số Serial', key: 'serialNumber', width: 20 },
+        { header: 'Khoa Phòng / Vị Trí', key: 'locationName', width: 22 },
+        { header: 'Danh Mục', key: 'categoryName', width: 20 },
+        { header: 'Cấu Hình Phần Cứng', key: 'hardwareSpecs', width: 26 },
+        { header: 'LÝ DO LỖI / NGUYÊN NHÂN TRÙNG LẶP', key: 'reason', width: 50 },
+      ];
+
+      const hRow = errSheet.getRow(2);
+      hRow.height = 28;
+      hRow.eachCell((cell, colNum) => {
+        const isReasonCol = colNum === 9;
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: isReasonCol ? 'FFB91C1C' : 'FF1E293B' },
+        };
+        cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+          right: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+        };
+      });
+
+      // Data Rows
+      failedItems.forEach((item, idx) => {
+        const row = errSheet.addRow({
+          stt: idx + 1,
+          rowNumber: item.rowNumber,
+          assetTag: item.assetTag || '—',
+          name: item.name || '—',
+          serialNumber: item.serialNumber || '—',
+          locationName: item.locationName || '—',
+          categoryName: item.categoryName || '—',
+          hardwareSpecs: item.hardwareSpecs || '—',
+          reason: item.reason,
+        });
+
+        row.height = 24;
+        row.alignment = { vertical: 'middle' };
+
+        // Border cho từng ô
+        row.eachCell((cell, colNum) => {
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+          };
+
+          // Ô Lý do lỗi: Nổi bật màu đỏ / cam
+          if (colNum === 9) {
+            cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF991B1B' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+          }
+        });
+      });
+
+      const errBuf = await errWorkbook.xlsx.writeBuffer();
+      errorReportBase64 = Buffer.from(errBuf).toString('base64');
+    } catch (errReportErr) {
+      console.error('Failed to generate error Excel report:', errReportErr);
+    }
+  }
+
+  // 5. Update Batch status
   const finalStatus: ImportBatchStatus =
     failedRows === 0 ? 'COMPLETED' : successRows === 0 ? 'FAILED' : 'COMPLETED';
 
@@ -821,7 +1092,7 @@ export async function importAssetsFromExcel(
     },
   });
 
-  // 5. Audit Log
+  // 6. Audit Log
   await createAuditLog({
     action: 'IMPORT',
     entityType: 'Asset',
@@ -832,6 +1103,7 @@ export async function importAssetsFromExcel(
       totalRows,
       successRows,
       failedRows,
+      duplicateRows,
     },
   });
 
@@ -842,7 +1114,10 @@ export async function importAssetsFromExcel(
     totalRows,
     successRows,
     failedRows,
+    duplicateRows,
     errors,
+    failedItems,
+    errorReportBase64,
     status: finalStatus,
   };
 }

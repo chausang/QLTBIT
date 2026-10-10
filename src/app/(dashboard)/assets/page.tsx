@@ -2008,6 +2008,61 @@ export default function AssetsPage() {
     }
   };
 
+  const handleBulkDeleteAssets = async () => {
+    if (selectedAssetIds.length === 0) {
+      alert(isEn ? 'Please select at least one asset to delete.' : 'Vui lòng chọn ít nhất một thiết bị để xóa.');
+      return;
+    }
+
+    const count = selectedAssetIds.length;
+    const confirmMsg = isEn
+      ? `Are you sure you want to move ${count} selected assets to the Recycle Bin?\n(Data can be restored anytime from the Recycle Bin within 30 days)`
+      : `Bạn có chắc chắn muốn xóa ${count} thiết bị đã chọn và chuyển vào Thùng rác?\n(Dữ liệu có thể hoàn tác ngay hoặc khôi phục trong Thùng rác trong 30 ngày).`;
+
+    if (!confirm(confirmMsg)) return;
+
+    // 0ms Optimistic removal
+    const idsToDelete = [...selectedAssetIds];
+    const deletedAssets = assets.filter((a) => idsToDelete.includes(a.id));
+    setAssets((prev) => prev.filter((a) => !idsToDelete.includes(a.id)));
+    setSelectedAssetIds([]);
+
+    try {
+      const res = await fetch('/api/assets/bulk-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: idsToDelete }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        invalidateClientCache('/api/assets');
+        invalidateClientCache('/api/trash');
+        triggerDataRefresh('assets');
+        triggerDataRefresh('trash');
+
+        // Show Instant Undo Toast
+        showTrashUndoToast({
+          name: `${count} thiết bị đã chọn`,
+          code: deletedAssets[0]?.assetTag ? `${deletedAssets[0].assetTag} (+${count - 1})` : undefined,
+          trashItemId: data.trashItemIds?.[0] || null,
+          onUndo: async () => {
+            await loadData(true);
+          },
+        });
+
+        await loadData(true);
+      } else {
+        alert(`❌ ${data.error || 'Xóa hàng loạt thiết bị thất bại'}`);
+        await loadData(true);
+      }
+    } catch (err) {
+      console.error('Lỗi khi xóa hàng loạt:', err);
+      alert('Lỗi kết nối khi xóa hàng loạt thiết bị');
+      await loadData(true);
+    }
+  };
+
   const openMaintenance = async (asset: any) => {
     setActiveAsset(asset);
     setMaintenanceForm({
@@ -2454,6 +2509,19 @@ export default function AssetsPage() {
               </span>
             )}
           </button>
+
+          {/* BULK DELETE ACTION BUTTON */}
+          {selectedAssetIds.length > 0 && (
+            <button
+              type="button"
+              onClick={handleBulkDeleteAssets}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer shrink-0 animate-in fade-in"
+              title={isEn ? `Delete ${selectedAssetIds.length} selected assets and move to Recycle Bin` : `Xóa ${selectedAssetIds.length} thiết bị đã chọn và chuyển vào Thùng rác`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isEn ? `Delete Selected (${selectedAssetIds.length})` : `Xóa (${selectedAssetIds.length}) Đã Chọn`}</span>
+            </button>
+          )}
 
           {/* BATCH PRINT QR */}
           <button
@@ -4546,6 +4614,63 @@ export default function AssetsPage() {
             >
               <Trash2 className="w-3.5 h-3.5 text-rose-500 group-hover:scale-110 transition-transform shrink-0" />
               <span className="font-medium">Xóa thiết bị này</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== 5. BOTTOM FLOATING BULK ACTIONS BAR ==================== */}
+      {selectedAssetIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 dark:bg-slate-950/95 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700/80 flex items-center gap-3 animate-in slide-in-from-bottom-4 duration-200">
+          <div className="flex items-center gap-2 pr-3 border-r border-slate-700/80 text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>
+              {isEn ? 'Selected:' : 'Đã chọn:'}{' '}
+              <span className="text-emerald-400 font-black">{selectedAssetIds.length}</span>{' '}
+              {isEn ? 'devices' : 'thiết bị'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Nút Bàn Giao Hàng Loạt */}
+            <button
+              type="button"
+              onClick={() => setIsBulkHandoverOpen(true)}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+            >
+              <PackageCheck className="w-3.5 h-3.5" />
+              <span>{isEn ? 'Handover' : 'Bàn Giao'}</span>
+            </button>
+
+            {/* Nút In Tem Hàng Loạt */}
+            <button
+              type="button"
+              onClick={() => setIsBatchPrintOpen(true)}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-700 cursor-pointer"
+            >
+              <Printer className="w-3.5 h-3.5 text-blue-400" />
+              <span>{isEn ? 'Print QR' : 'In Tem QR'}</span>
+            </button>
+
+            {/* Nút XÓA HÀNG LOẠT (CHÍNH) */}
+            <button
+              type="button"
+              onClick={handleBulkDeleteAssets}
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer"
+              title={isEn ? 'Move all selected devices to Recycle Bin' : 'Chuyển toàn bộ thiết bị đã chọn vào Thùng rác'}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isEn ? `Delete (${selectedAssetIds.length})` : `Xóa (${selectedAssetIds.length}) Thiết Bị`}</span>
+            </button>
+
+            {/* Nút Bỏ Chọn */}
+            <button
+              type="button"
+              onClick={() => setSelectedAssetIds([])}
+              className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-all cursor-pointer"
+              title={isEn ? 'Deselect all' : 'Bỏ chọn tất cả'}
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

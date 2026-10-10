@@ -8,8 +8,9 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 
 | Phiên Bản | Ngày Phát Hành | Tên Bản Phát Hành / Trọng Tâm | Trạng Thái |
 | :--- | :---: | :--- | :---: |
-| **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | **Mới nhất (Latest)** |
-| **v1.0.7** | **09/10/2026** | **Danh Mục Khoa Phòng Đa Khu Vực & Tối Ưu Biên Bản Thiết Bị** | **Ổn định (Stable)** |
+| **v1.0.9** | **10/10/2026** | **Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị** | **Mới nhất (Latest)** |
+| **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | **Ổn định (Stable)** |
+| **v1.0.7** | **09/10/2026** | **Danh Mục Khoa Phòng Đa Khu Vực & Tối Ưu Biên Bản Thiết Bị** | Ổn định |
 | **v1.0.6** | **03/10/2026** | **Sao Lưu & Phục Hồi Toàn Diện (Disaster Recovery & 1-Click Backup)** | Ổn định |
 | **v1.0.5** | **02/10/2026** | **Bộ Cài Đặt Tự Động 1-Click (Setup Wizard & PostgreSQL Portable)** | Ổn định |
 | **v1.0.4** | **20/09/2026** | **Quy Trình Phê Duyệt Thông Minh & Lịch Gia Hạn Chi Phí 12 Tháng** | Ổn định |
@@ -21,6 +22,38 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 ---
 
 ## 🚀 CHI TIẾT CÁC BẢN CẬP NHẬT
+
+---
+
+### 🌟 [v1.0.9] - 10/10/2026: Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị
+
+Bản cập nhật **v1.0.9** giải quyết triệt để các vấn đề cốt lõi trong quy trình Import dữ liệu tài sản từ Excel, kiểm soát toàn vẹn dữ liệu và nâng cao năng suất quản lý danh mục thiết bị:
+
+#### 1. 🚀 Tính Năng Mới & Nâng Cấp (Features & Improvements)
+- **Chuẩn Hóa Nút "Tải Mẫu Excel" Ra Định Dạng `.xlsx` Thật Sự**:
+  - Khắc phục triệt để tình trạng tải nhầm file JSON do thiếu API route.
+  - Xây dựng API route chuyên trách `/api/assets/export?template=true` sinh file Workbook `.xlsx` native chuẩn Microsoft Excel thông qua thư viện `exceljs`.
+  - Bộ mẫu chuẩn tích hợp đa sheet gồm:
+    - **Sheet 1: Mẫu Tiêu Chuẩn**: Cấu trúc cơ bản đầy đủ (Mã tài sản, Tên máy, Danh mục, CPU, RAM, Ổ cứng, Giá mua, Thời hạn bảo hành, Trạng thái...).
+    - **Sheet 2: Mẫu Khoa Phòng (21 Cột)**: Định dạng chuẩn y tế/bệnh viện (STT, QR, Tên khoa phòng, Tên loại thiết bị, Mã thiết bị, Tên thiết bị, Hãng sx, Năm sx, Model, Số seri, CPU, RAM, HDD, Màn hình [Hãng, Năm, Model, Seri], Tình trạng, Mã cũ, Tính cấp lại, Ghi chú) kèm dữ liệu thực tế mẫu.
+    - **Sheet 3: Hướng Dẫn & Quy Định Cột**: Hướng dẫn chi tiết kiểu dữ liệu từng cột, mẹo nhập nhanh và giải thích các mã trạng thái.
+- **Cơ Chế Chống Trùng Dữ Liệu Nghiêm Ngặt & Bảo Vệ CSDL**:
+  - Không tự ý sinh hậu tố giả để ép thêm dữ liệu trùng vào database.
+  - Kiểm tra đối chiếu kép: So khớp cả trong CSDL hiện tại và các dòng nội bộ trong cùng file Excel dựa trên:
+    - **Mã Thẻ Tài Sản (`assetTag`)**: Tuyệt đối không cho phép 2 thiết bị trùng mã tài sản.
+    - **Số Serial (`serialNumber`)**: Cảnh báo và ngăn chặn trùng lặp số seri phần cứng.
+  - **Tự động từ chối thêm các thiết bị trùng**, đảm bảo chỉ nhập các thiết bị hợp lệ mới vào hệ thống.
+- **Tự Động Xuất File Excel Báo Cáo Thiết Bị Lỗi & Trùng Lặp**:
+  - Khi phát hiện thiết bị bị trùng hoặc dữ liệu không hợp lệ, hệ thống tự động khởi tạo file Excel báo cáo lỗi mang tên `Danh_Sach_Thiet_Bi_Loi_Trung.xlsx`.
+  - File Excel báo cáo sao chép lại toàn bộ thông tin dòng bị từ chối và bổ sung cột **"LÝ DO LỖI / NGUYÊN NHÂN TRÙNG LẶP"** (được định dạng nổi bật với nền màu cam đỏ và chữ đỏ đậm).
+  - Giao diện modal hiển thị khung cảnh báo trực quan màu vàng cam, kèm nút bấm **"📥 Tải File Excel Thiết Bị Lỗi / Trùng ({N} thiết bị)"** cho phép người dùng tải ngay file về máy để chỉnh sửa và import lại dễ dàng.
+- **Xóa Hàng Loạt Thiết Bị (Bulk Delete) Cùng Lúc**:
+  - Bổ sung API `/api/assets/bulk-delete` hỗ trợ xử lý mảng `ids` trong một giao dịch an toàn (Prisma Transaction).
+  - Tích hợp sâu vào hệ thống **Thùng Rác (Trash)**: Tự động lưu lại snapshot phục hồi trước khi xóa, gỡ an toàn liên kết phân bổ (assignments), phiếu hỗ trợ (tickets) và tài liệu đính kèm.
+  - Giao diện người dùng cho phép chọn nhiều checkbox trên bảng danh sách:
+    - Bổ sung nút **"🗑️ Xóa ({N}) Đã Chọn"** trên thanh công cụ trên cùng.
+    - Bổ sung **Bottom Floating Action Bar** nổi cố định ở góc dưới màn hình khi có thiết bị được tick chọn, cung cấp các tác vụ nhanh: *Bàn giao hàng loạt*, *In tem QR hàng loạt*, *Xóa hàng loạt* và *Bỏ chọn tất cả*.
+    - Hỗ trợ cơ chế **Optimistic UI (0ms)** và hiển thị Toast thông báo hoàn tác (Undo) 1-Click để khôi phục nhanh nếu bấm nhầm.
 
 ---
 

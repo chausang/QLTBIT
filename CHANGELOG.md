@@ -1,5 +1,30 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.9] - 10/10/2026
+
+Bản cập nhật **v1.0.9** tối ưu hóa quy trình Import Excel, chống trùng lặp dữ liệu, xuất báo cáo lỗi chi tiết bằng Excel và bổ sung tính năng xóa hàng loạt nhiều thiết bị:
+- **Chuẩn Hóa Nút "Tải Mẫu Excel" Thành Định Dạng `.xlsx` Chuẩn**:
+  - Khắc phục lỗi tải file `.json` do thiếu API route tải mẫu trước đó.
+  - Xây dựng API route `/api/assets/export?template=true` sinh file Workbook `.xlsx` native chuẩn Microsoft Excel (qua `exceljs`) tích hợp 3 sheet:
+    - *Sheet 1: Mẫu Tiêu Chuẩn*: Cấu trúc cơ bản đầy đủ (Mã tài sản, Tên máy, Danh mục, CPU, RAM, Ổ cứng, Giá mua, Thời hạn bảo hành, Trạng thái...).
+    - *Sheet 2: Mẫu Khoa Phòng (21 Cột)*: Chuẩn y tế/bệnh viện (STT, QR, Khoa phòng, Mã thiết bị, Tên thiết bị, Hãng, Model, Serial, CPU, RAM, HDD, Màn hình, Tình trạng...).
+    - *Sheet 3: Hướng Dẫn & Quy Định*: Ghi chú rõ ràng định dạng dữ liệu từng cột.
+- **Cơ Chế Chống Trùng Dữ Liệu Nghiêm Ngặt & Bảo Vệ CSDL**:
+  - Ngăn chặn hoàn toàn việc ghi đè hoặc tự sinh hậu tố giả khi phát hiện trùng lặp.
+  - Kiểm tra đối chiếu kép: So khớp cả trong CSDL hiện tại và các dòng nội bộ trong cùng file Excel dựa trên `assetTag` (Mã tài sản) và `serialNumber` (Số serial).
+  - Tự động từ chối thêm các thiết bị trùng, bảo đảm tính toàn vẹn 100% của cơ sở dữ liệu.
+- **Tự Động Xuất File Excel Báo Cáo Thiết Bị Lỗi & Trùng Lặp**:
+  - Tự động sinh file Excel báo cáo lỗi `Danh_Sach_Thiet_Bi_Loi_Trung.xlsx` khi có thiết bị trùng hoặc không hợp lệ.
+  - File Excel báo cáo sao chép lại toàn bộ thông tin dòng bị từ chối và bổ sung cột **"LÝ DO LỖI / NGUYÊN NHÂN TRÙNG LẶP"** (định dạng nền màu cam đỏ, chữ đỏ đậm).
+  - Modal Import hiển thị hộp cảnh báo màu vàng cam và nút bấm **"📥 Tải File Excel Thiết Bị Lỗi / Trùng ({N} thiết bị)"** cho phép người dùng tải ngay file về máy.
+- **Xóa Hàng Loạt Thiết Bị (Bulk Delete) Cùng Lúc**:
+  - Bổ sung API `/api/assets/bulk-delete` hỗ trợ xử lý mảng `ids` trong Prisma Transaction.
+  - Tích hợp sâu vào hệ thống Thùng Rác (Trash): Tự động lưu snapshot phục hồi trước khi xóa, gỡ an toàn liên kết phân bổ (assignments), phiếu hỗ trợ (tickets) và tài liệu đính kèm.
+  - Bảng danh sách thiết bị bổ sung nút **"🗑️ Xóa ({N}) Đã Chọn"** trên thanh công cụ và **Bottom Floating Action Bar** cố định ở cạnh dưới màn hình khi có thiết bị được chọn.
+  - Áp dụng Optimistic UI (0ms) và hiển thị Toast thông báo hoàn tác (Undo) 1-Click để khôi phục nhanh.
+
+---
+
 ## [v1.0.8] - 10/10/2026
 
 Bản cập nhật **v1.0.8** tập trung nâng cấp trải nghiệm quản lý bảng thiết bị, hỗ trợ nhập khẩu dữ liệu thực tế từ file Excel khoa phòng/bệnh viện với cấu trúc 21 cột phức tạp, đồng thời trao quyền tùy biến hiển thị cột và sắp xếp trực quan linh hoạt cho người dùng:

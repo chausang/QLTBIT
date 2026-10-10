@@ -216,39 +216,53 @@ Nhấp đúp vào file **[`start_qltbit.bat`](file:///D:/QLTBIT/start_qltbit.bat
 
 ---
 
-### 3.4 Import Dữ Liệu Excel Chuẩn Khoa Phòng (21 Cột)
+### 3.4 Import Dữ Liệu Excel Chuẩn Khoa Phòng (21 Cột), Chống Trùng & Báo Cáo Lỗi
 Hệ thống tích hợp bộ phân tích và nhập file Excel thông minh, hỗ trợ trực tiếp các file kiểm kê định dạng thực tế từ bệnh viện, trung tâm y tế và doanh nghiệp lớn:
 
-1. **Vào chức năng Nhập Excel:**
+1. **Vào chức năng Nhập Excel & Tải Mẫu Chuẩn:**
    * Truy cập **Quản lý Tài sản** ➔ **Danh sách Thiết bị** (`/assets`).
-   * Trên thanh công cụ, nhấn nút **"Nhập Excel"** (icon 📥) hoặc vào menu **Nhập / Xuất dữ liệu** (`/import`).
-2. **Cấu trúc file Excel hỗ trợ (21 Cột):**
+   * Trên thanh công cụ, nhấn nút **"Nhập Excel"** (icon 📥) để mở hộp thoại nhập liệu.
+   * **Tải Mẫu Excel Chuẩn (`.xlsx`)**: Nhấn nút **"Tải Mẫu Excel"** màu xanh ngọc. Hệ thống sẽ lập tức tạo và tải xuống file Microsoft Excel `.xlsx` gồm **3 sheet**:
+     - *Sheet 1 (Mau_Tieu_Chuan)*: Cấu trúc cơ bản đầy đủ các trường (Mã tài sản, Tên máy tính, Danh mục, CPU, RAM, Ổ cứng, Giá mua, Ngày mua, Hạn bảo hành, Trạng thái...).
+     - *Sheet 2 (Mau_Khoa_Phong_21_Cot)*: Mẫu chuẩn 21 cột thực tế theo định dạng kiểm kê bệnh viện kèm dữ liệu mẫu sinh động.
+     - *Sheet 3 (Huong_Dan_Nhap)*: Bảng hướng dẫn chi tiết ý nghĩa từng cột, định dạng ngày tháng, và các mã trạng thái hợp lệ.
+2. **Cấu trúc file Excel hỗ trợ (21 Cột Chuẩn Khoa Phòng):**
    * Hỗ trợ file Excel có tiêu đề đa tầng (Header & Sub-header cho cụm Màn hình):
      - `STT`, `QR`, `Tên khoa phòng`, `Tên loại thiết bị`, `Mã thiết bị`, `Tên thiết bị`, `Tên hãng sản xuất`, `Năm sản xuất`, `Model`, `Số seri`.
      - Cấu hình máy tính: `CPU`, `RAM`, `HDD`.
      - Cụm Màn hình đi kèm: `Hãng sản xuất`, `Năm sản xuất`, `Model`, `Số seri`.
      - `Tình trạng`, `Mã thiết bị cũ`, `Tính cấp lại`, `Ghi chú`.
-3. **Cơ chế xử lý thông minh:**
-   * **Nhận diện linh hoạt:** Tự động phát hiện cột theo từ khóa tiếng Việt không dấu, có dấu, hoặc tiếng Anh (không bắt buộc vị trí cố định).
-   * **Phân rã linh kiện & màn hình:** Toàn bộ thông số CPU, RAM, Ổ cứng và Màn hình đi kèm được tự động trích xuất và lưu vào trường cấu hình `specs` của thiết bị.
-   * **Khử trùng lặp mã nhóm (Unique constraint):** Nếu file Excel dùng chung một mã nhóm cho nhiều máy (ví dụ: `PC.KH2400`), hệ thống tự động gán tên định danh duy nhất (ví dụ: `K_NHIEM_01_T7`) làm mã thẻ tài sản `assetTag`, bảo đảm không bao giờ bị nghẽn lỗi cơ sở dữ liệu.
-   * **Chuẩn hóa tình trạng:** Giá trị `0`, `0.0`, hoặc `Tốt` tự động chuyển đổi thành trạng thái chuẩn `IN_USE` (Đang sử dụng) và tình trạng `GOOD`.
+3. **Cơ chế Chống Trùng Lặp Dữ Liệu & Bảo Vệ CSDL:**
+   * **Kiểm tra đối chiếu nghiêm ngặt:** Hệ thống tự động so khớp `Mã tài sản (assetTag)` và `Số serial (serialNumber)` với toàn bộ cơ sở dữ liệu hiện có và các dòng nội bộ trong cùng file Excel.
+   * **Từ chối thêm thiết bị trùng:** Nếu phát hiện mã tài sản hoặc số serial đã tồn tại, hệ thống **tuyệt đối không thêm vào cơ sở dữ liệu** và không tự ý sinh mã hậu tố gây sai lệch tài sản.
+4. **Tự Động Xuất File Excel Báo Cáo Thiết Bị Lỗi & Trùng Lặp:**
+   * Khi phát hiện thiết bị bị trùng hoặc dữ liệu dòng không hợp lệ, hệ thống tự động sinh file Excel báo cáo lỗi `Danh_Sach_Thiet_Bi_Loi_Trung.xlsx`.
+   * File Excel này sao chép lại toàn bộ các dòng bị từ chối và bổ sung thêm cột **"LÝ DO LỖI / NGUYÊN NHÂN TRÙNG LẶP"** (được định dạng nổi bật màu đỏ cam).
+   * Cửa sổ thông báo của hệ thống sẽ hiện cảnh báo màu vàng cam và xuất hiện nút **"📥 Tải File Excel Thiết Bị Lỗi / Trùng ({N} thiết bị)"** để bạn tải ngay về máy, kiểm tra lý do và điều chỉnh lại dữ liệu.
 
 ---
 
-### 3.5 Tùy Biến Bảng: Ẩn/Hiện Cột & Sắp Xếp Trực Quan
-Để phục vụ nhu cầu xem dữ liệu khác nhau của Kế toán, Quản lý kho và Kỹ thuật viên CNTT:
+### 3.5 Tùy Biến Bảng & Chọn Xóa Nhiều Thiết Bị Cùng Lúc (Bulk Delete)
+Để phục vụ nhu cầu xem dữ liệu và thao tác vận hành hàng loạt của Kế toán, Quản lý kho và Kỹ thuật viên CNTT:
 
-1. **Tùy Chọn Ẩn / Hiện Cột (Column Visibility):**
+1. **Chọn Xóa Nhiều Thiết Bị Cùng Lúc (Bulk Delete):**
+   * Đánh dấu tick chọn vào ô checkbox ở đầu các dòng thiết bị bạn muốn xóa (hoặc tick ô checkbox ở hàng tiêu đề để chọn tất cả thiết bị trên trang).
+   * **Thao tác xóa linh hoạt:**
+     - Bấm nút **"🗑️ Xóa ({N}) Đã Chọn"** màu đỏ trên thanh công cụ phía trên.
+     - Hoặc bấm nút **"Xóa Đã Chọn"** trên thanh **Bottom Floating Action Bar** nổi cố định ở mép dưới màn hình.
+   * **Bảo vệ an toàn qua Thùng Rác (Trash):**
+     - Thiết bị bị xóa sẽ được đưa vào **Thùng Rác**, tự động gỡ an toàn các phân bổ, vé hỗ trợ và tài liệu liên quan mà không làm hỏng dữ liệu hệ thống.
+     - Ngay sau khi xóa, hệ thống hiển thị thông báo với nút **"Hoàn tác (Undo)"** 1-Click để bạn khôi phục lại ngay tức thì nếu bấm nhầm.
+2. **Tùy Chọn Ẩn / Hiện Cột (Column Visibility):**
    * Nhấn nút **"Tùy chọn cột"** (icon ⚙️) trên thanh công cụ bảng thiết bị.
    * Đánh dấu hoặc bỏ chọn các cột bạn muốn hiển thị: *Mã tài sản, Tên & Model, Khoa phòng / Vị trí, Danh mục, Nguyên giá, Bảo hành & Ngày mua, Trạng thái, Người giữ, Cấu hình (CPU/RAM/HDD), Màn hình đi kèm, Thao tác*.
    * **Ghi nhớ cấu hình:** Trình duyệt tự động lưu tùy chọn của bạn vào `localStorage`. Khi tải lại trang hoặc mở ở phiên làm việc sau, giao diện hiển thị vẫn được giữ nguyên vẹn.
-2. **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting):**
+3. **Sắp Xếp Dữ Liệu Khi Click Tiêu Đề Cột (Column Sorting):**
    * Click trực tiếp vào tiêu đề bất kỳ cột nào có biểu tượng mũi tên:
      - *Lần 1*: Sắp xếp tăng dần (A ➔ Z hoặc giá trị nhỏ ➔ lớn, hiển thị `↑`).
      - *Lần 2*: Sắp xếp giảm dần (Z ➔ A hoặc giá trị lớn ➔ nhỏ, hiển thị `↓`).
      - *Lần 3*: Hủy sắp xếp, quay về thứ tự mặc định ban đầu.
-3. **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh):**
+4. **Nút "Xóa Sắp Xếp & Làm Mới" (Clear Sort & Refresh):**
    * Khi đang sắp xếp, hệ thống hiển thị huy hiệu báo rõ cột đang áp dụng.
    * Nhấn nút **"Xóa sắp xếp & Làm mới"** (icon 🔄) để lập tức khôi phục trật tự bảng về mặc định và cập nhật lại dữ liệu mới nhất từ máy chủ.
 

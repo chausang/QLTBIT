@@ -64,10 +64,15 @@ export async function POST(request: NextRequest) {
       result = await importAssetsFromExcel(fileBuffer, fileName, currentUser.userId);
     }
 
+    const msg =
+      result.failedRows > 0
+        ? `Xử lý hoàn tất: Đã thêm ${result.successRows} thiết bị thành công; phát hiện ${result.failedRows} thiết bị bị trùng hoặc lỗi không được thêm vào hệ thống.`
+        : `Xử lý hoàn tất: Thêm thành công toàn bộ ${result.successRows} thiết bị vào hệ thống!`;
+
     return NextResponse.json({
       success: true,
       data: result,
-      message: `Xử lý hoàn tất: ${result.successRows}/${result.totalRows} dòng thành công, ${result.failedRows} dòng lỗi.`,
+      message: msg,
     });
   } catch (error) {
     console.error('Import error:', error);
