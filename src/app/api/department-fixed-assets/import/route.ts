@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
     let emptyConsecutiveRows = 0;
     const nowTimestamp = Date.now().toString().slice(-6);
     let isCNTTSection = false;
+    let currentSectionDept = '';
 
     for (let r = startRowIndex; r <= totalRows; r++) {
       const row = sheet.getRow(r);
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
       }
 
       const noteUser = parseText(row.getCell(17).value);       // Cột Q (17): Ghi chú (Người dùng: Bs Hồng, Bs Hưng, BGĐ...)
-      const department = parseText(row.getCell(18).value);     // Cột R (18): Khoa, phòng (BGĐ...)
+      let department = parseText(row.getCell(18).value);       // Cột R (18): Khoa, phòng (BGĐ...)
       let warehouse = parseText(row.getCell(19).value);        // Cột S (19): Kho (CNTT...)
       const assetGroup = parseText(row.getCell(20).value);     // Cột T (20): Nhóm (Máy móc, Thiết bị...)
 
@@ -177,54 +178,41 @@ export async function POST(request: NextRequest) {
       const notes1 = parseText(row.getCell(27).value);                        // Cột AA (27): GHI CHÚ 1
       const auditOrderIndex = parseNumber(row.getCell(28).value);             // Cột AB (28): STT KS
 
-      // Kiểm tra dòng tiêu đề phân nhóm (Ví dụ: "Tài sản thuộc CNTT quản lý", "Tài sản thuộc HCQT quản lý")
+      // 1. Kiểm tra dòng tiêu đề phân nhóm (Ví dụ: "Tài sản thuộc CNTT quản lý", "Tài sản thuộc HCQT quản lý")
+      // CÁC DÒNG NÀY CHỈ ĐỂ ĐÁNH DẤU TÀI SẢN TRONG FILE EXCEL, TUYỆT ĐỐI KHÔNG IMPORT VÀO DATABASE!
       const lowerName = name.toLowerCase();
-      const isSectionHeader = lowerName.includes('tài sản thuộc') || (!fixedAssetCode && !bookPrice && !actualPrice && !usedLocation);
+      const isMarkingSection = lowerName.includes('tài sản thuộc') || lowerName.includes('tài sản do');
 
-      if (isSectionHeader) {
-        if (name.toUpperCase().includes('CNTT')) {
+      if (isMarkingSection) {
+        if (name.toUpperCase().includes('CNTT') || warehouse.toUpperCase().includes('CNTT')) {
           isCNTTSection = true;
-          // Thêm dòng tiêu đề nhóm CNTT vào danh sách
-          recordsToCreate.push({
-            orderIndex: 0,
-            name,
-            fixedAssetCode: null,
-            managementCode: null,
-            usedLocation: usedLocation || null,
-            brand: null,
-            originCountry: null,
-            inUseDate: null,
-            bookQuantity: 0,
-            bookPrice: 0,
-            bookRemainingValue: 0,
-            actualQuantity: 0,
-            actualPrice: 0,
-            actualRemainingValue: 0,
-            diffQuantity: 0,
-            diffPrice: 0,
-            diffRemainingValue: 0,
-            noteUser: null,
-            department: department || null,
-            warehouse: 'CNTT',
-            assetGroup: null,
-            bookAmount: 0,
-            actualAmount: 0,
-            depreciationRate: null,
-            depreciationDate: null,
-            depreciationPeriod: null,
-            notes: null,
-            notes1: null,
-            auditOrderIndex: null,
-            isGroupHeader: true,
-          });
+          // Ghi nhận khoa phòng nếu có ghi ở dòng đánh dấu
+          if (department) {
+            currentSectionDept = department;
+          } else if (usedLocation) {
+            currentSectionDept = usedLocation;
+          }
         } else {
           // Bắt đầu nhóm của bộ phận khác (HCQT, TBYT, Dược...), kết thúc khối CNTT
           isCNTTSection = false;
         }
+        // Dòng này chỉ để đánh dấu, không import vào
         continue;
       }
 
-      // CHỈ IMPORT TÀI SẢN THUỘC CNTT QUẢN LÝ
+      // 2. YÊU CẦU: Các dòng chỉ có trường tên, không có số lượng thì KHÔNG IMPORT VÀO
+      const hasValidQuantity = (bookQuantity !== null && bookQuantity > 0) || (actualQuantity !== null && actualQuantity > 0);
+      if (!hasValidQuantity) {
+        // Bỏ qua hoàn toàn dòng không có số lượng
+        continue;
+      }
+
+      // 3. Bỏ qua các dòng tổng kết (Cộng, Tổng cộng...)
+      if (lowerName.startsWith('cộng') || lowerName.startsWith('tổng cộng') || lowerName === 'tổng') {
+        continue;
+      }
+
+      // 4. CHỈ IMPORT TÀI SẢN THUỘC CNTT QUẢN LÝ
       const isWarehouseCNTT = warehouse.toUpperCase().includes('CNTT');
       const isDeptCNTT = department.toUpperCase().includes('CNTT');
       const belongsToCNTT = isWarehouseCNTT || isDeptCNTT || (isCNTTSection && (!warehouse || isWarehouseCNTT));
@@ -236,6 +224,11 @@ export async function POST(request: NextRequest) {
 
       if (!warehouse) {
         warehouse = 'CNTT';
+      }
+
+      // Nếu dòng tài sản chưa có thông tin khoa phòng, kế thừa từ dòng đánh dấu trước đó
+      if (!department && currentSectionDept) {
+        department = currentSectionDept;
       }
 
       // Tự sinh STT tăng dần cho từng tài sản (KHÔNG dùng cột 1 STT từ Excel)

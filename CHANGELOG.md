@@ -10,6 +10,9 @@ Bản cập nhật **v1.0.15** xử lý dứt điểm lỗi xóa tài sản cố
   - Bổ sung tham số `{ all: true }` tại API `/api/department-fixed-assets/bulk-delete` hỗ trợ xóa sạch toàn bộ dữ liệu bảng chỉ với 1 thao tác.
   - Thêm nút **"Xóa tất cả"** trên thanh công cụ của bảng TSCĐ khoa phòng (kèm 2 bước xác nhận an toàn), giúp người dùng dọn sạch bảng nhanh chóng trước khi nạp file Excel mới.
   - Đồng bộ Checkbox: Cho phép tick chọn tất cả bao gồm cả các dòng tiêu đề phân nhóm (Group Header) để xóa sạch triệt để.
+- **Loại Bỏ Hoàn Toàn Các Dòng Đánh Dấu & Dòng Trống Số Lượng Khi Import Excel (`/api/department-fixed-assets/import`)**:
+  - Không import các dòng tiêu đề phân nhóm ("Tài sản thuộc CNTT quản lý", "Tài sản thuộc HCQT quản lý"...). Các dòng này chỉ đóng vai trò đánh dấu trong file Excel và nhận diện khoa phòng con, tuyệt đối không tạo bản ghi vào cơ sở dữ liệu.
+  - Áp dụng bộ lọc chặt chẽ: Các dòng chỉ có trường tên mà không có số lượng (`bookQuantity <= 0` và `actualQuantity <= 0`) hoặc các dòng tổng kết ("Cộng", "Tổng cộng") đều được tự động bỏ qua 100%.
 - **Chuẩn Hóa Tên Tab Điều Hướng**:
   - Đổi tên tab từ **"🏛️ TSCĐ Khoa Phòng (Theo Mẫu)"** thành **"🏛️ TSCĐ Khoa Phòng"** trên trang Kiểm kê tài sản (`/assets/audit`).
 

@@ -84,6 +84,7 @@
 - **Loại Bỏ Auto-Seed Ngầm**: Triệt để xóa cơ chế tự chèn `INITIAL_SAMPLE_DATA` khi `count === 0` trong GET API, đảm bảo khi người dùng xóa sạch dữ liệu thì F5 / refresh trang web không bị tự động xuất hiện lại các dòng mẫu cũ.
 - **Nút Xóa Tất Cả (Clear All)**: Hỗ trợ xóa sạch bảng với 1 chạm (kèm 2 bước xác nhận an toàn), hỗ trợ `all: true` trong bulk-delete API.
 - **Đồng Bộ Checkbox**: Cho phép chọn cả các dòng tiêu đề phân nhóm (Group Header) để xóa sạch toàn diện.
+- **Loại Bỏ Dòng Đánh Dấu & Dòng Trống Số Lượng Khi Import**: Các dòng chỉ để đánh dấu phân nhóm ("Tài sản thuộc CNTT quản lý...") và các dòng chỉ có tên mà không có số lượng (`bookQuantity <= 0` và `actualQuantity <= 0`) sẽ không bao giờ được import vào database.
 - **Đổi Tên Tab**: Chuẩn hóa tab từ "🏛️ TSCĐ Khoa Phòng (Theo Mẫu)" thành "🏛️ TSCĐ Khoa Phòng".
 
 ---
