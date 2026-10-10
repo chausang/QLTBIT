@@ -356,14 +356,14 @@ export async function GET(request: NextRequest) {
     if (all) {
       items = await prisma.departmentFixedAsset.findMany({
         where,
-        orderBy: [{ isGroupHeader: 'asc' }, { orderIndex: 'asc' }, { createdAt: 'asc' }],
+        orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
       });
     } else {
       items = await prisma.departmentFixedAsset.findMany({
         where,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        orderBy: [{ isGroupHeader: 'asc' }, { orderIndex: 'asc' }, { createdAt: 'asc' }],
+        orderBy: [{ orderIndex: 'asc' }, { createdAt: 'asc' }],
       });
     }
 

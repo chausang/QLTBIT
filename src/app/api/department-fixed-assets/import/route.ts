@@ -91,14 +91,10 @@ export async function POST(request: NextRequest) {
       const row = sheet.getRow(r);
       const valA = parseText(row.getCell(1).value);
       const valB = parseText(row.getCell(2).value);
-      // Nếu dòng chứa chữ 'A' và 'B' (dòng ký hiệu cột), thì dòng tiếp theo là dữ liệu
-      if (valA.toUpperCase() === 'A' && valB.toUpperCase() === 'B') {
+      const valC = parseText(row.getCell(3).value);
+      // Dòng ký hiệu cột: Cột B có chữ 'B' và Cột C có chữ 'C'
+      if ((valB.toUpperCase() === 'B' && valC.toUpperCase() === 'C') || (valA.toUpperCase() === 'A' && valB.toUpperCase() === 'B')) {
         startRowIndex = r + 1;
-        break;
-      }
-      // Hoặc nếu dòng có STT = '1' hoặc số 1
-      if (valA === '1' && valB.length > 2) {
-        startRowIndex = r;
         break;
       }
     }
@@ -110,13 +106,15 @@ export async function POST(request: NextRequest) {
     const maxOrder = await prisma.departmentFixedAsset.aggregate({
       _max: { orderIndex: true },
     });
-    let currentOrder = maxOrder._max.orderIndex || 0;
+    let currentOrder = clearExisting ? 0 : (maxOrder._max.orderIndex || 0);
 
     let emptyConsecutiveRows = 0;
     const nowTimestamp = Date.now().toString().slice(-6);
+    let isCNTTSection = false;
 
     for (let r = startRowIndex; r <= totalRows; r++) {
       const row = sheet.getRow(r);
+      // Cột B (cell 2): Tên tài sản cố định
       const name = parseText(row.getCell(2).value);
 
       // Nếu không có tên tài sản
@@ -132,28 +130,28 @@ export async function POST(request: NextRequest) {
       // Reset lại bộ đếm dòng trống khi gặp dòng có dữ liệu
       emptyConsecutiveRows = 0;
 
-      const orderIndexRaw = row.getCell(1).value;
-      const fixedAssetCode = parseText(row.getCell(3).value);
-      let managementCode = parseText(row.getCell(4).value);
-      const usedLocation = parseText(row.getCell(5).value);
-      const brand = parseText(row.getCell(6).value);
-      const originCountry = parseText(row.getCell(7).value);
-      const inUseDate = parseText(row.getCell(8).value);
+      // Không import Cột 1 (Cột A) làm STT.
+      // Các cột được map chuẩn xác 100% theo cấu trúc Hình 2:
+      const fixedAssetCode = parseText(row.getCell(3).value); // Cột C (3): Mã số TSC
+      const usedLocation = parseText(row.getCell(4).value);   // Cột D (4): Nơi sử dụng (BGĐ, v.v.)
+      const brand = parseText(row.getCell(5).value);          // Cột E (5): Hãng SX
+      const originCountry = parseText(row.getCell(6).value);  // Cột F (6): Nước SX
+      const inUseDate = parseText(row.getCell(7).value);      // Cột G (7): Năm đưa vào sử dụng
 
-      // Sổ sách
-      const bookQuantity = parseNumber(row.getCell(9).value);
-      const bookPrice = parseNumber(row.getCell(10).value);
-      const bookRemainingValue = parseNumber(row.getCell(11).value);
+      // Sổ sách (Cột H, I, J)
+      const bookQuantity = parseNumber(row.getCell(8).value);
+      const bookPrice = parseNumber(row.getCell(9).value);
+      const bookRemainingValue = parseNumber(row.getCell(10).value);
 
-      // Kiểm kê
-      const actualQuantity = parseNumber(row.getCell(12).value);
-      const actualPrice = parseNumber(row.getCell(13).value);
-      const actualRemainingValue = parseNumber(row.getCell(14).value);
+      // Kiểm kê (Cột K, L, M)
+      const actualQuantity = parseNumber(row.getCell(11).value);
+      const actualPrice = parseNumber(row.getCell(12).value);
+      const actualRemainingValue = parseNumber(row.getCell(13).value);
 
-      // Chênh lệch (tự động tính nếu trong file trống)
-      let diffQuantity = parseNumber(row.getCell(15).value);
-      let diffPrice = parseNumber(row.getCell(16).value);
-      let diffRemainingValue = parseNumber(row.getCell(17).value);
+      // Chênh lệch (Cột N, O, P)
+      let diffQuantity = parseNumber(row.getCell(14).value);
+      let diffPrice = parseNumber(row.getCell(15).value);
+      let diffRemainingValue = parseNumber(row.getCell(16).value);
 
       if (diffQuantity === 0 && (actualQuantity !== 0 || bookQuantity !== 0)) {
         diffQuantity = actualQuantity - bookQuantity;
@@ -165,37 +163,95 @@ export async function POST(request: NextRequest) {
         diffRemainingValue = actualRemainingValue - bookRemainingValue;
       }
 
-      const noteUser = parseText(row.getCell(18).value);
-      const department = parseText(row.getCell(19).value);
-      const warehouse = parseText(row.getCell(20).value);
-      const assetGroup = parseText(row.getCell(21).value);
+      const noteUser = parseText(row.getCell(17).value);       // Cột Q (17): Ghi chú (Người dùng: Bs Hồng, Bs Hưng, BGĐ...)
+      const department = parseText(row.getCell(18).value);     // Cột R (18): Khoa, phòng (BGĐ...)
+      let warehouse = parseText(row.getCell(19).value);        // Cột S (19): Kho (CNTT...)
+      const assetGroup = parseText(row.getCell(20).value);     // Cột T (20): Nhóm (Máy móc, Thiết bị...)
 
-      const bookAmount = parseNumber(row.getCell(22).value) || bookPrice;
-      const actualAmount = parseNumber(row.getCell(23).value) || actualPrice;
-      const depreciationRate = parseNumber(row.getCell(24).value);
-      const depreciationDate = parseText(row.getCell(25).value);
-      const depreciationPeriod = parseText(row.getCell(26).value);
-      const notes = parseText(row.getCell(27).value);
-      const notes1 = parseText(row.getCell(28).value);
-      const auditOrderIndex = parseNumber(row.getCell(29).value);
+      const bookAmount = parseNumber(row.getCell(21).value) || bookPrice;     // Cột U (21): Thành tiền sổ sách
+      const actualAmount = parseNumber(row.getCell(22).value) || actualPrice; // Cột V (22): Thành tiền kiểm kê
+      const depreciationRate = parseNumber(row.getCell(23).value);            // Cột W (23): Tỷ lệ % khấu hao
+      const depreciationDate = parseText(row.getCell(24).value);              // Cột X (24): Ngày tính khấu hao
+      const depreciationPeriod = parseText(row.getCell(25).value);            // Cột Y (25): Năm KH / Thời gian KH
+      const notes = parseText(row.getCell(26).value);                         // Cột Z (26): GHI CHÚ
+      const notes1 = parseText(row.getCell(27).value);                        // Cột AA (27): GHI CHÚ 1
+      const auditOrderIndex = parseNumber(row.getCell(28).value);             // Cột AB (28): STT KS
 
-      // Nhận diện dòng header nhóm (ví dụ: "Tài sản thuộc CNTT quản lý")
-      const isHeader = (!orderIndexRaw && !bookPrice && !actualPrice) || name.toLowerCase().includes('tài sản thuộc');
+      // Kiểm tra dòng tiêu đề phân nhóm (Ví dụ: "Tài sản thuộc CNTT quản lý", "Tài sản thuộc HCQT quản lý")
+      const lowerName = name.toLowerCase();
+      const isSectionHeader = lowerName.includes('tài sản thuộc') || (!fixedAssetCode && !bookPrice && !actualPrice && !usedLocation);
 
-      // Tự sinh mã quản lý nếu để trống và có tùy chọn
-      if (!isHeader && !managementCode && autoGenManagementCode) {
-        managementCode = `MQL-${nowTimestamp}${String(recordsToCreate.length + 1).padStart(4, '0')}`;
+      if (isSectionHeader) {
+        if (name.toUpperCase().includes('CNTT')) {
+          isCNTTSection = true;
+          // Thêm dòng tiêu đề nhóm CNTT vào danh sách
+          recordsToCreate.push({
+            orderIndex: 0,
+            name,
+            fixedAssetCode: null,
+            managementCode: null,
+            usedLocation: usedLocation || null,
+            brand: null,
+            originCountry: null,
+            inUseDate: null,
+            bookQuantity: 0,
+            bookPrice: 0,
+            bookRemainingValue: 0,
+            actualQuantity: 0,
+            actualPrice: 0,
+            actualRemainingValue: 0,
+            diffQuantity: 0,
+            diffPrice: 0,
+            diffRemainingValue: 0,
+            noteUser: null,
+            department: department || null,
+            warehouse: 'CNTT',
+            assetGroup: null,
+            bookAmount: 0,
+            actualAmount: 0,
+            depreciationRate: null,
+            depreciationDate: null,
+            depreciationPeriod: null,
+            notes: null,
+            notes1: null,
+            auditOrderIndex: null,
+            isGroupHeader: true,
+          });
+        } else {
+          // Bắt đầu nhóm của bộ phận khác (HCQT, TBYT, Dược...), kết thúc khối CNTT
+          isCNTTSection = false;
+        }
+        continue;
       }
 
-      if (!isHeader) {
-        currentOrder++;
+      // CHỈ IMPORT TÀI SẢN THUỘC CNTT QUẢN LÝ
+      const isWarehouseCNTT = warehouse.toUpperCase().includes('CNTT');
+      const isDeptCNTT = department.toUpperCase().includes('CNTT');
+      const belongsToCNTT = isWarehouseCNTT || isDeptCNTT || (isCNTTSection && (!warehouse || isWarehouseCNTT));
+
+      if (!belongsToCNTT) {
+        // Bỏ qua tài sản thuộc HCQT, TBYT hoặc các khoa phòng khác
+        continue;
+      }
+
+      if (!warehouse) {
+        warehouse = 'CNTT';
+      }
+
+      // Tự sinh STT tăng dần cho từng tài sản (KHÔNG dùng cột 1 STT từ Excel)
+      currentOrder++;
+
+      // Sinh mã quản lý nếu người dùng có tùy chọn
+      let managementCode: string | null = null;
+      if (autoGenManagementCode) {
+        managementCode = `MQL-${nowTimestamp}${String(currentOrder).padStart(4, '0')}`;
       }
 
       recordsToCreate.push({
-        orderIndex: isHeader ? null : currentOrder,
+        orderIndex: currentOrder,
         name,
         fixedAssetCode: fixedAssetCode || null,
-        managementCode: managementCode || null,
+        managementCode,
         usedLocation: usedLocation || null,
         brand: brand || null,
         originCountry: originCountry || null,
@@ -211,7 +267,7 @@ export async function POST(request: NextRequest) {
         diffRemainingValue,
         noteUser: noteUser || null,
         department: department || null,
-        warehouse: warehouse || null,
+        warehouse,
         assetGroup: assetGroup || null,
         bookAmount,
         actualAmount,
@@ -221,7 +277,7 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
         notes1: notes1 || null,
         auditOrderIndex: auditOrderIndex ? Math.round(auditOrderIndex) : null,
-        isGroupHeader: isHeader,
+        isGroupHeader: false,
       });
     }
 

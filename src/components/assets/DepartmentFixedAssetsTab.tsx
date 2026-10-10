@@ -483,10 +483,8 @@ export default function DepartmentFixedAssetsTab() {
                   />
                 </th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 w-12">{txt('STT', 'No.', 'STT')}</th>
-                <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[220px] text-left">{txt('Tên tài sản cố định', 'Asset Name', '資産名')}</th>
-                <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[120px]">{txt('Mã số TSC', 'Asset Code', '資産コード')}</th>
                 
-                {/* CỘT MÃ QUẢN LÝ (YÊU CẦU TRỌNG TÂM CỦA NGƯỜI DÙNG) */}
+                {/* CỘT MÃ QUẢN LÝ (NẰM TRƯỚC TÊN TSCĐ, SAU CỘT STT) */}
                 <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[130px] bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
                   <div className="flex items-center justify-center gap-1">
                     <Sparkles className="w-3 h-3 text-indigo-500" />
@@ -494,6 +492,8 @@ export default function DepartmentFixedAssetsTab() {
                   </div>
                 </th>
 
+                <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[220px] text-left">{txt('Tên tài sản cố định', 'Asset Name', '資産名')}</th>
+                <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[120px]">{txt('Mã số TSC', 'Asset Code', '資産コード')}</th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[90px]">{txt('Nơi sử dụng', 'Location', '使用場所')}</th>
                 
                 {/* 3 Cột màu vàng theo hình */}
@@ -613,17 +613,7 @@ export default function DepartmentFixedAssetsTab() {
                         {item.orderIndex || idx + 1}
                       </td>
 
-                      {/* Tên TSCĐ */}
-                      <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">
-                        {item.name}
-                      </td>
-
-                      {/* Mã số TSC */}
-                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-slate-800 font-mono text-slate-600 dark:text-slate-400">
-                        {item.fixedAssetCode || '—'}
-                      </td>
-
-                      {/* CỘT MÃ QUẢN LÝ (Có huy hiệu liên kết) */}
+                      {/* CỘT MÃ QUẢN LÝ (NẰM TRƯỚC TÊN TSCĐ, SAU CỘT STT) */}
                       <td className="px-2.5 py-2 text-center border-r border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
                         {item.managementCode ? (
                           <div className="flex flex-col items-center gap-1">
@@ -654,6 +644,16 @@ export default function DepartmentFixedAssetsTab() {
                         ) : (
                           <span className="text-slate-300 dark:text-slate-600 italic text-[11px]">—</span>
                         )}
+                      </td>
+
+                      {/* Tên TSCĐ */}
+                      <td className="px-3 py-2 border-r border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">
+                        {item.name}
+                      </td>
+
+                      {/* Mã số TSC */}
+                      <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-slate-800 font-mono text-slate-600 dark:text-slate-400">
+                        {item.fixedAssetCode || '—'}
                       </td>
 
                       {/* Nơi sử dụng */}
@@ -1101,6 +1101,11 @@ export default function DepartmentFixedAssetsTab() {
                   />
                   <span>⚠️ {txt('Xóa toàn bộ dữ liệu TSCĐ hiện tại trước khi nhập mới', 'Clear all existing records before import', '既存データを全削除して新規取込')}</span>
                 </label>
+
+                <div className="pt-1 border-t border-slate-200 dark:border-slate-700/60 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                  <span>{txt('Chỉ nhập tài sản thuộc CNTT quản lý; STT được hệ thống tự động đánh số tăng dần chuẩn xác.', 'Only imports IT-managed assets; numbering is automatically generated.', 'IT管理資産のみ取り込み、連番は自動付与されます。')}</span>
+                </div>
               </div>
 
               {/* Trạng thái đang import */}

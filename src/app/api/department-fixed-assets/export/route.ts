@@ -31,9 +31,9 @@ export async function GET(request: NextRequest) {
     // Header Hàng 1 (Row 3): Tiêu đề chính và các nhóm gộp
     const row3 = sheet.addRow([
       'STT',
+      'Mã quản lý',
       'Tên tài sản cố định',
       'Mã số TSC',
-      'Mã quản lý',
       'Nơi sử dụng',
       'Hãng SX',
       'Nước SX',
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 
     // Header Hàng 3 (Row 5): Đánh số ký hiệu cột (theo mẫu ảnh dòng 30)
     const row5 = sheet.addRow([
-      'A', 'B', 'C', 'MQL', 'D', 'SX1', 'SX2', 'NAM',
+      'A', 'MQL', 'B', 'C', 'D', 'SX1', 'SX2', 'NAM',
       '1', '2', '3',
       '4', '5', '6',
       '7', '8', '9',
@@ -75,9 +75,9 @@ export async function GET(request: NextRequest) {
 
     // Merge các ô theo chiều dọc cho các cột đơn
     sheet.mergeCells('A3:A4'); // STT
-    sheet.mergeCells('B3:B4'); // Tên tài sản cố định
-    sheet.mergeCells('C3:C4'); // Mã số TSC
-    sheet.mergeCells('D3:D4'); // Mã quản lý
+    sheet.mergeCells('B3:B4'); // Mã quản lý
+    sheet.mergeCells('C3:C4'); // Tên tài sản cố định
+    sheet.mergeCells('D3:D4'); // Mã số TSC
     sheet.mergeCells('E3:E4'); // Nơi sử dụng
     sheet.mergeCells('F3:F4'); // Hãng SX
     sheet.mergeCells('G3:G4'); // Nước SX
@@ -419,9 +419,9 @@ export async function GET(request: NextRequest) {
     records.forEach((rec, idx) => {
       const dataRow = sheet.addRow([
         rec.isGroupHeader ? '' : (rec.orderIndex || idx + 1),
+        rec.managementCode || '',
         rec.name || '',
         rec.fixedAssetCode || '',
-        rec.managementCode || '',
         rec.usedLocation || '',
         rec.brand || '',
         rec.originCountry || '',

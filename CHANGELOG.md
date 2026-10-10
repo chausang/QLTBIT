@@ -1,5 +1,22 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.14] - 10/10/2026
+
+Bản cập nhật **v1.0.14** hoàn thiện chính xác cấu trúc bảng và luồng nhập Excel tài sản cố định (TSCĐ) khoa phòng theo đúng biểu mẫu kế toán thực tế:
+- **Đổi Vị Trí Cột Mã Quản Lý Chuẩn Giao Diện (`DepartmentFixedAssetsTab` & Export)**:
+  - Di chuyển cột **"Mã quản lý"** ra nằm **sau cột STT và trước cột "Tên tài sản cố định"**, thuận tiện cho việc đối chiếu và quét kiểm kê.
+  - Đồng bộ thứ tự cột này trên cả giao diện bảng HTML và file xuất Excel (`/api/department-fixed-assets/export`).
+- **Chuẩn Hóa Ánh Xạ Cột Khi Import Excel Theo Mẫu Chuẩn (`/api/department-fixed-assets/import`)**:
+  - **Không import cột 1 làm STT**: Bỏ qua Cột 1 (Cột A) từ file Excel, hệ thống tự động sinh số thứ tự STT (`orderIndex`) tăng dần liên tục và chuẩn xác cho các tài sản được nạp.
+  - **Khắc phục lệch cột**: Ánh xạ chuẩn xác 100% từng cột theo đúng mẫu: Cột B (Tên TSCĐ), Cột C (Mã số TSC), Cột D (Nơi sử dụng), Cột E (Hãng SX), Cột F (Nước SX), Cột G (Năm đưa vào SD), Cột H-J (Sổ sách 1-2-3), Cột K-M (Kiểm kê 4-5-6), Cột N-P (Chênh lệch 7-8-9), Cột Q (Ghi chú/Người dùng), Cột R (Khoa phòng), Cột S (Kho), Cột T (Nhóm), Cột U-V (Thành tiền), Cột W-Y (Khấu hao), Cột Z-AB (Ghi chú, STT KS).
+  - Tự động sinh Mã Quản Lý (`MQL-xxxxxx`) cho từng thiết bị theo tùy chọn khi file Excel không có cột mã quản lý.
+- **Bộ Lọc Độc Quyền "Chỉ Import Tài Sản Thuộc CNTT Quản Lý"**:
+  - Tự động nhận diện phân nhóm trong file Excel: Khi duyệt qua dòng `Tài sản thuộc CNTT quản lý`, hệ thống thu thập toàn bộ thiết bị CNTT (Laptop, Desktop, Switch, Máy hủy giấy...).
+  - Tự động ngắt và bỏ qua 100% các dòng thuộc nhóm HCQT (`Tài sản thuộc HCQT quản lý`), TBYT, Dược hoặc các bộ phận khác không do CNTT phụ trách.
+  - Sắp xếp dòng tiêu đề nhóm CNTT (`orderIndex: 0`) luôn nằm ở đầu danh sách để giao diện hiển thị trực quan và ngăn nắp.
+
+---
+
 ## [v1.0.13] - 10/10/2026
 
 Bản cập nhật **v1.0.13** tập trung tối ưu hóa hiệu năng vượt trội cho Bảng Kiểm Kê TSCĐ Khoa Phòng, giải quyết dứt điểm hiện tượng treo giao diện và tải chậm khi nạp file Excel dung lượng lớn:

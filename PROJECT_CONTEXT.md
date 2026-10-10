@@ -75,6 +75,11 @@
 - **Phân Tích Số An Toàn (Formula-Safe Parsing)**: Hỗ trợ ô công thức Excel (`val.result`), định dạng tiền tệ Việt Nam và số thập phân tỷ lệ khấu hao.
 - **SQL Aggregate & Phân Trang Đầy Đủ**: Dùng `prisma.aggregate` cho thanh KPI tài chính, phân trang `TablePaginationBar` 15/25/50/100 bảo đảm giao diện không bị giật lag hay treo trình duyệt.
 
+### 🏛️ 2.11. Chuẩn Hóa Cột Mã Quản Lý & Lọc Nhập Dữ Liệu CNTT (v1.0.14)
+- **Vị Trí Cột Mã Quản Lý**: Cột Mã quản lý nằm sau cột STT và trước cột Tên tài sản cố định trên bảng giao diện và xuất Excel.
+- **Không Import Cột 1 STT**: Hệ thống tự động sinh số thứ tự STT tăng dần, không bị phụ thuộc vào số thứ tự trong file Excel.
+- **Chỉ Import Tài Sản Thuộc CNTT Quản Lý**: Nhận diện phân nhóm, chỉ thu thập tài sản thuộc nhóm "Tài sản thuộc CNTT quản lý" hoặc có Kho là CNTT; tự động loại bỏ các khối dữ liệu của HCQT, TBYT, Dược...
+
 ---
 
 
