@@ -24,6 +24,8 @@ export async function PUT(
     const {
       name,
       fixedAssetName,
+      managementCode,
+      autoGenManagementCode,
       sku,
       categoryId,
       minStock,
@@ -48,11 +50,20 @@ export async function PUT(
       }
     }
 
+    let finalManagementCode: string | null | undefined = undefined;
+    if (managementCode !== undefined) {
+      finalManagementCode = managementCode ? String(managementCode).trim() : null;
+    }
+    if (autoGenManagementCode && !finalManagementCode) {
+      finalManagementCode = `MQL-${Date.now().toString().slice(-6)}`;
+    }
+
     const updated = await prisma.sparePart.update({
       where: { id },
       data: {
         ...(name && { name }),
         ...(fixedAssetName !== undefined && { fixedAssetName: fixedAssetName?.trim() || null }),
+        ...(finalManagementCode !== undefined && { managementCode: finalManagementCode }),
         ...(sku !== undefined && { sku: sku || null }),
         ...(categoryId !== undefined && { categoryId: categoryId || null }),
         ...(minStock !== undefined && { minStock: Number(minStock) }),

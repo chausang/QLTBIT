@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { fixedAssetName: { contains: search, mode: 'insensitive' } },
+          { managementCode: { contains: search, mode: 'insensitive' } },
           { assetTag: { contains: search, mode: 'insensitive' } },
           { serialNumber: { contains: search, mode: 'insensitive' } },
           { brand: { contains: search, mode: 'insensitive' } },
@@ -270,6 +271,8 @@ export async function POST(request: NextRequest) {
     const {
       name,
       fixedAssetName,
+      managementCode,
+      autoGenManagementCode,
       categoryId,
       assetTag: customAssetTag,
       brand,
@@ -372,11 +375,17 @@ export async function POST(request: NextRequest) {
       parsedWarrantyExpiry = d;
     }
 
+    let finalManagementCode = managementCode ? String(managementCode).trim() : null;
+    if (autoGenManagementCode && !finalManagementCode) {
+      finalManagementCode = `MQL-${Date.now().toString().slice(-6)}`;
+    }
+
     const asset = await prisma.asset.create({
       data: {
         assetTag,
         name,
         fixedAssetName: fixedAssetName ? fixedAssetName.trim() : null,
+        managementCode: finalManagementCode || null,
         categoryId: finalCategoryId,
         brand: brand || null,
         model: model || null,

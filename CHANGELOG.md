@@ -1,5 +1,32 @@
 # 📋 NHẬT KÝ CẬP NHẬT PHIÊN BẢN (CHANGELOG)
 
+## [v1.0.12] - 10/10/2026
+
+Bản cập nhật **v1.0.12** triển khai toàn diện Bảng Kiểm Kê Tài Sản Cố Định (TSCĐ) Khoa Phòng chuẩn 29 cột theo mẫu kế toán thực tế, tích hợp cột Mã Quản Lý (MQL) tự sinh/nhập tay liên kết xuyên suốt giữa Thiết Bị, Phụ Tùng Linh Kiện và TSCĐ Kiểm Kê:
+- **Bảng Kiểm Kê Tài Sản Cố Định Khoa Phòng Chuẩn Kế Toán (`DepartmentFixedAsset`)**:
+  - Tích hợp tab **"🏛️ TSCĐ Khoa Phòng (Theo Mẫu)"** vào trang Kiểm kê tài sản (`/assets/audit`).
+  - Cấu trúc 29 cột chuẩn 100% theo mẫu kế toán bệnh viện/doanh nghiệp:
+    - *Thông tin cơ bản*: Cột A (STT), Cột B (Tên TSCĐ), Cột C (Mã số TSC), Cột MQL (Mã quản lý), Cột D (Nơi sử dụng), Hãng SX, Nước SX, Năm đưa vào SD.
+    - *Nhóm Theo sổ kế toán (1 - 2 - 3)*: Số lượng, Nguyên giá, Giá trị còn lại.
+    - *Nhóm Theo kiểm kê (4 - 5 - 6)*: Số lượng, Nguyên giá, Giá trị còn lại.
+    - *Nhóm Chênh lệch (7 - 8 - 9)*: Số lượng, Nguyên giá, Giá trị còn lại (tự động tính toán).
+    - *Thông tin quản lý & khấu hao*: Ghi chú người dùng (Cột E), Khoa phòng, Kho, Nhóm, Thành tiền sổ, Thành tiền tiêu hao, Tỷ lệ % khấu hao, Ngày tính KH, Năm KH (Cột Y), GHI CHÚ, GHI CHÚ 1, STT KS/KK.
+  - Hỗ trợ các dòng tiêu đề phân nhóm (Group Header) như "Tài sản thuộc CNTT quản lý", "Tài sản thuộc HCQT quản lý".
+  - Tự động seed bộ dữ liệu mẫu ban đầu đúng từng ô, từng số liệu như trong hình từ dòng 31 trở xuống.
+- **Trường Dữ Liệu Mã Quản Lý (Management Code - MQL) Xuyên Suốt**:
+  - **Mô hình CSDL & Index**: Bổ sung trường `managementCode` vào bảng `Asset`, `SparePart`, và `DepartmentFixedAsset`.
+  - **Tự sinh hoặc nhập tay linh hoạt**: Nút bấm `⚡ Tự sinh mã` tạo mã chuẩn tiền tố `MQL-xxxxxx` hoặc cho phép người dùng gõ tự do hoặc để trống.
+  - **Liên kết chéo thông minh**: Tự động tra cứu và hiển thị badge liên kết màu xanh lá (Thiết bị) và màu cam hổ phách (Linh kiện) ngay trên bảng kiểm kê khi phát hiện trùng khớp `managementCode`.
+- **Hệ Thống Import & Export Excel TSCĐ Khoa Phòng Chuyên Nghiệp**:
+  - **Export Excel (`/api/department-fixed-assets/export`)**: Xuất file `.xlsx` định dạng 2 tầng tiêu đề gộp ô (Merge cells), highlight màu vàng các cột Hãng SX, Nước SX, Năm SD, định dạng số tiền chuẩn kế toán `#,##0.00`. Hỗ trợ tải file mẫu trắng (`?template=true`).
+  - **Import Excel (`/api/department-fixed-assets/import`)**: Đọc file `.xlsx`/`.xls`, tự động nhận diện dòng tiêu đề bắt đầu từ dòng 28-30, import linh hoạt toàn bộ 29 cột, có tùy chọn xóa dữ liệu cũ và tự sinh mã quản lý cho các dòng còn trống.
+- **Đồng Bộ Cột Mã Quản Lý Trên Toàn Hệ Thống**:
+  - **Danh sách Thiết bị (`/assets`)**: Bổ sung cột "MÃ QUẢN LÝ", tùy chọn hiển thị trong menu Ẩn/Hiện cột, tìm kiếm theo mã quản lý, và ô nhập trong Modal Thêm Mới (`AssetAddModal`) / Chỉnh Sửa (`AssetEditModal`).
+  - **Phụ tùng & Linh kiện (`/spare-parts`)**: Bổ sung cột "MÃ QUẢN LÝ", tìm kiếm theo mã quản lý, và ô nhập trong Modal Thêm Mới / Chỉnh Sửa / Drawer Chi Tiết.
+  - **Kiểm kê đối soát (`/assets/audit`)**: Hiển thị badge Mã Quản Lý (MQL) trong bảng đối soát hiện trường và danh sách chi tiết.
+
+---
+
 ## [v1.0.11] - 10/10/2026
 
 Bản cập nhật **v1.0.11** hoàn thiện tính linh hoạt trong quy trình điều chuyển thiết bị và loại bỏ các thông tin mặc định cá nhân hóa trong các mẫu biên bản:

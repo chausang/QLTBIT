@@ -220,12 +220,18 @@ export async function PUT(
       }
     }
 
+    let finalManagementCode = body.managementCode !== undefined ? (body.managementCode ? String(body.managementCode).trim() : null) : undefined;
+    if (body.autoGenManagementCode && !finalManagementCode) {
+      finalManagementCode = `MQL-${Date.now().toString().slice(-6)}`;
+    }
+
     const updated = await prisma.asset.update({
       where: { id },
       data: {
         assetTag: newAssetTag ? normalizeAssetTag(newAssetTag) : existing.assetTag,
         name: body.name !== undefined ? body.name : existing.name,
         fixedAssetName: body.fixedAssetName !== undefined ? (body.fixedAssetName ? body.fixedAssetName.trim() : null) : existing.fixedAssetName,
+        managementCode: finalManagementCode !== undefined ? finalManagementCode : existing.managementCode,
         categoryId: body.categoryId ? body.categoryId : existing.categoryId,
         brand: body.brand !== undefined ? (body.brand || null) : existing.brand,
         model: body.model !== undefined ? (body.model || null) : existing.model,

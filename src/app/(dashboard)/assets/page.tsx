@@ -138,6 +138,7 @@ interface CustomFieldDef {
 export type AssetColumnKey =
   | 'stt'
   | 'assetTag'
+  | 'managementCode'
   | 'name'
   | 'companyLocation'
   | 'category'
@@ -152,6 +153,7 @@ export type AssetColumnKey =
 const DEFAULT_VISIBLE_COLUMNS: Record<AssetColumnKey, boolean> = {
   stt: true,
   assetTag: true,
+  managementCode: true,
   name: true,
   companyLocation: true,
   category: true,
@@ -167,6 +169,7 @@ const DEFAULT_VISIBLE_COLUMNS: Record<AssetColumnKey, boolean> = {
 const COLUMN_DEFINITIONS: { key: AssetColumnKey; labelVi: string; labelEn: string; sortKey?: string }[] = [
   { key: 'stt', labelVi: 'Số thứ tự (STT)', labelEn: 'No. (STT)' },
   { key: 'assetTag', labelVi: 'Mã tài sản', labelEn: 'Asset Tag', sortKey: 'assetTag' },
+  { key: 'managementCode', labelVi: 'Mã quản lý (MQL)', labelEn: 'Management Code', sortKey: 'managementCode' },
   { key: 'name', labelVi: 'Tên thiết bị & Model', labelEn: 'Device & Model', sortKey: 'name' },
   { key: 'companyLocation', labelVi: 'Công ty & Vị trí', labelEn: 'Company & Location', sortKey: 'location' },
   { key: 'category', labelVi: 'Danh mục', labelEn: 'Category', sortKey: 'category' },
@@ -3156,6 +3159,24 @@ export default function AssetsPage() {
                       </th>
                     )}
 
+                    {/* CỘT 1B: MÃ QUẢN LÝ (MQL) */}
+                    {visibleColumns.managementCode && (
+                      <th
+                        onClick={() => handleSort('managementCode')}
+                        className="py-2 px-2 min-w-[105px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Management Code' : 'Click vào tên cột để sắp xếp theo Mã quản lý'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'MGT CODE' : 'MÃ QUẢN LÝ'}</span>
+                          {sortField === 'managementCode' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-emerald-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-emerald-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
                     {/* CỘT 2: TÊN THIẾT BỊ & MODEL */}
                     {visibleColumns.name && (
                       <th
@@ -3301,6 +3322,11 @@ export default function AssetsPage() {
                             style={{ left: visibleColumns.stt ? 44 : 0 }}
                             className="py-2.5 px-2 sticky bg-white dark:bg-slate-900"
                           >
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
+                          </td>
+                        )}
+                        {visibleColumns.managementCode && (
+                          <td className="py-2.5 px-2">
                             <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
                           </td>
                         )}
@@ -3474,6 +3500,19 @@ export default function AssetsPage() {
                                   )}
                                 </div>
                               </div>
+                            </td>
+                          )}
+
+                          {/* CỘT MÃ QUẢN LÝ */}
+                          {visibleColumns.managementCode && (
+                            <td className="py-2 px-2">
+                              {asset.managementCode ? (
+                                <span className="font-mono font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 rounded text-[10.5px] inline-block whitespace-nowrap" title="Mã quản lý liên kết">
+                                  {asset.managementCode}
+                                </span>
+                              ) : (
+                                <span className="text-slate-300 dark:text-slate-600 text-[10px] italic">—</span>
+                              )}
                             </td>
                           )}
 

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { fixedAssetName: { contains: search, mode: 'insensitive' } },
+        { managementCode: { contains: search, mode: 'insensitive' } },
         { sku: { contains: search, mode: 'insensitive' } },
       ];
     }
@@ -91,6 +92,8 @@ export async function POST(request: NextRequest) {
     const {
       name,
       fixedAssetName,
+      managementCode,
+      autoGenManagementCode,
       sku,
       categoryId,
       quantity,
@@ -116,10 +119,16 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    let finalManagementCode = managementCode ? String(managementCode).trim() : null;
+    if (autoGenManagementCode && !finalManagementCode) {
+      finalManagementCode = `MQL-${Date.now().toString().slice(-6)}`;
+    }
+
     const part = await prisma.sparePart.create({
       data: {
         name,
         fixedAssetName: fixedAssetName?.trim() || null,
+        managementCode: finalManagementCode || null,
         sku: sku?.trim() || null,
         categoryId: categoryId || null,
         quantity: Number(quantity) || 0,

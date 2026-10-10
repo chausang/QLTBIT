@@ -47,6 +47,7 @@ import {
 interface SparePart {
   id: string;
   name: string;
+  managementCode?: string;
   fixedAssetName?: string;
   sku?: string;
   categoryId?: string;
@@ -113,6 +114,7 @@ export default function SparePartsPage() {
 
   // Create form state
   const [formName, setFormName] = useState('');
+  const [formManagementCode, setFormManagementCode] = useState('');
   const [formFixedAssetName, setFormFixedAssetName] = useState('');
   const [formSku, setFormSku] = useState('');
   const [formCategory, setFormCategory] = useState('');
@@ -129,6 +131,7 @@ export default function SparePartsPage() {
   // Edit form state
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
+  const [editManagementCode, setEditManagementCode] = useState('');
   const [editFixedAssetName, setEditFixedAssetName] = useState('');
   const [editSku, setEditSku] = useState('');
   const [editCategory, setEditCategory] = useState('');
@@ -299,6 +302,7 @@ export default function SparePartsPage() {
   const openEditModal = (part: SparePart) => {
     setEditId(part.id);
     setEditName(part.name);
+    setEditManagementCode(part.managementCode || '');
     setEditFixedAssetName(part.fixedAssetName || '');
     setEditSku(part.sku || '');
     setEditCategory(part.categoryId || '');
@@ -323,6 +327,7 @@ export default function SparePartsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: editName.trim(),
+          managementCode: editManagementCode.trim() || undefined,
           fixedAssetName: editFixedAssetName.trim() || undefined,
           sku: editSku.trim() || undefined,
           categoryId: editCategory || undefined,
@@ -381,6 +386,7 @@ export default function SparePartsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name: formName.trim(),
+          managementCode: formManagementCode.trim() || undefined,
           fixedAssetName: formFixedAssetName.trim() || undefined,
           sku: formSku.trim() || undefined,
           categoryId: formCategory || undefined,
@@ -530,6 +536,7 @@ export default function SparePartsPage() {
 
   const resetCreateForm = () => {
     setFormName('');
+    setFormManagementCode('');
     setFormFixedAssetName('');
     setFormSku('');
     setFormCategory('');
@@ -548,6 +555,7 @@ export default function SparePartsPage() {
     const q = search.toLowerCase();
     return (
       p.name.toLowerCase().includes(q) ||
+      (p.managementCode && p.managementCode.toLowerCase().includes(q)) ||
       (p.fixedAssetName && p.fixedAssetName.toLowerCase().includes(q)) ||
       (p.sku && p.sku.toLowerCase().includes(q)) ||
       (p.category && p.category.name.toLowerCase().includes(q)) ||
@@ -731,6 +739,7 @@ export default function SparePartsPage() {
             onDataRefresh={loadParts}
             excelColumns={[
               { header: 'Tên Phụ Tùng / Linh Kiện', key: 'name', width: 35 },
+              { header: 'Mã Quản Lý (MQL)', key: 'managementCode', width: 20 },
               { header: 'Tên TSCĐ (Kiểm kê)', key: 'fixedAssetName', width: 30 },
               { header: 'Mã SKU', key: 'sku', width: 20 },
               { header: 'Mã Part Number', key: 'partNumber', width: 20 },
@@ -862,6 +871,7 @@ export default function SparePartsPage() {
               <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <tr>
                   <th className="px-5 py-3.5">{isEn ? 'Part / Component Name' : 'Tên Phụ Tùng / Linh Kiện'}</th>
+                  <th className="px-4 py-3.5">{isEn ? 'Mgt Code' : 'Mã Quản Lý'}</th>
                   <th className="px-4 py-3.5">{isEn ? 'SKU Code' : 'Mã SKU'}</th>
                   <th className="px-4 py-3.5">{isEn ? 'Category' : 'Danh mục'}</th>
                   <th className="px-4 py-3.5">{isEn ? 'Stock Qty' : 'Số lượng Tồn'}</th>
@@ -894,6 +904,15 @@ export default function SparePartsPage() {
                           </div>
                         )}
                         {p.notes && <p className="text-[10px] text-slate-400 font-normal mt-0.5 line-clamp-1">{p.notes}</p>}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {p.managementCode ? (
+                          <span className="font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded text-[10.5px] inline-block whitespace-nowrap" title="Mã quản lý liên kết">
+                            {p.managementCode}
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 text-[10px] italic">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3.5 font-mono text-indigo-700 font-semibold">{p.sku || '—'}</td>
                       <td className="px-4 py-3.5 text-slate-600">{p.category?.name || '—'}</td>
@@ -1806,24 +1825,54 @@ export default function SparePartsPage() {
                 />
               </div>
 
-              {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
-              <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
-                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
-                    <span>{isEn ? 'Fixed Asset Name (Accounting/Audit)' : 'Tên tài sản cố định (TSCĐ)'}</span>
-                  </label>
-                  <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold border border-blue-200">
-                    {isEn ? 'Linked to Asset Audit • Optional' : 'Liên kết kiểm kê tài sản • Không bắt buộc'}
-                  </span>
+              {/* Mã quản lý & Tên tài sản cố định */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Mã quản lý */}
+                <div className="p-3 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                      <span>{isEn ? 'Mgt Code' : 'Mã quản lý (MQL)'}</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gen = `MQL-${Date.now().toString().slice(-6)}`;
+                        setEditManagementCode(gen);
+                      }}
+                      className="text-[10px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded font-bold border border-emerald-300 cursor-pointer"
+                    >
+                      ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="MQL-xxxxxx"
+                    value={editManagementCode}
+                    onChange={(e) => setEditManagementCode(e.target.value.toUpperCase())}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-mono font-bold text-emerald-900 text-xs uppercase"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder={isEn ? "e.g. RAM DDR4 16GB (Leave blank if not applicable)..." : "VD: Thanh RAM DDR4 16GB Kingston (Để trống nếu không có)..."}
-                  value={editFixedAssetName}
-                  onChange={(e) => setEditFixedAssetName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
-                />
+
+                {/* Tên tài sản cố định */}
+                <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                      <span>{isEn ? 'Fixed Asset Name' : 'Tên TSCĐ'}</span>
+                    </label>
+                    <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold border border-blue-200">
+                      {isEn ? 'Optional' : 'Tùy chọn'}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
+                    value={editFixedAssetName}
+                    onChange={(e) => setEditFixedAssetName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -1994,24 +2043,54 @@ export default function SparePartsPage() {
                 />
               </div>
 
-              {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
-              <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
-                <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                  <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                    <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
-                    <span>{isEn ? 'Fixed Asset Name (Accounting/Audit)' : 'Tên tài sản cố định (TSCĐ)'}</span>
-                  </label>
-                  <span className="text-[10px] text-blue-700 bg-blue-100 px-2 py-0.5 rounded font-semibold border border-blue-200">
-                    {isEn ? 'Linked to Asset Audit • Optional' : 'Liên kết kiểm kê tài sản • Không bắt buộc'}
-                  </span>
+              {/* Mã quản lý & Tên tài sản cố định */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Mã quản lý */}
+                <div className="p-3 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                      <span>{isEn ? 'Mgt Code' : 'Mã quản lý (MQL)'}</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const gen = `MQL-${Date.now().toString().slice(-6)}`;
+                        setFormManagementCode(gen);
+                      }}
+                      className="text-[10px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded font-bold border border-emerald-300 cursor-pointer"
+                    >
+                      ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="MQL-xxxxxx"
+                    value={formManagementCode}
+                    onChange={(e) => setFormManagementCode(e.target.value.toUpperCase())}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-mono font-bold text-emerald-900 text-xs uppercase"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder={isEn ? "e.g. RAM DDR4 16GB (Leave blank if not applicable)..." : "VD: Thanh RAM DDR4 16GB Kingston (Để trống nếu không có)..."}
-                  value={formFixedAssetName}
-                  onChange={(e) => setFormFixedAssetName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
-                />
+
+                {/* Tên tài sản cố định */}
+                <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
+                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
+                      <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                      <span>{isEn ? 'Fixed Asset Name' : 'Tên TSCĐ'}</span>
+                    </label>
+                    <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold border border-blue-200">
+                      {isEn ? 'Optional' : 'Tùy chọn'}
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
+                    value={formFixedAssetName}
+                    onChange={(e) => setFormFixedAssetName(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">

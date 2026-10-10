@@ -64,6 +64,7 @@ import {
 import ExcelJS from 'exceljs';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import QRCode from 'qrcode';
+import DepartmentFixedAssetsTab from '@/components/assets/DepartmentFixedAssetsTab';
 
 // ==================== INTERFACES & TYPES ====================
 export type AuditStatus = 'PENDING' | 'MATCHED' | 'MISMATCH_LOCATION_USER' | 'DAMAGED_OR_LOST';
@@ -71,6 +72,7 @@ export type AuditStatus = 'PENDING' | 'MATCHED' | 'MISMATCH_LOCATION_USER' | 'DA
 export interface AuditItem {
   id: string; // matches asset id
   assetTag: string;
+  managementCode?: string;
   name: string;
   fixedAssetName?: string;
   brand?: string;
@@ -173,8 +175,8 @@ export default function AssetsAuditPage() {
   }, []);
 
 
-  // Navigation mode: 'CAMPAIGNS' (list of all audit batches) vs 'WORKSPACE' (active scanning workspace)
-  const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'WORKSPACE'>('CAMPAIGNS');
+  // Navigation mode: 'CAMPAIGNS' vs 'WORKSPACE' vs 'DEPARTMENT_FIXED_ASSETS'
+  const [viewMode, setViewMode] = useState<'CAMPAIGNS' | 'WORKSPACE' | 'DEPARTMENT_FIXED_ASSETS'>('CAMPAIGNS');
 
   // Master Data
   const [assets, setAssets] = useState<any[]>([]);
@@ -1816,6 +1818,18 @@ export default function AssetsAuditPage() {
                   <span>{isEn ? 'Active Workspace' : 'Không Gian Quét Đang Mở'}</span>
                 </button>
               )}
+              <button
+                type="button"
+                onClick={() => setViewMode('DEPARTMENT_FIXED_ASSETS')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                  viewMode === 'DEPARTMENT_FIXED_ASSETS'
+                    ? 'bg-white text-blue-700 font-extrabold shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Building className="w-3.5 h-3.5 text-blue-600" />
+                <span>{isEn ? 'Dept Fixed Assets' : '🏛️ TSCĐ Khoa Phòng (Theo Mẫu)'}</span>
+              </button>
             </div>
           </div>
           <p className="text-xs text-slate-500">
@@ -3268,9 +3282,16 @@ export default function AssetsAuditPage() {
                                 {item.name}
                               </span>
                             </div>
-                            <span className="text-[10px] text-slate-400 block mt-0.5">
-                              Serial: {item.serialNumber || '—'}
-                            </span>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              {item.managementCode && (
+                                <span className="text-[9.5px] font-mono font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1 rounded" title="Mã quản lý liên kết thiết bị / TSCĐ">
+                                  MQL: {item.managementCode}
+                                </span>
+                              )}
+                              <span className="text-[10px] text-slate-400">
+                                Serial: {item.serialNumber || '—'}
+                              </span>
+                            </div>
                           </td>
 
                           {/* Condition Photo Column (NEW FEATURE) */}
@@ -3815,6 +3836,13 @@ export default function AssetsAuditPage() {
       )}
     </div>
   )}
+
+      {/* ========================================================================= */}
+      {/* ==================== VIEW 3: TSCĐ KHOA PHÒNG THEO MẪU =================== */}
+      {/* ========================================================================= */}
+      {viewMode === 'DEPARTMENT_FIXED_ASSETS' && (
+        <DepartmentFixedAssetsTab isEn={isEn} />
+      )}
 
       {/* ========================================================================= */}
       {/* ==================== MODAL: CREATE NEW AUDIT CAMPAIGN =================== */}

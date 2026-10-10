@@ -8,7 +8,8 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 
 | Phiên Bản | Ngày Phát Hành | Tên Bản Phát Hành / Trọng Tâm | Trạng Thái |
 | :--- | :---: | :--- | :---: |
-| **v1.0.11** | **10/10/2026** | **Linh Hoạt Người Nhận Bàn Giao Thiết Bị & Chuẩn Hóa Bên Giao Biên Bản** | **Mới nhất (Latest)** |
+| **v1.0.12** | **10/10/2026** | **Bảng Kiểm Kê TSCĐ Khoa Phòng Chuẩn Kế Toán (29 Cột) & Mã Quản Lý Xuyên Suốt** | **Mới nhất (Latest)** |
+| **v1.0.11** | **10/10/2026** | **Linh Hoạt Người Nhận Bàn Giao Thiết Bị & Chuẩn Hóa Bên Giao Biên Bản** | **Ổn định (Stable)** |
 | **v1.0.10** | **10/10/2026** | **Bộ Lọc Thiết Bị Theo Khoa Phòng & Cột Số Thứ Tự (STT) Bảng Dữ Liệu** | **Ổn định (Stable)** |
 | **v1.0.9** | **10/10/2026** | **Tải Mẫu Excel .XLSX, Chống Trùng & Báo Cáo Lỗi Excel, Xóa Hàng Loạt Thiết Bị** | **Ổn định (Stable)** |
 | **v1.0.8** | **10/10/2026** | **Import Excel Khoa Phòng 21 Cột, Tùy Chọn Cột & Sắp Xếp Trực Quan** | Ổn định |
@@ -24,6 +25,27 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 ---
 
 ## 🚀 CHI TIẾT CÁC BẢN CẬP NHẬT
+
+---
+
+### 🌟 [v1.0.12] - 10/10/2026: Bảng Kiểm Kê TSCĐ Khoa Phòng Chuẩn Kế Toán (29 Cột) & Mã Quản Lý Xuyên Suốt
+
+Bản cập nhật **v1.0.12** triển khai toàn diện Bảng Kiểm Kê Tài Sản Cố Định (TSCĐ) Khoa Phòng chuẩn 29 cột theo mẫu kế toán thực tế, tích hợp cột Mã Quản Lý (MQL) tự sinh/nhập tay liên kết xuyên suốt giữa Thiết Bị, Phụ Tùng Linh Kiện và TSCĐ Kiểm Kê:
+
+#### 1. 🚀 Tính Năng Mới & Nâng Cấp (Features & Improvements)
+- **Bảng Kiểm Kê Tài Sản Cố Định Khoa Phòng Chuẩn Kế Toán (`DepartmentFixedAsset`)**:
+  - Tích hợp tab **"🏛️ TSCĐ Khoa Phòng (Theo Mẫu)"** vào trang Kiểm kê tài sản (`/assets/audit`).
+  - Cấu trúc 29 cột chuẩn 100% theo mẫu kế toán bệnh viện/doanh nghiệp: STT, Tên TSCĐ, Mã số TSC, Mã quản lý (MQL), Nơi sử dụng, Hãng SX, Nước SX, Năm SD, Sổ sách (1-2-3), Kiểm kê (4-5-6), Chênh lệch (7-8-9), Ghi chú, Khoa phòng, Kho, Nhóm, Thành tiền sổ, Thành tiền tiêu hao, % Khấu hao, Ngày tính KH, Năm KH, Ghi chú 1, STT KK.
+  - Tự động seed dữ liệu mẫu đầy đủ từ dòng 31 trở xuống.
+- **Mã Quản Lý (MQL) Tự Sinh & Liên Kết Xuyên Suốt**:
+  - Bổ sung `managementCode` vào CSDL `Asset`, `SparePart`, `DepartmentFixedAsset`.
+  - Nút bấm `⚡ Tự sinh mã` tiền tố `MQL-xxxxxx` hoặc cho phép gõ tự do/để trống.
+  - Tự động phát hiện và liên kết hiển thị badge Thiết bị và Linh kiện khi trùng mã quản lý.
+- **Import & Export Excel TSCĐ Khoa Phòng**:
+  - Xuất Excel 2 tầng tiêu đề gộp ô, format tiền tệ và màu sắc chuẩn theo mẫu ảnh.
+  - Nhập Excel 29 cột tự động đọc tiêu đề từ dòng 28-30.
+- **Đồng Bộ Trên Toàn Bộ Giao Diện**:
+  - Bổ sung cột Mã quản lý vào Danh sách thiết bị (`/assets`) và Phụ tùng linh kiện (`/spare-parts`).
 
 ---
 

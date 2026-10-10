@@ -438,6 +438,7 @@ model Asset {
   assetTag         String         @unique @map("asset_tag")
   name             String
   fixedAssetName   String?        @map("fixed_asset_name")
+  managementCode   String?        @map("management_code")
   categoryId       String         @map("category_id") @db.Uuid
   brand            String?
   model            String?
@@ -478,6 +479,7 @@ model Asset {
   @@index([vendorId])
   @@index([locationId])
   @@index([companyName])
+  @@index([managementCode])
   @@index([createdAt])
   @@index([status, createdAt])
   @@map("assets")
@@ -1280,6 +1282,7 @@ model SparePart {
   id              String   @id @default(uuid()) @db.Uuid
   name            String                        // "RAM DDR4 16GB"
   fixedAssetName  String?  @map("fixed_asset_name") // Tên tài sản cố định (liên kết với kiểm kê tài sản)
+  managementCode  String?  @map("management_code") // Mã quản lý (liên kết kiểm kê và thiết bị/linh kiện)
   sku             String?  @unique              // Mã kho nội bộ
   categoryId      String?  @map("category_id") @db.Uuid
   category        AssetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1304,6 +1307,7 @@ model SparePart {
   transactions    SparePartTransaction[]
 
   @@index([quantity])
+  @@index([managementCode])
   @@map("spare_parts")
 }
 
@@ -1466,5 +1470,59 @@ model HealthAlertPolicy {
   updatedAt            DateTime @updatedAt @map("updated_at")
 
   @@map("health_alert_policies")
+}
+
+// ==================== DEPARTMENT FIXED ASSETS (KIỂM KÊ TSCĐ KHOA PHÒNG) ====================
+
+model DepartmentFixedAsset {
+  id                   String    @id @default(uuid()) @db.Uuid
+  orderIndex           Int?      @map("order_index") // STT (Cột A)
+  name                 String    @map("name") // Tên tài sản cố định (Cột B)
+  fixedAssetCode       String?   @map("fixed_asset_code") // Mã số TSC (Cột C)
+  managementCode       String?   @map("management_code") // Mã quản lý (tự sinh hoặc nhập, liên kết với Asset và SparePart)
+  usedLocation         String?   @map("used_location") // Nơi sử dụng (Cột D - BGĐ, v.v.)
+  brand                String?   @map("brand") // Hãng SX (Cột E)
+  originCountry        String?   @map("origin_country") // Nước SX (Cột F)
+  inUseDate            String?   @map("in_use_date") // Năm đưa vào sử dụng (Cột G - 2015, 07/06/2024...)
+  
+  // Theo sổ kế toán
+  bookQuantity         Float?    @default(1) @map("book_quantity") // Số lượng (Cột H - 1)
+  bookPrice            Float?    @default(0) @map("book_price") // Nguyên giá (Cột I - 2)
+  bookRemainingValue   Float?    @default(0) @map("book_remaining_value") // Giá trị còn lại (Cột J - 3)
+  
+  // Theo kiểm kê
+  actualQuantity       Float?    @default(1) @map("actual_quantity") // Số lượng (Cột K - 4)
+  actualPrice          Float?    @default(0) @map("actual_price") // Nguyên giá (Cột L - 5)
+  actualRemainingValue Float?    @default(0) @map("actual_remaining_value") // Giá trị còn lại (Cột M - 6)
+  
+  // Chênh lệch
+  diffQuantity         Float?    @default(0) @map("diff_quantity") // Số lượng (Cột N - 7)
+  diffPrice            Float?    @default(0) @map("diff_price") // Nguyên giá (Cột O - 8)
+  diffRemainingValue   Float?    @default(0) @map("diff_remaining_value") // Giá trị còn lại (Cột P - 9)
+  
+  noteUser             String?   @map("note_user") // Ghi chú (Cột Q - Bs Hồng, Bs Hùng, BGĐ...)
+  department           String?   @map("department") // Khoa, phòng (Cột R - BGĐ...)
+  warehouse            String?   @map("warehouse") // Kho (Cột S - CNTT, HCQT...)
+  assetGroup           String?   @map("asset_group") // Nhóm (Cột T - Máy móc, Thiết bị...)
+  bookAmount           Float?    @map("book_amount") // Thành tiền sổ sách (Cột U)
+  actualAmount         Float?    @map("actual_amount") // Thành tiền kiểm kê (Cột V)
+  depreciationRate     Float?    @map("depreciation_rate") // Tỷ lệ % khấu hao (Cột W - 14.29, 10...)
+  depreciationDate     String?   @map("depreciation_date") // Ngày tính khấu hao (Cột X)
+  depreciationPeriod   String?   @map("depreciation_period") // Năm / Thời gian KH (Cột Y - 0, 4, 5, 10...)
+  notes                String?   @map("notes") // GHI CHÚ (Cột Z)
+  notes1               String?   @map("notes_1") // GHI CHÚ 1 (Cột AA)
+  auditOrderIndex      Int?      @map("audit_order_index") // STT KK (Cột AB - 2, 3, 4, 5...)
+  
+  isGroupHeader        Boolean   @default(false) @map("is_group_header") // Dòng tiêu đề nhóm (ví dụ: Tài sản thuộc CNTT quản lý)
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@index([fixedAssetCode])
+  @@index([managementCode])
+  @@index([department])
+  @@index([warehouse])
+  @@index([assetGroup])
+  @@map("department_fixed_assets")
 }
 
