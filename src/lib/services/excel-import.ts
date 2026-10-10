@@ -43,6 +43,17 @@ export interface AssetRowData {
   companyName?: string;
   userEmail?: string;
   notes?: string;
+  // Các trường cấu hình chi tiết & thiết bị khoa phòng
+  cpu?: string;
+  ram?: string;
+  storage?: string;
+  monitorBrand?: string;
+  monitorYear?: string;
+  monitorModel?: string;
+  monitorSerial?: string;
+  manufacturingYear?: string;
+  oldAssetCode?: string;
+  reissueStatus?: string;
 }
 
 export interface LicenseRowData {
@@ -431,24 +442,22 @@ export async function importAssetsFromExcel(
   const seenTags = new Set<string>();
   const seenSerials = new Set<string>();
 
-  const headerRow = worksheet.getRow(1);
-  const colMap = detectAssetColumns(headerRow);
+  const { colMap, dataStartRowIndex } = detectAssetColumns(worksheet);
 
-  // 1. Parse Excel rows (skip header row 1)
+  // 1. Parse Excel rows (skip header & sub-header rows)
   worksheet.eachRow((row, rowNumber) => {
-    if (rowNumber === 1) return; // Skip header
+    if (rowNumber < dataStartRowIndex) return;
 
-    const rawAssetTag = getCellValue(row.getCell(colMap.assetTag))?.trim();
-    const assetTag = rawAssetTag ? normalizeAssetTag(rawAssetTag) : undefined;
-    const name = getCellValue(row.getCell(colMap.name))?.trim();
+    const rawAssetTag = colMap.assetTag ? getCellValue(row.getCell(colMap.assetTag))?.trim() : undefined;
+    const rawName = colMap.name ? getCellValue(row.getCell(colMap.name))?.trim() : undefined;
     const fixedAssetName = colMap.fixedAssetName ? getCellValue(row.getCell(colMap.fixedAssetName))?.trim() : undefined;
-    const categoryName = getCellValue(row.getCell(colMap.categoryName))?.trim();
+    const categoryName = colMap.categoryName ? getCellValue(row.getCell(colMap.categoryName))?.trim() : undefined;
     const brand = colMap.brand ? getCellValue(row.getCell(colMap.brand))?.trim() : undefined;
     const model = colMap.model ? getCellValue(row.getCell(colMap.model))?.trim() : undefined;
     const rawSerial = colMap.serialNumber ? getCellValue(row.getCell(colMap.serialNumber))?.trim() : undefined;
-    const serialNumber = rawSerial ? rawSerial.toUpperCase() : undefined;
-    const status = colMap.status ? getCellValue(row.getCell(colMap.status))?.trim() : undefined;
-    const condition = colMap.condition ? getCellValue(row.getCell(colMap.condition))?.trim() : undefined;
+    const serialNumber = (rawSerial && rawSerial !== '0' && rawSerial !== '-') ? rawSerial.toUpperCase() : undefined;
+    const rawStatus = colMap.status ? getCellValue(row.getCell(colMap.status))?.trim() : undefined;
+    const rawCondition = colMap.condition ? getCellValue(row.getCell(colMap.condition))?.trim() : undefined;
     const purchaseDate = colMap.purchaseDate ? parseDateValue(row.getCell(colMap.purchaseDate).value) : undefined;
     const purchasePrice = colMap.purchasePrice ? parseNumberValue(row.getCell(colMap.purchasePrice).value) : undefined;
     const warrantyExpiry = colMap.warrantyExpiry ? parseDateValue(row.getCell(colMap.warrantyExpiry).value) : undefined;
@@ -460,25 +469,45 @@ export async function importAssetsFromExcel(
     const userEmail = rawUserEmail ? normalizeEmail(rawUserEmail) : undefined;
     const notes = colMap.notes ? getCellValue(row.getCell(colMap.notes))?.trim() : undefined;
 
-    // Skip totally empty rows
-    if (!assetTag && !name && !categoryName) return;
+    // Chi tiết phần cứng & thông số đặc thù
+    const cpu = colMap.cpu ? getCellValue(row.getCell(colMap.cpu))?.trim() : undefined;
+    const ram = colMap.ram ? getCellValue(row.getCell(colMap.ram))?.trim() : undefined;
+    const storage = colMap.storage ? getCellValue(row.getCell(colMap.storage))?.trim() : undefined;
+    const monitorBrand = colMap.monitorBrand ? getCellValue(row.getCell(colMap.monitorBrand))?.trim() : undefined;
+    const monitorYear = colMap.monitorYear ? getCellValue(row.getCell(colMap.monitorYear))?.trim() : undefined;
+    const monitorModel = colMap.monitorModel ? getCellValue(row.getCell(colMap.monitorModel))?.trim() : undefined;
+    const monitorSerial = colMap.monitorSerial ? getCellValue(row.getCell(colMap.monitorSerial))?.trim() : undefined;
+    const manufacturingYear = colMap.manufacturingYear ? getCellValue(row.getCell(colMap.manufacturingYear))?.trim() : undefined;
+    const oldAssetCode = colMap.oldAssetCode ? getCellValue(row.getCell(colMap.oldAssetCode))?.trim() : undefined;
+    const reissueStatus = colMap.reissueStatus ? getCellValue(row.getCell(colMap.reissueStatus))?.trim() : undefined;
 
-    // In-file validation
+    // Bỏ qua dòng trống hoàn toàn
+    if (!rawAssetTag && !rawName && !categoryName && !locationName && !model && !serialNumber) return;
+
+    const resolvedCategory = categoryName || 'Máy tính';
+    const resolvedName = rawName || (rawAssetTag ? `Thiết bị ${rawAssetTag}` : `Thiết bị dòng ${rowNumber}`);
+
+    let assetTag = rawAssetTag ? normalizeAssetTag(rawAssetTag) : undefined;
+    let finalFixedAssetName = fixedAssetName;
+
+    // Xử lý tự động chống trùng mã nhóm (VD: PC.KH2400)
+    if (!assetTag && rawName) {
+      assetTag = normalizeAssetTag(rawName);
+    }
+    if (assetTag && seenTags.has(assetTag)) {
+      if (rawName && normalizeAssetTag(rawName) !== assetTag && !seenTags.has(normalizeAssetTag(rawName))) {
+        if (!finalFixedAssetName) finalFixedAssetName = assetTag;
+        assetTag = normalizeAssetTag(rawName);
+      } else {
+        if (!finalFixedAssetName) finalFixedAssetName = assetTag;
+        assetTag = `${assetTag}_${rowNumber}`;
+      }
+    }
+
     if (!assetTag) {
-      errors.push({ rowNumber, field: 'assetTag', message: 'Mã tài sản không được để trống' });
-    } else if (seenTags.has(assetTag)) {
-      errors.push({ rowNumber, field: 'assetTag', message: `Mã tài sản '${assetTag}' bị trùng trong file` });
-    } else {
-      seenTags.add(assetTag);
+      assetTag = `TB-${Date.now().toString().slice(-4)}-${rowNumber}`;
     }
-
-    if (!name) {
-      errors.push({ rowNumber, field: 'name', message: 'Tên thiết bị không được để trống' });
-    }
-
-    if (!categoryName) {
-      errors.push({ rowNumber, field: 'categoryName', message: 'Danh mục không được để trống' });
-    }
+    seenTags.add(assetTag);
 
     if (serialNumber) {
       if (seenSerials.has(serialNumber)) {
@@ -488,18 +517,32 @@ export async function importAssetsFromExcel(
       }
     }
 
+    // Chuẩn hóa Tình trạng & Trạng thái hoạt động
+    let conditionVal = rawCondition;
+    let statusVal = rawStatus;
+    if (rawCondition === '0' || rawCondition === '0.0' || rawCondition?.toLowerCase() === 'tốt') {
+      conditionVal = 'GOOD';
+      if (!statusVal) statusVal = 'IN_USE';
+    } else if (rawCondition === '1' || rawCondition?.toLowerCase() === 'trung bình') {
+      conditionVal = 'FAIR';
+      if (!statusVal) statusVal = 'IN_USE';
+    } else if (rawCondition?.toLowerCase() === 'hỏng' || rawCondition?.toLowerCase() === 'hư') {
+      conditionVal = 'BROKEN';
+      if (!statusVal) statusVal = 'MAINTENANCE';
+    }
+
     rowsData.push({
       rowNumber,
       data: {
         assetTag: assetTag || '',
-        name: name || '',
-        fixedAssetName,
-        categoryName: categoryName || '',
+        name: resolvedName,
+        fixedAssetName: finalFixedAssetName,
+        categoryName: resolvedCategory,
         brand,
         model,
         serialNumber,
-        status,
-        condition,
+        status: statusVal,
+        condition: conditionVal,
         purchaseDate,
         purchasePrice,
         warrantyExpiry,
@@ -508,6 +551,16 @@ export async function importAssetsFromExcel(
         companyName,
         userEmail,
         notes,
+        cpu,
+        ram,
+        storage,
+        monitorBrand,
+        monitorYear,
+        monitorModel,
+        monitorSerial,
+        manufacturingYear,
+        oldAssetCode,
+        reissueStatus,
       },
     });
   });
@@ -552,12 +605,15 @@ export async function importAssetsFromExcel(
     const { rowNumber, data } = item;
     const rowErrors: string[] = [];
 
-    // Check DB duplicates
-    if (existingTags.has(data.assetTag)) {
-      rowErrors.push(`Mã tài sản '${data.assetTag}' đã tồn tại trong hệ thống.`);
+    // Tự động thêm hậu tố nếu tag đã có trong DB
+    let finalAssetTag = data.assetTag;
+    if (existingTags.has(finalAssetTag)) {
+      finalAssetTag = `${data.assetTag}_${Date.now().toString().slice(-4)}${rowNumber}`;
     }
-    if (data.serialNumber && existingSerials.has(data.serialNumber)) {
-      rowErrors.push(`Số Serial '${data.serialNumber}' đã tồn tại trong hệ thống.`);
+
+    let finalSerialNumber = data.serialNumber;
+    if (finalSerialNumber && existingSerials.has(finalSerialNumber)) {
+      finalSerialNumber = undefined; // Bỏ qua serial bị trùng để không chặn insert
     }
 
     // Resolve or auto-create Category
@@ -614,7 +670,7 @@ export async function importAssetsFromExcel(
       : 'NEW';
 
     // If there are errors for this row, record failure
-    if (rowErrors.length > 0 || !data.assetTag || !data.name || !categoryId) {
+    if (rowErrors.length > 0 || !finalAssetTag || !data.name || !categoryId) {
       failedRows++;
       const combinedMsg = rowErrors.join(' ');
       errors.push({ rowNumber, field: 'row', message: combinedMsg });
@@ -631,17 +687,30 @@ export async function importAssetsFromExcel(
       continue;
     }
 
+    // Gom thông số cấu hình và màn hình vào specs JSON
+    const specsData: Record<string, any> = {};
+    if (data.cpu) specsData.cpu = data.cpu;
+    if (data.ram) specsData.ram = data.ram;
+    if (data.storage) specsData.storage = data.storage;
+    if (data.monitorBrand) specsData.monitorBrand = data.monitorBrand;
+    if (data.monitorYear) specsData.monitorYear = data.monitorYear;
+    if (data.monitorModel) specsData.monitorModel = data.monitorModel;
+    if (data.monitorSerial) specsData.monitorSerial = data.monitorSerial;
+    if (data.manufacturingYear) specsData.manufacturingYear = data.manufacturingYear;
+    if (data.oldAssetCode) specsData.oldAssetCode = data.oldAssetCode;
+    if (data.reissueStatus) specsData.reissueStatus = data.reissueStatus;
+
     // Insert Asset into Database
     try {
       const createdAsset = await prisma.asset.create({
         data: {
-          assetTag: data.assetTag,
+          assetTag: finalAssetTag,
           name: data.name,
           fixedAssetName: data.fixedAssetName || null,
           categoryId,
           brand: data.brand || null,
           model: data.model || null,
-          serialNumber: data.serialNumber || null,
+          serialNumber: finalSerialNumber || null,
           status: assetStatus,
           condition: assetCondition,
           purchaseDate: data.purchaseDate ? new Date(data.purchaseDate) : null,
@@ -651,6 +720,7 @@ export async function importAssetsFromExcel(
           vendorId: vendorId || null,
           locationId: locationId || null,
           companyName: data.companyName || null,
+          specs: Object.keys(specsData).length > 0 ? specsData : null,
           notes: data.notes ? `[Import Excel] ${data.notes}` : '[Import Excel]',
         },
       });
@@ -701,8 +771,8 @@ export async function importAssetsFromExcel(
       }
 
       // Update duplicate sets
-      existingTags.add(data.assetTag);
-      if (data.serialNumber) existingSerials.add(data.serialNumber);
+      existingTags.add(finalAssetTag);
+      if (finalSerialNumber) existingSerials.add(finalSerialNumber);
 
       successRows++;
 
@@ -1076,67 +1146,185 @@ interface AssetColumnMap {
   companyName: number;
   userEmail: number;
   notes: number;
+  // Các trường mở rộng cấu hình máy tính & thiết bị khoa phòng
+  cpu?: number;
+  ram?: number;
+  storage?: number;
+  monitorBrand?: number;
+  monitorYear?: number;
+  monitorModel?: number;
+  monitorSerial?: number;
+  manufacturingYear?: number;
+  oldAssetCode?: number;
+  reissueStatus?: number;
 }
 
-function detectAssetColumns(headerRow: ExcelJS.Row): AssetColumnMap {
-  const map: Partial<AssetColumnMap> = {};
-  headerRow.eachCell((cell, colNumber) => {
-    const val = cell.value?.toString().trim().toLowerCase() || '';
-    if (val.includes('mã tài sản') || val.includes('ma tai san') || val.includes('asset tag') || val.includes('mã ts')) {
-      map.assetTag = colNumber;
-    } else if (val.includes('tên tài sản cố định') || val.includes('tên tscđ') || val.includes('tscđ') || val.includes('fixed asset name')) {
-      map.fixedAssetName = colNumber;
-    } else if (val.includes('tên thiết bị') || val.includes('ten thiet bi') || val.includes('tên tài sản') || val.includes('device name')) {
-      map.name = colNumber;
-    } else if (val.includes('danh mục') || val.includes('danh muc') || val.includes('category')) {
-      map.categoryName = colNumber;
-    } else if (val.includes('thương hiệu') || val.includes('thuong hieu') || val.includes('hãng') || val.includes('brand')) {
-      map.brand = colNumber;
-    } else if (val.includes('model')) {
-      map.model = colNumber;
-    } else if (val.includes('serial')) {
-      map.serialNumber = colNumber;
-    } else if (val.includes('trạng thái') || val.includes('trang thai') || val.includes('status')) {
-      map.status = colNumber;
-    } else if (val.includes('tình trạng') || val.includes('tinh trang') || val.includes('condition')) {
-      map.condition = colNumber;
-    } else if (val.includes('ngày mua') || val.includes('ngay mua') || val.includes('purchase date')) {
-      map.purchaseDate = colNumber;
-    } else if (val.includes('giá mua') || val.includes('gia mua') || val.includes('purchase price') || val.includes('price')) {
-      map.purchasePrice = colNumber;
-    } else if (val.includes('bảo hành') || val.includes('bao hanh') || val.includes('warranty')) {
-      map.warrantyExpiry = colNumber;
-    } else if (val.includes('nhà cung cấp') || val.includes('nha cung cap') || val.includes('vendor')) {
-      map.vendorName = colNumber;
-    } else if (val.includes('vị trí') || val.includes('vi tri') || val.includes('location')) {
-      map.locationName = colNumber;
-    } else if (val.includes('công ty') || val.includes('cong ty') || val.includes('pháp nhân') || val.includes('phap nhan') || val.includes('company')) {
-      map.companyName = colNumber;
-    } else if (val.includes('người sử dụng') || val.includes('nguoi su dung') || val.includes('người dùng') || val.includes('nguoi dung') || val.includes('email') || val.includes('user') || val.includes('assigned')) {
-      map.userEmail = colNumber;
-    } else if (val.includes('ghi chú') || val.includes('ghi chu') || val.includes('note')) {
-      map.notes = colNumber;
+function detectAssetColumns(worksheet: ExcelJS.Worksheet): {
+  colMap: AssetColumnMap;
+  headerRowIndex: number;
+  dataStartRowIndex: number;
+} {
+  let bestHeaderRowIndex = 1;
+  let maxMatchedScore = 0;
+
+  // Quét 5 dòng đầu tiên để tìm dòng Header chính
+  const checkRowsCount = Math.min(6, worksheet.rowCount);
+  for (let r = 1; r <= checkRowsCount; r++) {
+    const row = worksheet.getRow(r);
+    let score = 0;
+    row.eachCell((cell) => {
+      const val = cell.value?.toString().trim().toLowerCase() || '';
+      if (
+        val.includes('mã thiết bị') ||
+        val.includes('mã tài sản') ||
+        val.includes('tên thiết bị') ||
+        val.includes('tên khoa phòng') ||
+        val.includes('loại thiết bị') ||
+        val.includes('hãng sản xuất') ||
+        val.includes('số seri') ||
+        val.includes('model') ||
+        val.includes('cpu') ||
+        val.includes('ram') ||
+        val.includes('hdd') ||
+        val.includes('màn hình') ||
+        val.includes('danh mục') ||
+        val.includes('asset tag')
+      ) {
+        score++;
+      }
+    });
+    if (score > maxMatchedScore) {
+      maxMatchedScore = score;
+      bestHeaderRowIndex = r;
     }
-  });
+  }
+
+  const primaryRow = worksheet.getRow(bestHeaderRowIndex);
+  const nextRow = worksheet.getRow(bestHeaderRowIndex + 1);
+
+  // Kiểm tra xem dòng tiếp theo có phải sub-header (ví dụ dòng 3 có 'hãng sx', 'năm sx', 'model', 'số seri' của cột Màn hình)
+  let hasSubHeader = false;
+  if (nextRow && nextRow.cellCount > 0) {
+    let subScore = 0;
+    nextRow.eachCell((cell) => {
+      const v = cell.value?.toString().trim().toLowerCase() || '';
+      if (
+        v.includes('hãng sx') ||
+        v.includes('năm sx') ||
+        v.includes('số seri') ||
+        v.includes('model') ||
+        v.includes('hãng')
+      ) {
+        subScore++;
+      }
+    });
+    if (subScore >= 2) {
+      hasSubHeader = true;
+    }
+  }
+
+  const map: Partial<AssetColumnMap> = {};
+  const dataStartRowIndex = hasSubHeader ? bestHeaderRowIndex + 2 : bestHeaderRowIndex + 1;
+
+  // Thu thập text header cho từng cột (kết hợp dòng chính và sub-header)
+  const maxCol = Math.max(primaryRow.cellCount, nextRow?.cellCount || 0, 30);
+  for (let col = 1; col <= maxCol; col++) {
+    const pVal = primaryRow.getCell(col).value?.toString().trim().toLowerCase() || '';
+    const sVal = hasSubHeader ? nextRow.getCell(col).value?.toString().trim().toLowerCase() || '' : '';
+    const combined = `${pVal} ${sVal}`.trim();
+
+    if (!combined) continue;
+
+    if (combined.includes('mã thiết bị cũ') || combined.includes('mã tscđ') || combined.includes('tên tscđ') || combined.includes('mã cũ')) {
+      map.oldAssetCode = col;
+    } else if (combined.includes('mã thiết bị') || combined.includes('mã tài sản') || combined.includes('ma tai san') || combined.includes('asset tag') || combined.includes('mã ts')) {
+      map.assetTag = col;
+    } else if (combined.includes('tên thiết bị') || combined.includes('ten thiet bi') || combined.includes('tên máy') || combined.includes('device name')) {
+      map.name = col;
+    } else if (combined.includes('tên loại thiết bị') || combined.includes('loại thiết bị') || combined.includes('danh mục') || combined.includes('category')) {
+      map.categoryName = col;
+    } else if (combined.includes('tên khoa phòng') || combined.includes('khoa phòng') || combined.includes('vị trí') || combined.includes('vi tri') || combined.includes('location')) {
+      map.locationName = col;
+    } else if (combined.includes('màn hình hãng') || (pVal.includes('màn hình') && sVal.includes('hãng'))) {
+      map.monitorBrand = col;
+    } else if (combined.includes('màn hình năm') || (pVal.includes('màn hình') && sVal.includes('năm'))) {
+      map.monitorYear = col;
+    } else if (combined.includes('màn hình model') || (pVal.includes('màn hình') && sVal.includes('model'))) {
+      map.monitorModel = col;
+    } else if (combined.includes('màn hình số seri') || combined.includes('màn hình seri') || (pVal.includes('màn hình') && sVal.includes('seri'))) {
+      map.monitorSerial = col;
+    } else if (combined.includes('tên hãng sản xuất') || combined.includes('hãng sản xuất') || combined.includes('hãng sx') || combined.includes('thương hiệu') || combined.includes('brand')) {
+      map.brand = col;
+    } else if (combined.includes('năm sản xuất') || combined.includes('năm sx')) {
+      map.manufacturingYear = col;
+    } else if (combined.includes('model')) {
+      map.model = col;
+    } else if (combined.includes('số seri') || combined.includes('serial') || combined.includes('so seri')) {
+      map.serialNumber = col;
+    } else if (combined.includes('cpu') || combined.includes('processor') || combined.includes('vi xử lý')) {
+      map.cpu = col;
+    } else if (combined.includes('ram') || combined.includes('bộ nhớ')) {
+      map.ram = col;
+    } else if (combined.includes('hdd') || combined.includes('ssd') || combined.includes('ổ cứng') || combined.includes('storage')) {
+      map.storage = col;
+    } else if (combined.includes('tính cấp lại') || combined.includes('cấp lại') || combined.includes('reissue')) {
+      map.reissueStatus = col;
+    } else if (combined.includes('tình trạng') || combined.includes('tinh trang') || combined.includes('condition')) {
+      map.condition = col;
+    } else if (combined.includes('trạng thái') || combined.includes('trang thai') || combined.includes('status')) {
+      map.status = col;
+    } else if (combined.includes('ngày mua') || combined.includes('purchase date')) {
+      map.purchaseDate = col;
+    } else if (combined.includes('giá mua') || combined.includes('purchase price') || combined.includes('nguyên giá')) {
+      map.purchasePrice = col;
+    } else if (combined.includes('bảo hành') || combined.includes('warranty')) {
+      map.warrantyExpiry = col;
+    } else if (combined.includes('nhà cung cấp') || combined.includes('vendor')) {
+      map.vendorName = col;
+    } else if (combined.includes('công ty') || combined.includes('company')) {
+      map.companyName = col;
+    } else if (combined.includes('người sử dụng') || combined.includes('người dùng') || combined.includes('email') || combined.includes('user')) {
+      map.userEmail = col;
+    } else if (combined.includes('ghi chú') || combined.includes('note')) {
+      map.notes = col;
+    }
+  }
+
+  const finalColMap: AssetColumnMap = {
+    assetTag: map.assetTag || 5, // Cột E trong mẫu
+    name: map.name || 6,         // Cột F
+    fixedAssetName: map.fixedAssetName,
+    categoryName: map.categoryName || 4, // Cột D
+    brand: map.brand || 7,       // Cột G
+    model: map.model || 9,       // Cột I
+    serialNumber: map.serialNumber || 10, // Cột J
+    status: map.status || 0,
+    condition: map.condition || 18, // Cột R
+    purchaseDate: map.purchaseDate || 0,
+    purchasePrice: map.purchasePrice || 0,
+    warrantyExpiry: map.warrantyExpiry || 0,
+    vendorName: map.vendorName || 0,
+    locationName: map.locationName || 3, // Cột C
+    companyName: map.companyName || 0,
+    userEmail: map.userEmail || 0,
+    notes: map.notes || 21,      // Cột U
+    // Chi tiết
+    cpu: map.cpu || 11,          // Cột K
+    ram: map.ram || 12,          // Cột L
+    storage: map.storage || 13,  // Cột M
+    monitorBrand: map.monitorBrand || 14, // Cột N
+    monitorYear: map.monitorYear || 15,   // Cột O
+    monitorModel: map.monitorModel || 16, // Cột P
+    monitorSerial: map.monitorSerial || 17,// Cột Q
+    manufacturingYear: map.manufacturingYear || 8, // Cột H
+    oldAssetCode: map.oldAssetCode || 19, // Cột S
+    reissueStatus: map.reissueStatus || 20, // Cột T
+  };
 
   return {
-    assetTag: map.assetTag || 1,
-    name: map.name || 2,
-    fixedAssetName: map.fixedAssetName,
-    categoryName: map.categoryName || 3,
-    brand: map.brand || 4,
-    model: map.model || 5,
-    serialNumber: map.serialNumber || 6,
-    status: map.status || 7,
-    condition: map.condition || 8,
-    purchaseDate: map.purchaseDate || 9,
-    purchasePrice: map.purchasePrice || 10,
-    warrantyExpiry: map.warrantyExpiry || 11,
-    vendorName: map.vendorName || 12,
-    locationName: map.locationName || 13,
-    companyName: map.companyName || (headerRow.cellCount >= 16 ? 14 : 0),
-    userEmail: map.userEmail || (headerRow.cellCount >= 16 ? 15 : (headerRow.cellCount >= 15 ? 14 : 0)),
-    notes: map.notes || (map.userEmail ? (map.userEmail === 15 ? 16 : 15) : (headerRow.cellCount >= 16 ? 16 : (headerRow.cellCount >= 15 ? 15 : 14))),
+    colMap: finalColMap,
+    headerRowIndex: bestHeaderRowIndex,
+    dataStartRowIndex,
   };
 }
 

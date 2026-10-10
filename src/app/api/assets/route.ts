@@ -23,9 +23,45 @@ export async function GET(request: NextRequest) {
     const companyName = searchParams.get('companyName');
     const source = searchParams.get('source');
     const warranty = searchParams.get('warranty');
+    const sortBy = searchParams.get('sortBy');
+    const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
     const rawPageSize = parseInt(searchParams.get('pageSize') || '50', 10) || 50;
     const pageSize = Math.max(1, Math.min(10000, rawPageSize));
+
+    // Dynamic sort
+    let orderBy: any = { createdAt: 'desc' };
+    if (sortBy) {
+      if (sortBy === 'name') {
+        orderBy = { name: sortOrder };
+      } else if (sortBy === 'assetTag') {
+        orderBy = { assetTag: sortOrder };
+      } else if (sortBy === 'category') {
+        orderBy = { category: { name: sortOrder } };
+      } else if (sortBy === 'location') {
+        orderBy = { location: { name: sortOrder } };
+      } else if (sortBy === 'vendor') {
+        orderBy = { vendor: { name: sortOrder } };
+      } else if (sortBy === 'brand') {
+        orderBy = { brand: sortOrder };
+      } else if (sortBy === 'model') {
+        orderBy = { model: sortOrder };
+      } else if (sortBy === 'serialNumber') {
+        orderBy = { serialNumber: sortOrder };
+      } else if (sortBy === 'status') {
+        orderBy = { status: sortOrder };
+      } else if (sortBy === 'condition') {
+        orderBy = { condition: sortOrder };
+      } else if (sortBy === 'purchasePrice') {
+        orderBy = { purchasePrice: sortOrder };
+      } else if (sortBy === 'purchaseDate') {
+        orderBy = { purchaseDate: sortOrder };
+      } else if (sortBy === 'warrantyExpiry') {
+        orderBy = { warrantyExpiry: sortOrder };
+      } else if (sortBy === 'createdAt') {
+        orderBy = { createdAt: sortOrder };
+      }
+    }
 
     // Build filter query
     const where: Record<string, unknown> = {};
@@ -104,7 +140,7 @@ export async function GET(request: NextRequest) {
           },
           _count: { select: { maintenanceLogs: true } },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
       }),

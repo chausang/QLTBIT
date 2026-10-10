@@ -274,17 +274,34 @@ export default function ModuleDataToolbar({
       formData.append('file', importFile);
 
       const targetType = excelType || (moduleKey.replace('-categories', 's') as string);
-      const res = await fetch(`/api/categories/excel?type=${encodeURIComponent(targetType)}`, {
-        method: 'POST',
-        body: formData,
-      });
+      let res: Response;
+
+      if (moduleKey === 'assets' || targetType === 'assets' || targetType === 'asset') {
+        formData.append('importType', 'ASSET');
+        res = await fetch('/api/import', {
+          method: 'POST',
+          body: formData,
+        });
+      } else if (moduleKey === 'licenses' || targetType === 'licenses' || targetType === 'license') {
+        formData.append('importType', 'LICENSE');
+        res = await fetch('/api/import', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        res = await fetch(`/api/categories/excel?type=${encodeURIComponent(targetType)}`, {
+          method: 'POST',
+          body: formData,
+        });
+      }
 
       const result = await res.json();
       if (!res.ok) {
         throw new Error(result.error || 'Lỗi khi nhập Excel');
       }
 
-      setImportResult({ success: true, message: result.message, count: result.importedCount });
+      const count = result.importedCount ?? result.data?.successRows ?? result.count;
+      setImportResult({ success: true, message: result.message, count });
       await onDataRefresh();
       setTimeout(() => {
         setIsImportModalOpen(false);
@@ -589,7 +606,11 @@ export default function ModuleDataToolbar({
                   </p>
                 </div>
                 <a
-                  href={`/api/categories/excel?action=template&type=${encodeURIComponent(excelType)}`}
+                  href={
+                    moduleKey === 'assets' || excelType === 'assets' || excelType === 'asset'
+                      ? '/api/assets/export?template=true'
+                      : `/api/categories/excel?action=template&type=${encodeURIComponent(excelType)}`
+                  }
                   download
                   className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shrink-0 shadow-2xs transition-all"
                 >

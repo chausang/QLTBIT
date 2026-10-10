@@ -43,6 +43,10 @@ import {
   PlusCircle,
   Cpu,
   Sliders,
+  SlidersHorizontal,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
   CheckCircle2,
   FileSpreadsheet,
   FileText,
@@ -130,6 +134,47 @@ interface CustomFieldDef {
   required?: boolean;
   options?: string[];
 }
+
+export type AssetColumnKey =
+  | 'assetTag'
+  | 'name'
+  | 'companyLocation'
+  | 'category'
+  | 'cost'
+  | 'warrantyDate'
+  | 'status'
+  | 'assignedTo'
+  | 'hardware'
+  | 'monitor'
+  | 'actions';
+
+const DEFAULT_VISIBLE_COLUMNS: Record<AssetColumnKey, boolean> = {
+  assetTag: true,
+  name: true,
+  companyLocation: true,
+  category: true,
+  cost: true,
+  warrantyDate: true,
+  status: true,
+  assignedTo: true,
+  hardware: false,
+  monitor: false,
+  actions: true,
+};
+
+const COLUMN_DEFINITIONS: { key: AssetColumnKey; labelVi: string; labelEn: string; sortKey?: string }[] = [
+  { key: 'assetTag', labelVi: 'Mã tài sản', labelEn: 'Asset Tag', sortKey: 'assetTag' },
+  { key: 'name', labelVi: 'Tên thiết bị & Model', labelEn: 'Device & Model', sortKey: 'name' },
+  { key: 'companyLocation', labelVi: 'Công ty & Vị trí', labelEn: 'Company & Location', sortKey: 'location' },
+  { key: 'category', labelVi: 'Danh mục', labelEn: 'Category', sortKey: 'category' },
+  { key: 'cost', labelVi: 'Nguyên giá', labelEn: 'Cost', sortKey: 'purchasePrice' },
+  { key: 'warrantyDate', labelVi: 'Bảo hành & Ngày mua', labelEn: 'Warranty & Purchase Date', sortKey: 'purchaseDate' },
+  { key: 'status', labelVi: 'Trạng thái', labelEn: 'Status', sortKey: 'status' },
+  { key: 'assignedTo', labelVi: 'Người giữ', labelEn: 'Assigned User' },
+  { key: 'hardware', labelVi: 'Cấu hình (CPU / RAM / HDD)', labelEn: 'Hardware (CPU/RAM/HDD)' },
+  { key: 'monitor', labelVi: 'Màn hình đi kèm', labelEn: 'Attached Monitor' },
+  { key: 'actions', labelVi: 'Thao tác', labelEn: 'Actions' },
+];
 
 function renderCategoryIcon(icon?: string, className = 'w-4 h-4') {
   if (!icon) return <span>📦</span>;
@@ -494,6 +539,15 @@ export default function AssetsPage() {
   const [serverTotalPages, setServerTotalPages] = useState<number>(1);
   const [serverSummary, setServerSummary] = useState<any>(null);
 
+  // Sorting State
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
+  // Column Visibility & Preferences
+  const [visibleColumns, setVisibleColumns] = useState<Record<AssetColumnKey, boolean>>(DEFAULT_VISIBLE_COLUMNS);
+  const [isColumnPickerOpen, setIsColumnPickerOpen] = useState(false);
+  const columnPickerRef = useRef<HTMLDivElement>(null);
+
   // Initialize pageSize from localStorage if available
   useEffect(() => {
     try {
@@ -504,6 +558,72 @@ export default function AssetsPage() {
       }
     } catch {}
   }, []);
+
+  // Initialize column preferences from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('simply_it_assets_visible_columns');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setVisibleColumns((prev) => ({ ...prev, ...parsed }));
+      }
+    } catch {}
+  }, []);
+
+  // Click outside to close Column Picker dropdown
+  useEffect(() => {
+    function handleClickOutsideColumnPicker(event: MouseEvent) {
+      if (columnPickerRef.current && !columnPickerRef.current.contains(event.target as Node)) {
+        setIsColumnPickerOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutsideColumnPicker);
+    return () => document.removeEventListener('mousedown', handleClickOutsideColumnPicker);
+  }, []);
+
+  const toggleColumn = (key: AssetColumnKey) => {
+    setVisibleColumns((prev) => {
+      const updated = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem('simply_it_assets_visible_columns', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleResetColumns = () => {
+    setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
+    try {
+      localStorage.removeItem('simply_it_assets_visible_columns');
+    } catch {}
+  };
+
+  const handleShowAllColumns = () => {
+    const allVisible = Object.keys(DEFAULT_VISIBLE_COLUMNS).reduce((acc, k) => {
+      acc[k as AssetColumnKey] = true;
+      return acc;
+    }, {} as Record<AssetColumnKey, boolean>);
+    setVisibleColumns(allVisible);
+    try {
+      localStorage.setItem('simply_it_assets_visible_columns', JSON.stringify(allVisible));
+    } catch {}
+  };
+
+  const handleSort = (fieldKey: string) => {
+    if (sortField === fieldKey) {
+      if (sortOrder === 'asc') {
+        setSortOrder('desc');
+      } else {
+        // Hủy sắp xếp khi bấm lần 3
+        setSortField(null);
+        setSortOrder('asc');
+      }
+    } else {
+      setSortField(fieldKey);
+      setSortOrder('asc');
+    }
+    setCurrentPage(1);
+  };
 
   // Debounce search input (350ms)
   useEffect(() => {
@@ -846,6 +966,10 @@ export default function AssetsPage() {
       if (selectedStatus) params.append('status', selectedStatus);
       if (selectedSource !== 'ALL') params.append('source', selectedSource);
       if (selectedWarranty !== 'ALL') params.append('warranty', selectedWarranty);
+      if (sortField) {
+        params.append('sortBy', sortField);
+        params.append('sortOrder', sortOrder);
+      }
 
       await Promise.all([
         // 1. Fetch Assets with SWR Cache (0ms instant render)
@@ -896,7 +1020,14 @@ export default function AssetsPage() {
       console.error('Failed to load assets data:', error);
       setLoading(false);
     }
-  }, [currentPage, pageSize, debouncedSearch, selectedCompany, selectedCategory, selectedStatus, selectedSource, selectedWarranty]);
+  }, [currentPage, pageSize, debouncedSearch, selectedCompany, selectedCategory, selectedStatus, selectedSource, selectedWarranty, sortField, sortOrder]);
+
+  const handleResetSortAndRefresh = () => {
+    setSortField(null);
+    setSortOrder('asc');
+    setCurrentPage(1);
+    loadData(true);
+  };
 
   // Connect Professional Auto-Refresh & Instant Reactive Sync
   const { isRefreshing: isAutoRefreshing, refreshNow } = useAutoRefresh({
@@ -2337,6 +2468,7 @@ export default function AssetsPage() {
           {/* DATA TOOLBAR: EXPORT EXCEL & JSON BACKUP / RESTORE */}
           <ModuleDataToolbar
             moduleKey="assets"
+            excelType="assets"
             moduleName={isEn ? 'IT Assets Inventory' : 'Danh Mục Thiết Bị CNTT'}
             currentData={assets}
             onDataRefresh={loadData}
@@ -2760,32 +2892,287 @@ export default function AssetsPage() {
               </div>
             )}
 
+            {/* TABLE TOOLBAR: TÙY CHỌN ẨN/HIỆN CỘT & NÚT LÀM MỚI / XÓA SẮP XẾP */}
+            <div className="px-4 py-2.5 bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {isEn ? 'Showing:' : 'Hiển thị:'}{' '}
+                  <span className="font-extrabold text-blue-600 dark:text-blue-400">
+                    {displayAssets.length}
+                  </span>{' '}
+                  {isEn ? (displayAssets.length === 1 ? 'device' : 'devices') : 'thiết bị'}
+                </span>
+                {sortField && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 text-blue-700 dark:bg-blue-950/70 dark:text-blue-300 border border-blue-200 dark:border-blue-800 animate-in fade-in">
+                    <span>
+                      {isEn ? 'Sorted by:' : 'Đang sắp xếp:'}{' '}
+                      <span className="underline">
+                        {COLUMN_DEFINITIONS.find((c) => c.sortKey === sortField)?.labelVi || sortField}
+                      </span>{' '}
+                      ({sortOrder === 'asc' ? '↑ Tăng dần' : '↓ Giảm dần'})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResetSortAndRefresh}
+                      className="p-0.5 hover:bg-blue-200/60 dark:hover:bg-blue-800 rounded-full cursor-pointer"
+                      title={isEn ? 'Clear sorting' : 'Xóa sắp xếp'}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* NÚT REFRESH ĐỂ XÓA SẮP XẾP & TẢI LẠI */}
+                <button
+                  type="button"
+                  onClick={handleResetSortAndRefresh}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs ${
+                    sortField
+                      ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300 ring-2 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800'
+                      : 'bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                  }`}
+                  title={
+                    sortField
+                      ? `Đang sắp xếp: ${sortField} (${sortOrder === 'asc' ? 'Tăng dần' : 'Giảm dần'}). Bấm để xóa sắp xếp và tải lại`
+                      : (isEn ? 'Refresh data & reset sorting' : 'Làm mới dữ liệu & xóa sắp xếp')
+                  }
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 ${sortField ? 'text-amber-600 animate-spin-once' : 'text-slate-500'}`} />
+                  <span>{sortField ? (isEn ? 'Clear Sort & Refresh' : 'Xóa Sắp Xếp & Làm Mới') : (isEn ? 'Refresh' : 'Làm Mới')}</span>
+                </button>
+
+                {/* NÚT TÙY CHỌN CỘT (ẨN / HIỆN CỘT) */}
+                <div className="relative" ref={columnPickerRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsColumnPickerOpen(!isColumnPickerOpen)}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border shadow-2xs ${
+                      isColumnPickerOpen
+                        ? 'bg-blue-600 text-white border-blue-600'
+                        : 'bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                    }`}
+                    title={isEn ? 'Show / Hide table columns' : 'Tùy chọn ẩn / hiện các cột thông tin của thiết bị'}
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{isEn ? 'Columns' : 'Tùy Chọn Cột'}</span>
+                    <ChevronDown className="w-3 h-3 opacity-70" />
+                  </button>
+
+                  {isColumnPickerOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-3 space-y-2 animate-in fade-in duration-100">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800">
+                        <span className="text-xs font-black text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <Sliders className="w-3.5 h-3.5 text-blue-600" />
+                          <span>{isEn ? 'Column Visibility' : 'Ẩn / Hiện Cột Thiết Bị'}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsColumnPickerOpen(false)}
+                          className="text-slate-400 hover:text-slate-600 p-0.5 rounded-lg cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="max-h-64 overflow-y-auto space-y-0.5 pr-1 text-xs">
+                        {COLUMN_DEFINITIONS.map((col) => (
+                          <label
+                            key={col.key}
+                            className="flex items-center justify-between px-2 py-1.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-slate-700 dark:text-slate-300 font-medium select-none"
+                          >
+                            <span className="text-xs truncate">{isEn ? col.labelEn : col.labelVi}</span>
+                            <input
+                              type="checkbox"
+                              checked={visibleColumns[col.key]}
+                              onChange={() => toggleColumn(col.key)}
+                              disabled={col.key === 'actions'}
+                              className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={handleShowAllColumns}
+                          className="text-blue-600 dark:text-blue-400 hover:underline font-bold cursor-pointer"
+                        >
+                          {isEn ? 'Show All' : 'Hiện tất cả'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleResetColumns}
+                          className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-bold cursor-pointer"
+                        >
+                          {isEn ? 'Reset Default' : 'Mặc định'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="hidden md:block w-full overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse min-w-[920px]">
                 <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                   <tr>
-                    {/* Sticky Left Column: CHECKBOX & MÃ TÀI SẢN */}
-                    <th className="py-2 px-2 sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[105px]">
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="checkbox"
-                          checked={paginatedAssets.length > 0 && paginatedAssets.every((a) => selectedAssetIds.includes(a.id))}
-                          onChange={handleToggleSelectAll}
-                          className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
-                          title={isEn ? 'Select all on this page' : 'Chọn tất cả thiết bị trên trang'}
-                        />
-                        <span>{isEn ? 'ASSET TAG' : 'MÃ TÀI SẢN'}</span>
-                      </div>
-                    </th>
-                    <th className="py-2 px-2 min-w-[150px]">{isEn ? 'DEVICE & MODEL' : 'TÊN THIẾT BỊ & MODEL'}</th>
-                    <th className="py-2 px-1.5 min-w-[115px]">{isEn ? 'COMPANY & LOCATION' : 'CÔNG TY & VỊ TRÍ'}</th>
-                    <th className="py-2 px-1.5 min-w-[95px]">{isEn ? 'CATEGORY' : 'DANH MỤC'}</th>
-                    <th className="py-2 px-1.5 min-w-[90px]">{isEn ? 'COST' : 'NGUYÊN GIÁ'} ({selectedCurrency})</th>
-                    <th className="py-2 px-1.5 min-w-[95px]">{isEn ? 'WARRANTY & DATE' : 'BẢO HÀNH & NGÀY MUA'}</th>
-                    <th className="py-2 px-1.5 min-w-[75px]">{isEn ? 'STATUS' : 'TRẠNG THÁI'}</th>
-                    <th className="py-2 px-1.5 min-w-[90px]">{isEn ? 'ASSIGNED TO' : 'NGƯỜI GIỮ'}</th>
-                    {/* Sticky Right Column: Actions */}
-                    <th className="py-2 px-2 text-right sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[145px]">{isEn ? 'ACTIONS' : 'THAO TÁC'}</th>
+                    {/* CỘT 1: MÃ TÀI SẢN */}
+                    {visibleColumns.assetTag && (
+                      <th
+                        onClick={() => handleSort('assetTag')}
+                        className="py-2 px-2 sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[105px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Asset Tag' : 'Click vào tên cột để sắp xếp theo Mã tài sản'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="checkbox"
+                            checked={paginatedAssets.length > 0 && paginatedAssets.every((a) => selectedAssetIds.includes(a.id))}
+                            onChange={handleToggleSelectAll}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                            title={isEn ? 'Select all on this page' : 'Chọn tất cả thiết bị trên trang'}
+                          />
+                          <span>{isEn ? 'ASSET TAG' : 'MÃ TÀI SẢN'}</span>
+                          {sortField === 'assetTag' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 2: TÊN THIẾT BỊ & MODEL */}
+                    {visibleColumns.name && (
+                      <th
+                        onClick={() => handleSort('name')}
+                        className="py-2 px-2 min-w-[150px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Device Name' : 'Click vào tên cột để sắp xếp theo Tên thiết bị'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'DEVICE & MODEL' : 'TÊN THIẾT BỊ & MODEL'}</span>
+                          {sortField === 'name' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 3: CÔNG TY & VỊ TRÍ */}
+                    {visibleColumns.companyLocation && (
+                      <th
+                        onClick={() => handleSort('location')}
+                        className="py-2 px-1.5 min-w-[115px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Location' : 'Click vào tên cột để sắp xếp theo Vị trí'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'COMPANY & LOCATION' : 'CÔNG TY & VỊ TRÍ'}</span>
+                          {sortField === 'location' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 4: DANH MỤC */}
+                    {visibleColumns.category && (
+                      <th
+                        onClick={() => handleSort('category')}
+                        className="py-2 px-1.5 min-w-[95px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Category' : 'Click vào tên cột để sắp xếp theo Danh mục'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'CATEGORY' : 'DANH MỤC'}</span>
+                          {sortField === 'category' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 5: NGUYÊN GIÁ */}
+                    {visibleColumns.cost && (
+                      <th
+                        onClick={() => handleSort('purchasePrice')}
+                        className="py-2 px-1.5 min-w-[90px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Purchase Price' : 'Click vào tên cột để sắp xếp theo Nguyên giá'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'COST' : 'NGUYÊN GIÁ'} ({selectedCurrency})</span>
+                          {sortField === 'purchasePrice' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 6: BẢO HÀNH & NGÀY MUA */}
+                    {visibleColumns.warrantyDate && (
+                      <th
+                        onClick={() => handleSort('purchaseDate')}
+                        className="py-2 px-1.5 min-w-[95px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Purchase Date' : 'Click vào tên cột để sắp xếp theo Ngày mua'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'WARRANTY & DATE' : 'BẢO HÀNH & NGÀY MUA'}</span>
+                          {sortField === 'purchaseDate' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 7: TRẠNG THÁI */}
+                    {visibleColumns.status && (
+                      <th
+                        onClick={() => handleSort('status')}
+                        className="py-2 px-1.5 min-w-[75px] cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors select-none"
+                        title={isEn ? 'Click to sort by Status' : 'Click vào tên cột để sắp xếp theo Trạng thái'}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>{isEn ? 'STATUS' : 'TRẠNG THÁI'}</span>
+                          {sortField === 'status' ? (
+                            sortOrder === 'asc' ? <ArrowUp className="w-3 h-3 text-blue-600 shrink-0" /> : <ArrowDown className="w-3 h-3 text-blue-600 shrink-0" />
+                          ) : (
+                            <ArrowUpDown className="w-2.5 h-2.5 text-slate-400 opacity-60 hover:opacity-100 shrink-0" />
+                          )}
+                        </div>
+                      </th>
+                    )}
+
+                    {/* CỘT 8: NGƯỜI GIỮ */}
+                    {visibleColumns.assignedTo && (
+                      <th className="py-2 px-1.5 min-w-[90px]">{isEn ? 'ASSIGNED TO' : 'NGƯỜI GIỮ'}</th>
+                    )}
+
+                    {/* CỘT BỔ SUNG: CẤU HÌNH (CPU/RAM/HDD) */}
+                    {visibleColumns.hardware && (
+                      <th className="py-2 px-1.5 min-w-[125px]">{isEn ? 'HARDWARE (CPU/RAM/HDD)' : 'CẤU HÌNH (CPU/RAM/HDD)'}</th>
+                    )}
+
+                    {/* CỘT BỔ SUNG: MÀN HÌNH ĐI KÈM */}
+                    {visibleColumns.monitor && (
+                      <th className="py-2 px-1.5 min-w-[125px]">{isEn ? 'ATTACHED MONITOR' : 'MÀN HÌNH ĐI KÈM'}</th>
+                    )}
+
+                    {/* CỘT CỐ ĐỊNH PHẢI: THAO TÁC */}
+                    {visibleColumns.actions && (
+                      <th className="py-2 px-2 text-right sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[145px]">{isEn ? 'ACTIONS' : 'THAO TÁC'}</th>
+                    )}
                   </tr>
                 </thead>
 
@@ -2794,42 +3181,70 @@ export default function AssetsPage() {
                   {loading ? (
                     Array.from({ length: 6 }).map((_, idx) => (
                       <tr key={idx} className="animate-pulse">
-                        <td className="py-2.5 px-2 sticky left-0 bg-white dark:bg-slate-900">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
-                        </td>
-                        <td className="py-2.5 px-2">
-                          <div className="space-y-1">
-                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-32" />
-                            <div className="h-2.5 bg-slate-100 dark:bg-slate-800/60 rounded-md w-20" />
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-24" />
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-14" />
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-full w-14" />
-                        </td>
-                        <td className="py-2.5 px-1.5">
-                          <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-20" />
-                        </td>
-                        <td className="py-2.5 px-2 text-right">
-                          <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-lg w-28 ml-auto" />
-                        </td>
+                        {visibleColumns.assetTag && (
+                          <td className="py-2.5 px-2 sticky left-0 bg-white dark:bg-slate-900">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
+                          </td>
+                        )}
+                        {visibleColumns.name && (
+                          <td className="py-2.5 px-2">
+                            <div className="space-y-1">
+                              <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-32" />
+                              <div className="h-2.5 bg-slate-100 dark:bg-slate-800/60 rounded-md w-20" />
+                            </div>
+                          </td>
+                        )}
+                        {visibleColumns.companyLocation && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-24" />
+                          </td>
+                        )}
+                        {visibleColumns.category && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
+                          </td>
+                        )}
+                        {visibleColumns.cost && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-16" />
+                          </td>
+                        )}
+                        {visibleColumns.warrantyDate && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-14" />
+                          </td>
+                        )}
+                        {visibleColumns.status && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-full w-14" />
+                          </td>
+                        )}
+                        {visibleColumns.assignedTo && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-20" />
+                          </td>
+                        )}
+                        {visibleColumns.hardware && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-20" />
+                          </td>
+                        )}
+                        {visibleColumns.monitor && (
+                          <td className="py-2.5 px-1.5">
+                            <div className="h-3.5 bg-slate-200 dark:bg-slate-800 rounded-md w-20" />
+                          </td>
+                        )}
+                        {visibleColumns.actions && (
+                          <td className="py-2.5 px-2 text-right">
+                            <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-lg w-28 ml-auto" />
+                          </td>
+                        )}
                       </tr>
                     ))
                   ) : displayAssets.length === 0 ? (
                     /* EMPTY STATE */
                     <tr>
-                      <td colSpan={9} className="py-12 text-center">
+                      <td colSpan={Object.values(visibleColumns).filter(Boolean).length || 9} className="py-12 text-center">
                         <div className="max-w-sm mx-auto space-y-2.5">
                           <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
                             <Search className="w-5 h-5" />
@@ -2888,210 +3303,289 @@ export default function AssetsPage() {
                           title="Nhấp vào để xem chi tiết • Nhấp chuột phải để mở menu thao tác nhanh"
                         >
                           {/* STICKY COLUMN: CHECKBOX & MÃ TÀI SẢN (2 DÒNG GỌN GÀNG) */}
-                          <td className="py-2 px-2 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors">
-                            <div className="flex items-start gap-1.5">
-                              <input
-                                type="checkbox"
-                                checked={selectedAssetIds.includes(asset.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={() => handleToggleSelectAsset(asset.id)}
-                                className="w-3.5 h-3.5 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
-                              />
-                              <div className="space-y-0.5 min-w-0">
-                                <span className="font-mono font-black text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-1.5 py-0.2 rounded text-[10px] inline-block whitespace-nowrap leading-tight">
-                                  {asset.assetTag}
-                                </span>
-                                {isAutoScanned && (
-                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[8px] font-extrabold block w-fit leading-none" title="Máy tính được quét tự động qua script PS1">
-                                    <span>🤖</span>
-                                    <span>{Array.isArray(asset.specs?.installedSoftware) ? `${asset.specs.installedSoftware.length} apps` : 'Scan'}</span>
+                          {visibleColumns.assetTag && (
+                            <td className="py-2 px-2 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors">
+                              <div className="flex items-start gap-1.5">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedAssetIds.includes(asset.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={() => handleToggleSelectAsset(asset.id)}
+                                  className="w-3.5 h-3.5 mt-0.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
+                                />
+                                <div className="space-y-0.5 min-w-0">
+                                  <span className="font-mono font-black text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-1.5 py-0.2 rounded text-[10px] inline-block whitespace-nowrap leading-tight">
+                                    {asset.assetTag}
                                   </span>
-                                )}
-                                {asset.specs?.hardwareChangeAlert && (
-                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-amber-500 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`⚠️ Cảnh báo tháo/đổi linh kiện: ${asset.specs.hardwareChangeAlert}`}>
-                                    <span>⚠️</span>
-                                    <span>Tháo LK</span>
-                                  </span>
-                                )}
-                                {(asset.specs?.crackDetection?.hasSuspect || (Array.isArray(asset.specs?.crackDetection?.detectedTools) && asset.specs.crackDetection.detectedTools.length > 0)) && (
-                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-rose-600 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`🛡️ Cảnh báo phát hiện bẻ khóa: ${(asset.specs.crackDetection.detectedTools || []).join(', ')}`}>
-                                    <span>🛡️</span>
-                                    <span>Crack/KMS</span>
-                                  </span>
-                                )}
-                                {asset.specs?.softwareChangeAlert && (
-                                  <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-blue-500 text-white text-[8px] font-extrabold block w-fit leading-none shadow-xs" title={`📦 Thay đổi phần mềm: ${asset.specs.softwareChangeAlert}`}>
-                                    <span>📦</span>
-                                    <span>Đổi PM</span>
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* TÊN THIẾT BỊ & MODEL (2-3 DÒNG GỌN GÀNG) */}
-                          <td className="py-2 px-2">
-                            <div className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors text-[11px] leading-snug line-clamp-2" title={asset.name}>
-                              {asset.name}
-                            </div>
-                            {asset.fixedAssetName && (
-                              <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1 mt-0.5 line-clamp-1" title={`Tên tài sản cố định: ${asset.fixedAssetName}`}>
-                                <span className="px-1 py-0.2 rounded bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 font-bold text-[8.5px] border border-blue-200 dark:border-blue-800 shrink-0">TSCĐ</span>
-                                <span className="truncate max-w-[200px]">{asset.fixedAssetName}</span>
-                              </div>
-                            )}
-                            <div className="text-[9.5px] text-slate-400 mt-0.5 leading-tight line-clamp-2">
-                              {asset.brand && <span className="font-semibold text-slate-600 dark:text-slate-400">{asset.brand} </span>}
-                              {asset.model && <span>• {asset.model} </span>}
-                              {asset.serialNumber && <span className="font-mono text-slate-500">• SN: {asset.serialNumber}</span>}
-                            </div>
-                            {(asset.specs?.monitorBrand || asset.specs?.manufacturingYear || asset.specs?.oldAssetCode) && (
-                              <div className="flex flex-wrap items-center gap-1 mt-1 text-[8.5px]">
-                                {asset.specs?.manufacturingYear && (
-                                  <span className="px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                                    Năm: {asset.specs.manufacturingYear}
-                                  </span>
-                                )}
-                                {(asset.specs?.monitorBrand || asset.specs?.monitorModel) && (
-                                  <span className="px-1 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 truncate max-w-[130px]" title={`Màn hình: ${asset.specs.monitorBrand || ''} ${asset.specs.monitorModel || ''} ${asset.specs.monitorSerial ? `(SN: ${asset.specs.monitorSerial})` : ''}`}>
-                                    🖥️ {asset.specs.monitorBrand || ''} {asset.specs.monitorModel || ''}
-                                  </span>
-                                )}
-                                {asset.specs?.oldAssetCode && (
-                                  <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                                    Cũ: {asset.specs.oldAssetCode}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </td>
-
-                          {/* CÔNG TY & VỊ TRÍ (2 DÒNG GỌN GÀNG) */}
-                          <td className="py-2 px-1.5">
-                            <div className="space-y-0.5">
-                              <span className="font-bold text-slate-800 dark:text-slate-200 text-[10.5px] leading-tight line-clamp-2 block" title={asset.companyName || 'Công ty chung'}>
-                                {asset.companyName || 'Tập đoàn ABC'}
-                              </span>
-                              <span className="text-[9px] text-slate-400 block line-clamp-1" title={asset.location?.name || 'Kho IT'}>
-                                📍 {asset.location?.name || 'Kho IT'}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* DANH MỤC (2-3 DÒNG GỌN GÀNG KHI DÀI) */}
-                          <td className="py-2 px-1.5">
-                            <div className="inline-flex items-start gap-1 text-[9.5px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded-md leading-tight max-w-[125px]">
-                              <span className="shrink-0 mt-0.5">{renderCategoryIcon(asset.category?.icon, 'w-2.8 h-2.8')}</span>
-                              <span className="break-words line-clamp-3">{asset.category?.name || 'Khác'}</span>
-                            </div>
-                          </td>
-
-                          {/* NGUYÊN GIÁ & KHẤU HAO (DUAL-CURRENCY & NET BOOK VALUE) */}
-                          <td className="py-2 px-1.5">
-                            {rawPrice > 0 ? (
-                              <div className="space-y-0.5">
-                                <div className="font-black text-slate-900 dark:text-white text-[11px] font-mono leading-tight">
-                                  {formatPrice(convertedPrice, selectedCurrency)}
-                                </div>
-                                {(() => {
-                                  const catName = (asset.category?.name || '').toLowerCase();
-                                  const usefulMonths = Number((asset as any).specs?.depreciationMonths) ||
-                                    (catName.includes('server') || catName.includes('máy chủ') || catName.includes('switch') || catName.includes('router') || catName.includes('mạng') ? 60 : 36);
-                                  let depRatio = 0;
-                                  const now = new Date();
-                                  if (asset.purchaseDate) {
-                                    const pDate = new Date(asset.purchaseDate);
-                                    const diff = Math.max(0, (now.getFullYear() - pDate.getFullYear()) * 12 + (now.getMonth() - pDate.getMonth()));
-                                    depRatio = Math.min(1, diff / usefulMonths);
-                                  } else {
-                                    depRatio = asset.condition === 'NEW' ? 0 : 0.25;
-                                  }
-                                  const remaining = Math.max(0, convertedPrice * (1 - depRatio));
-                                  const depPercent = Math.min(100, Math.round(depRatio * 100));
-                                  return (
-                                    <div className="text-[8.5px] leading-tight space-y-0.5" title={`${isEn ? 'Remaining Value' : 'Giá trị còn lại'}: ${formatPrice(remaining, selectedCurrency)} (${usefulMonths} ${isEn ? 'months' : 'tháng'} - ${depPercent}%)`}>
-                                      <div className="flex items-center gap-1">
-                                        <span className={`font-bold ${depPercent >= 100 ? 'text-rose-600 dark:text-rose-400' : depPercent >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                                          CL: {formatPrice(remaining, selectedCurrency)}
-                                        </span>
-                                        <span className="text-[8px] text-slate-400 font-mono">({depPercent}%)</span>
-                                      </div>
-                                      {isDual && (
-                                        <div className="text-[8px] text-slate-400 font-mono">
-                                          Gốc: {formatPrice(rawPrice, rawCurr)}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 italic text-[9.5px]">—</span>
-                            )}
-                          </td>
-
-                          {/* BẢO HÀNH & NGÀY MUA */}
-                          <td className="py-2 px-1.5">
-                            <div className="space-y-0.5">
-                              {asset.warrantyExpiry ? (
-                                <>
-                                  {warrantyInfo && (
-                                    <span className={`inline-block font-bold px-1.5 py-0.2 rounded text-[8.5px] leading-tight ${warrantyInfo.badgeClass}`}>
-                                      {warrantyInfo.text}
+                                  {isAutoScanned && (
+                                    <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[8px] font-extrabold block w-fit leading-none" title="Máy tính được quét tự động qua script PS1">
+                                      <span>🤖</span>
+                                      <span>{Array.isArray(asset.specs?.installedSoftware) ? `${asset.specs.installedSoftware.length} apps` : 'Scan'}</span>
                                     </span>
                                   )}
-                                  <div className="text-slate-400 text-[9px] font-mono leading-tight">
-                                    Hạn: {formatDate(asset.warrantyExpiry)}
-                                  </div>
-                                </>
-                              ) : (
-                                <span className="text-slate-400 italic text-[9px]">Không có BH</span>
-                              )}
-                              <div className="text-[9px] text-blue-600 dark:text-blue-400 font-semibold font-mono leading-tight pt-0.5">
-                                📅 Mua: {formatDate(asset.purchaseDate || asset.createdAt)}
+                                  {asset.specs?.hardwareChangeAlert && (
+                                    <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-amber-500 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`⚠️ Cảnh báo tháo/đổi linh kiện: ${asset.specs.hardwareChangeAlert}`}>
+                                      <span>⚠️</span>
+                                      <span>Tháo LK</span>
+                                    </span>
+                                  )}
+                                  {(asset.specs?.crackDetection?.hasSuspect || (Array.isArray(asset.specs?.crackDetection?.detectedTools) && asset.specs.crackDetection.detectedTools.length > 0)) && (
+                                    <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-rose-600 text-white text-[8px] font-black block w-fit leading-none shadow-xs animate-pulse" title={`🛡️ Cảnh báo phát hiện bẻ khóa: ${(asset.specs.crackDetection.detectedTools || []).join(', ')}`}>
+                                      <span>🛡️</span>
+                                      <span>Crack/KMS</span>
+                                    </span>
+                                  )}
+                                  {asset.specs?.softwareChangeAlert && (
+                                    <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-blue-500 text-white text-[8px] font-extrabold block w-fit leading-none shadow-xs" title={`📦 Thay đổi phần mềm: ${asset.specs.softwareChangeAlert}`}>
+                                      <span>📦</span>
+                                      <span>Đổi PM</span>
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </td>
+                            </td>
+                          )}
+
+                          {/* TÊN THIẾT BỊ & MODEL (2-3 DÒNG GỌN GÀNG) */}
+                          {visibleColumns.name && (
+                            <td className="py-2 px-2">
+                              <div className="font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors text-[11px] leading-snug line-clamp-2" title={asset.name}>
+                                {asset.name}
+                              </div>
+                              {asset.fixedAssetName && (
+                                <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1 mt-0.5 line-clamp-1" title={`Tên tài sản cố định: ${asset.fixedAssetName}`}>
+                                  <span className="px-1 py-0.2 rounded bg-blue-100 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 font-bold text-[8.5px] border border-blue-200 dark:border-blue-800 shrink-0">TSCĐ</span>
+                                  <span className="truncate max-w-[200px]">{asset.fixedAssetName}</span>
+                                </div>
+                              )}
+                              <div className="text-[9.5px] text-slate-400 mt-0.5 leading-tight line-clamp-2">
+                                {asset.brand && <span className="font-semibold text-slate-600 dark:text-slate-400">{asset.brand} </span>}
+                                {asset.model && <span>• {asset.model} </span>}
+                                {asset.serialNumber && <span className="font-mono text-slate-500">• SN: {asset.serialNumber}</span>}
+                              </div>
+                              {(asset.specs?.monitorBrand || asset.specs?.manufacturingYear || asset.specs?.oldAssetCode) && (
+                                <div className="flex flex-wrap items-center gap-1 mt-1 text-[8.5px]">
+                                  {asset.specs?.manufacturingYear && (
+                                    <span className="px-1 py-0.2 rounded bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                                      Năm: {asset.specs.manufacturingYear}
+                                    </span>
+                                  )}
+                                  {(asset.specs?.monitorBrand || asset.specs?.monitorModel) && (
+                                    <span className="px-1 py-0.2 rounded bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 truncate max-w-[130px]" title={`Màn hình: ${asset.specs.monitorBrand || ''} ${asset.specs.monitorModel || ''} ${asset.specs.monitorSerial ? `(SN: ${asset.specs.monitorSerial})` : ''}`}>
+                                      🖥️ {asset.specs.monitorBrand || ''} {asset.specs.monitorModel || ''}
+                                    </span>
+                                  )}
+                                  {asset.specs?.oldAssetCode && (
+                                    <span className="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                      Cũ: {asset.specs.oldAssetCode}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                          )}
+
+                          {/* CÔNG TY & VỊ TRÍ (2 DÒNG GỌN GÀNG) */}
+                          {visibleColumns.companyLocation && (
+                            <td className="py-2 px-1.5">
+                              <div className="space-y-0.5">
+                                <span className="font-bold text-slate-800 dark:text-slate-200 text-[10.5px] leading-tight line-clamp-2 block" title={asset.companyName || 'Công ty chung'}>
+                                  {asset.companyName || 'Tập đoàn ABC'}
+                                </span>
+                                <span className="text-[9px] text-slate-400 block line-clamp-1" title={asset.location?.name || 'Kho IT'}>
+                                  📍 {asset.location?.name || 'Kho IT'}
+                                </span>
+                              </div>
+                            </td>
+                          )}
+
+                          {/* DANH MỤC (2-3 DÒNG GỌN GÀNG KHI DÀI) */}
+                          {visibleColumns.category && (
+                            <td className="py-2 px-1.5">
+                              <div className="inline-flex items-start gap-1 text-[9.5px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded-md leading-tight max-w-[125px]">
+                                <span className="shrink-0 mt-0.5">{renderCategoryIcon(asset.category?.icon, 'w-2.8 h-2.8')}</span>
+                                <span className="break-words line-clamp-3">{asset.category?.name || 'Khác'}</span>
+                              </div>
+                            </td>
+                          )}
+
+                          {/* NGUYÊN GIÁ & KHẤU HAO (DUAL-CURRENCY & NET BOOK VALUE) */}
+                          {visibleColumns.cost && (
+                            <td className="py-2 px-1.5">
+                              {rawPrice > 0 ? (
+                                <div className="space-y-0.5">
+                                  <div className="font-black text-slate-900 dark:text-white text-[11px] font-mono leading-tight">
+                                    {formatPrice(convertedPrice, selectedCurrency)}
+                                  </div>
+                                  {(() => {
+                                    const catName = (asset.category?.name || '').toLowerCase();
+                                    const usefulMonths = Number((asset as any).specs?.depreciationMonths) ||
+                                      (catName.includes('server') || catName.includes('máy chủ') || catName.includes('switch') || catName.includes('router') || catName.includes('mạng') ? 60 : 36);
+                                    let depRatio = 0;
+                                    const now = new Date();
+                                    if (asset.purchaseDate) {
+                                      const pDate = new Date(asset.purchaseDate);
+                                      const diff = Math.max(0, (now.getFullYear() - pDate.getFullYear()) * 12 + (now.getMonth() - pDate.getMonth()));
+                                      depRatio = Math.min(1, diff / usefulMonths);
+                                    } else {
+                                      depRatio = asset.condition === 'NEW' ? 0 : 0.25;
+                                    }
+                                    const remaining = Math.max(0, convertedPrice * (1 - depRatio));
+                                    const depPercent = Math.min(100, Math.round(depRatio * 100));
+                                    return (
+                                      <div className="text-[8.5px] leading-tight space-y-0.5" title={`${isEn ? 'Remaining Value' : 'Giá trị còn lại'}: ${formatPrice(remaining, selectedCurrency)} (${usefulMonths} ${isEn ? 'months' : 'tháng'} - ${depPercent}%)`}>
+                                        <div className="flex items-center gap-1">
+                                          <span className={`font-bold ${depPercent >= 100 ? 'text-rose-600 dark:text-rose-400' : depPercent >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                                            CL: {formatPrice(remaining, selectedCurrency)}
+                                          </span>
+                                          <span className="text-[8px] text-slate-400 font-mono">({depPercent}%)</span>
+                                        </div>
+                                        {isDual && (
+                                          <div className="text-[8px] text-slate-400 font-mono">
+                                            Gốc: {formatPrice(rawPrice, rawCurr)}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 italic text-[9.5px]">—</span>
+                              )}
+                            </td>
+                          )}
+
+                          {/* BẢO HÀNH & NGÀY MUA */}
+                          {visibleColumns.warrantyDate && (
+                            <td className="py-2 px-1.5">
+                              <div className="space-y-0.5">
+                                {asset.warrantyExpiry ? (
+                                  <>
+                                    {warrantyInfo && (
+                                      <span className={`inline-block font-bold px-1.5 py-0.2 rounded text-[8.5px] leading-tight ${warrantyInfo.badgeClass}`}>
+                                        {warrantyInfo.text}
+                                      </span>
+                                    )}
+                                    <div className="text-slate-400 text-[9px] font-mono leading-tight">
+                                      Hạn: {formatDate(asset.warrantyExpiry)}
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span className="text-slate-400 italic text-[9px]">Không có BH</span>
+                                )}
+                                <div className="text-[9px] text-blue-600 dark:text-blue-400 font-semibold font-mono leading-tight pt-0.5">
+                                  📅 Mua: {formatDate(asset.purchaseDate || asset.createdAt)}
+                                </div>
+                              </div>
+                            </td>
+                          )}
 
                           {/* TRẠNG THÁI */}
-                          <td className="py-2 px-1.5">
-                            <span
-                              className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap ${
-                                asset.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-900 border border-amber-300 ring-1 ring-amber-400/40 animate-pulse'
-                                  : asset.status === 'AVAILABLE'
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : asset.status === 'IN_USE'
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                  : asset.status === 'MAINTENANCE'
-                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                  : 'bg-slate-100 text-slate-600 border border-slate-200'
-                              }`}
-                            >
-                              {asset.status === 'PENDING' && '🟠 Chờ duyệt'}
-                              {asset.status === 'AVAILABLE' && '● Sẵn sàng'}
-                              {asset.status === 'IN_USE' && '● Đang dùng'}
-                              {asset.status === 'MAINTENANCE' && '● Bảo trì'}
-                              {asset.status === 'RETIRED' && '● Đã thanh lý'}
-                            </span>
-                          </td>
+                          {visibleColumns.status && (
+                            <td className="py-2 px-1.5">
+                              <span
+                                className={`inline-flex items-center text-[9px] font-bold px-1.5 py-0.2 rounded-full whitespace-nowrap ${
+                                  asset.status === 'PENDING'
+                                    ? 'bg-amber-100 text-amber-900 border border-amber-300 ring-1 ring-amber-400/40 animate-pulse'
+                                    : asset.status === 'AVAILABLE'
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : asset.status === 'IN_USE'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    : asset.status === 'MAINTENANCE'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                }`}
+                              >
+                                {asset.status === 'PENDING' && '🟠 Chờ duyệt'}
+                                {asset.status === 'AVAILABLE' && '● Sẵn sàng'}
+                                {asset.status === 'IN_USE' && '● Đang dùng'}
+                                {asset.status === 'MAINTENANCE' && '● Bảo trì'}
+                                {asset.status === 'RETIRED' && '● Đã thanh lý'}
+                              </span>
+                            </td>
+                          )}
 
                           {/* NGƯỜI GIỮ */}
-                          <td className="py-2 px-1.5">
-                            {assignedUser ? (
-                              <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px] block line-clamp-2 leading-tight" title={assignedUser.fullName}>
-                                👤 {assignedUser.fullName}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 italic text-[9.5px]">Trong kho</span>
-                            )}
-                          </td>
+                          {visibleColumns.assignedTo && (
+                            <td className="py-2 px-1.5">
+                              {assignedUser ? (
+                                <span className="font-bold text-slate-800 dark:text-slate-200 text-[10px] block line-clamp-2 leading-tight" title={assignedUser.fullName}>
+                                  👤 {assignedUser.fullName}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 italic text-[9.5px]">Trong kho</span>
+                              )}
+                            </td>
+                          )}
 
-                          {/* STICKY COLUMN: THAO TÁC (HIỆN TOÀN BỘ ICON TRỰC TIẾP TRÊN DÒNG) */}
-                          <td
-                            className="py-2 px-2 text-right sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors min-w-[145px]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
+                          {/* CỘT CẤU HÌNH (CPU/RAM/HDD) */}
+                          {visibleColumns.hardware && (
+                            <td className="py-2 px-1.5">
+                              {(() => {
+                                const hw = getAssetHardwareComponents(asset.specs);
+                                return (
+                                  <div className="space-y-0.5 text-[9.5px]">
+                                    {hw.cpu && hw.cpu !== '—' && (
+                                      <div className="text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[130px]" title={`CPU: ${hw.cpu}`}>
+                                        ⚡ {hw.cpu}
+                                      </div>
+                                    )}
+                                    {hw.ram && hw.ram !== '—' && (
+                                      <div className="text-blue-700 dark:text-blue-300 font-bold" title={`RAM: ${hw.ram}`}>
+                                        💾 {hw.ram}
+                                      </div>
+                                    )}
+                                    {hw.hdd && hw.hdd !== '—' && (
+                                      <div className="text-slate-500 font-mono text-[9px] truncate max-w-[130px]" title={`Ổ cứng: ${hw.hdd}`}>
+                                        💿 {hw.hdd}
+                                      </div>
+                                    )}
+                                    {(!hw.cpu || hw.cpu === '—') && (!hw.ram || hw.ram === '—') && (!hw.hdd || hw.hdd === '—') && (
+                                      <span className="text-slate-400 italic text-[9px]">—</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </td>
+                          )}
+
+                          {/* CỘT MÀN HÌNH ĐI KÈM */}
+                          {visibleColumns.monitor && (
+                            <td className="py-2 px-1.5">
+                              {(() => {
+                                const mon = getAssetMonitorInfo(asset.specs);
+                                return (
+                                  <div className="space-y-0.5 text-[9.5px]">
+                                    {(mon.brand || mon.model) && (
+                                      <div className="text-slate-800 dark:text-slate-200 font-semibold truncate max-w-[130px]" title={`Màn hình: ${mon.brand} ${mon.model}`}>
+                                        🖥️ {mon.brand} {mon.model}
+                                      </div>
+                                    )}
+                                    {mon.serial && (
+                                      <div className="text-slate-500 font-mono text-[9px] truncate max-w-[130px]" title={`Số Serial màn hình: ${mon.serial}`}>
+                                        SN: {mon.serial}
+                                      </div>
+                                    )}
+                                    {mon.year && (
+                                      <div className="text-amber-700 dark:text-amber-400 text-[8.5px]">
+                                        Năm: {mon.year}
+                                      </div>
+                                    )}
+                                    {!mon.brand && !mon.model && !mon.serial && !mon.year && (
+                                      <span className="text-slate-400 italic text-[9px]">—</span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </td>
+                          )}
+
+                          {/* STICKY COLUMN: THAO TÁC */}
+                          {visibleColumns.actions && (
+                            <td
+                              className="py-2 px-2 text-right sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-blue-50/90 dark:group-hover:bg-slate-800/90 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors min-w-[145px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                             <div className="flex items-center justify-end gap-1 shrink-0">
                               {/* 1. Sửa */}
                               <button
@@ -3154,7 +3648,8 @@ export default function AssetsPage() {
                               </button>
                             </div>
                           </td>
-                        </tr>
+                        )}
+                      </tr>
                       );
                     })
                   )}
