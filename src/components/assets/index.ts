@@ -16,3 +16,4 @@ export * from './AssetTimeline360';
 export { MaintenanceHandoverModal } from './MaintenanceHandoverModal';
 export { MaintenanceQrModal } from './MaintenanceQrModal';
 export { default as DepartmentFixedAssetSelectorModal } from './DepartmentFixedAssetSelectorModal';
+export { default as DepartmentFixedAssetStatsModal } from './DepartmentFixedAssetStatsModal';

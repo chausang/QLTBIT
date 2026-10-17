@@ -24,9 +24,11 @@ import {
   Layers,
   Building,
   Check,
+  BarChart3,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/context';
 import { TablePaginationBar } from '@/components/common/TablePaginationBar';
+import DepartmentFixedAssetStatsModal from './DepartmentFixedAssetStatsModal';
 
 interface LinkedItem {
   id: string;
@@ -124,6 +126,7 @@ export default function DepartmentFixedAssetsTab() {
   const [clearExistingOnImport, setClearExistingOnImport] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
 
   // Phân trang
   const [currentPage, setCurrentPage] = useState(1);
@@ -572,6 +575,17 @@ export default function DepartmentFixedAssetsTab() {
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
               <span>{txt('Xuất Excel', 'Export Excel', 'Excel出力')}</span>
             </a>
+
+            {/* Thống kê thiết bị theo Khoa Phòng */}
+            <button
+              type="button"
+              onClick={() => setIsStatsModalOpen(true)}
+              className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+              title={txt('Thống kê số lượng máy tính, máy in... theo từng khoa phòng', 'Department device inventory stats', '部署別機器統計')}
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-indigo-200" />
+              <span>{txt('Thống Kê Khoa Phòng', 'Department Stats', '部署別統計')}</span>
+            </button>
 
             {/* Nút Xóa hàng loạt */}
             {selectedIds.length > 0 && (
@@ -1661,6 +1675,12 @@ export default function DepartmentFixedAssetsTab() {
           </div>
         </div>
       )}
+
+      {/* 6. MODAL THỐNG KÊ THIẾT BỊ THEO KHOA PHÒNG */}
+      <DepartmentFixedAssetStatsModal
+        isOpen={isStatsModalOpen}
+        onClose={() => setIsStatsModalOpen(false)}
+      />
     </div>
   );
 }
