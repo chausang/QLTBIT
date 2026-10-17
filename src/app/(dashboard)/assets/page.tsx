@@ -813,11 +813,12 @@ export default function AssetsPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Auto-open Detail Modal if URL contains ?id=... or ?assetTag=... or ?tag=...
+  const autoOpenedTargetIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const targetId = params.get('id') || params.get('assetTag') || params.get('tag');
-    if (!targetId) return;
+    if (!targetId || autoOpenedTargetIdRef.current === targetId) return;
 
     if (assets.length > 0) {
       const found = assets.find(
@@ -827,8 +828,14 @@ export default function AssetsPage() {
           a.serialNumber?.toLowerCase() === targetId.toLowerCase()
       );
       if (found) {
+        autoOpenedTargetIdRef.current = targetId;
         setSelectedDetailAsset(found);
         setIsDetailModalOpen(true);
+        const url = new URL(window.location.href);
+        url.searchParams.delete('id');
+        url.searchParams.delete('assetTag');
+        url.searchParams.delete('tag');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
         return;
       }
     }
@@ -838,8 +845,14 @@ export default function AssetsPage() {
       .then((res) => {
         const item = res.data || res.asset;
         if (item) {
+          autoOpenedTargetIdRef.current = targetId;
           setSelectedDetailAsset(item);
           setIsDetailModalOpen(true);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('id');
+          url.searchParams.delete('assetTag');
+          url.searchParams.delete('tag');
+          window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
         }
       })
       .catch(() => {});
@@ -1802,28 +1815,9 @@ export default function AssetsPage() {
     }
   };
 
-  const handleOpenDetail = async (asset: any) => {
+  const handleOpenDetail = (asset: any) => {
     setSelectedDetailAsset(asset);
     setIsDetailModalOpen(true);
-    setDetailMaintenanceLogs([]);
-    setDetailSoftwareSearch('');
-    setDetailSoftwareFilter('ALL');
-    try {
-      const [maintRes, assetRes] = await Promise.all([
-        fetch(`/api/assets/${asset.id}/maintenance`),
-        fetch(`/api/assets/${asset.id}`),
-      ]);
-      const data = await maintRes.json();
-      if (data.success && Array.isArray(data.data)) {
-        setDetailMaintenanceLogs(data.data);
-      }
-      const assetData = await assetRes.json();
-      if (assetData.data) {
-        setSelectedDetailAsset(assetData.data);
-      }
-    } catch {
-      console.error('Failed to load asset maintenance logs');
-    }
   };
 
   const handleOpenEdit = (asset: any, tab: 'general' | 'specs' | 'finance' | 'licenses' = 'general') => {

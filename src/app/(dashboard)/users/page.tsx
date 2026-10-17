@@ -207,7 +207,50 @@ export default function UsersPage() {
   const [isUserDetailModalOpen, setIsUserDetailModalOpen] = useState(false);
 
   const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+
+  const handleToggleSelectUser = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedUserIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllUsers = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const pageIds = paginatedUsers.map((u) => u.id);
+      setSelectedUserIds(Array.from(new Set([...selectedUserIds, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedUsers.map((u) => u.id));
+      setSelectedUserIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleBulkDeleteUsers = async () => {
+    if (selectedUserIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedUserIds.length} nhân sự đã chọn? Dữ liệu sẽ được chuyển vào thùng rác.`)) return;
+
+    const idsToDelete = [...selectedUserIds];
+    setSelectedUserIds([]);
+    setUsers((prev) => prev.filter((u) => !idsToDelete.includes(u.id)));
+
+    try {
+      for (const uid of idsToDelete) {
+        await fetch(`/api/users/${uid}`, { method: 'DELETE' });
+      }
+      invalidateClientCache('/api/users');
+      invalidateClientCache('/api/master-data');
+      invalidateClientCache('/api/trash');
+      triggerDataRefresh('users');
+      triggerDataRefresh('master-data');
+      triggerDataRefresh('trash');
+      loadData();
+    } catch (err) {
+      console.error('Lỗi khi xóa hàng loạt:', err);
+      loadData();
+    }
+  };
 
   // Form State: Parent & Child Department structure
   const [formParentDept, setFormParentDept] = useState('Ban Công Nghệ Thông Tin (IT / CNTT)');
@@ -1300,6 +1343,35 @@ export default function UsersPage() {
         </div>
       </div>
 
+      {/* Bulk Actions Banner */}
+      {selectedUserIds.length > 0 && (
+        <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl animate-in fade-in slide-in-from-top duration-200">
+          <div className="flex items-center gap-2 text-xs font-semibold text-purple-900 dark:text-purple-200">
+            <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+              {selectedUserIds.length}
+            </span>
+            <span>{isEn ? `Selected ${selectedUserIds.length} employee(s)` : `Đã chọn ${selectedUserIds.length} nhân sự`}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedUserIds([])}
+              className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:white font-medium cursor-pointer"
+            >
+              {isEn ? 'Deselect all' : 'Bỏ chọn'}
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeleteUsers}
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isEn ? `Delete (${selectedUserIds.length})` : `Xóa (${selectedUserIds.length})`}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* VIEW 1: COMPACT 1-PAGE ENTERPRISE TABLE VIEW */}
       {viewMode === 'table' ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
@@ -1307,9 +1379,19 @@ export default function UsersPage() {
             <table className="w-full table-fixed text-left text-xs border-collapse">
             <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
               <tr>
-                <th className="py-3 px-3 w-[30%]">{isEn ? 'EMPLOYEE & CONTACT' : 'NHÂN SỰ & LIÊN HỆ'}</th>
-                <th className="py-3 px-3 w-[24%]">{isEn ? 'ORGANIZATION & ROLE' : 'CƠ CẤU ĐƠN VỊ'}</th>
-                <th className="py-3 px-3 w-[22%]">{isEn ? 'ASSIGNED DEVICES' : 'THIẾT BỊ ĐANG GIỮ'}</th>
+                <th className="py-3 px-2 w-10 text-center">
+                  <input
+                    type="checkbox"
+                    checked={paginatedUsers.length > 0 && paginatedUsers.every((u) => selectedUserIds.includes(u.id))}
+                    onChange={handleSelectAllUsers}
+                    className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    title={isEn ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                  />
+                </th>
+                <th className="py-3 px-2 w-12 text-center text-slate-500">{isEn ? 'No.' : 'STT'}</th>
+                <th className="py-3 px-3 w-[28%]">{isEn ? 'EMPLOYEE & CONTACT' : 'NHÂN SỰ & LIÊN HỆ'}</th>
+                <th className="py-3 px-3 w-[23%]">{isEn ? 'ORGANIZATION & ROLE' : 'CƠ CẤU ĐƠN VỊ'}</th>
+                <th className="py-3 px-3 w-[21%]">{isEn ? 'ASSIGNED DEVICES' : 'THIẾT BỊ ĐANG GIỮ'}</th>
                 <th className="py-3 px-3 w-[18%]">{isEn ? 'LICENSES' : 'BẢN QUYỀN (LICENSES)'}</th>
                 <th className="py-3 px-2 text-center w-[6%]">{isEn ? 'ACTIONS' : 'THAO TÁC'}</th>
               </tr>
@@ -1317,19 +1399,19 @@ export default function UsersPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading && users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600" />
                     <span>{isEn ? 'Loading employee list...' : 'Đang tải danh sách nhân sự...'}</span>
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     {isEn ? 'No matching employees found' : 'Không tìm thấy nhân viên nào phù hợp'}
                   </td>
                 </tr>
               ) : (
-                paginatedUsers.map((u) => {
+                paginatedUsers.map((u, idx) => {
                   const { parent, child } = parseDeptParts(u.department);
                   const isIT = u.department?.includes('IT') || u.department?.includes('CNTT');
 
@@ -1338,9 +1420,26 @@ export default function UsersPage() {
                       key={u.id}
                       onClick={() => handleOpenEditUser(u)}
                       onContextMenu={(e) => handleRowContextMenu(e, u)}
-                      className="hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-colors group cursor-pointer"
+                      className={`hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-colors group cursor-pointer ${
+                        selectedUserIds.includes(u.id) ? 'bg-purple-50/60 dark:bg-purple-950/30' : ''
+                      }`}
                       title={isEn ? 'Click to edit. Right-click for quick actions menu' : 'Bấm để sửa thông tin. Nhấp chuột phải để mở menu thao tác'}
                     >
+                      {/* Cột Checkbox */}
+                      <td className="py-2.5 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedUserIds.includes(u.id)}
+                          onChange={() => {}}
+                          onClick={(e) => handleToggleSelectUser(u.id, e)}
+                          className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Cột STT */}
+                      <td className="py-2.5 px-2 text-center font-mono font-bold text-slate-400 text-[11px]">
+                        {(currentPage - 1) * pageSize + idx + 1}
+                      </td>
                       {/* Cột 1: Nhân Sự & Liên Hệ */}
                       <td className="py-2.5 px-3">
                         <div className="flex items-center gap-2.5 min-w-0">

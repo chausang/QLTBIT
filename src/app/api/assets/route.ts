@@ -72,6 +72,7 @@ export async function GET(request: NextRequest) {
         OR: [
           { name: { contains: search, mode: 'insensitive' } },
           { fixedAssetName: { contains: search, mode: 'insensitive' } },
+          { fixedAssetCode: { contains: search, mode: 'insensitive' } },
           { managementCode: { contains: search, mode: 'insensitive' } },
           { assetTag: { contains: search, mode: 'insensitive' } },
           { serialNumber: { contains: search, mode: 'insensitive' } },
@@ -271,6 +272,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       fixedAssetName,
+      fixedAssetCode,
       managementCode,
       autoGenManagementCode,
       categoryId,
@@ -385,6 +387,7 @@ export async function POST(request: NextRequest) {
         assetTag,
         name,
         fixedAssetName: fixedAssetName ? fixedAssetName.trim() : null,
+        fixedAssetCode: fixedAssetCode ? String(fixedAssetCode).trim() : null,
         managementCode: finalManagementCode || null,
         categoryId: finalCategoryId,
         brand: brand || null,

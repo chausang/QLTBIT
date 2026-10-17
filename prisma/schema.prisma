@@ -438,6 +438,7 @@ model Asset {
   assetTag         String         @unique @map("asset_tag")
   name             String
   fixedAssetName   String?        @map("fixed_asset_name")
+  fixedAssetCode   String?        @map("fixed_asset_code")
   managementCode   String?        @map("management_code")
   categoryId       String         @map("category_id") @db.Uuid
   brand            String?
@@ -480,6 +481,7 @@ model Asset {
   @@index([locationId])
   @@index([companyName])
   @@index([managementCode])
+  @@index([fixedAssetCode])
   @@index([createdAt])
   @@index([status, createdAt])
   @@map("assets")
@@ -1282,7 +1284,9 @@ model SparePart {
   id              String   @id @default(uuid()) @db.Uuid
   name            String                        // "RAM DDR4 16GB"
   fixedAssetName  String?  @map("fixed_asset_name") // Tên tài sản cố định (liên kết với kiểm kê tài sản)
+  fixedAssetCode  String?  @map("fixed_asset_code") // Mã tài sản cố định
   managementCode  String?  @map("management_code") // Mã quản lý (liên kết kiểm kê và thiết bị/linh kiện)
+  department      String?  @map("department") // Khoa phòng đang sử dụng / quản lý
   sku             String?  @unique              // Mã kho nội bộ
   categoryId      String?  @map("category_id") @db.Uuid
   category        AssetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -1308,6 +1312,8 @@ model SparePart {
 
   @@index([quantity])
   @@index([managementCode])
+  @@index([fixedAssetCode])
+  @@index([department])
   @@map("spare_parts")
 }
 

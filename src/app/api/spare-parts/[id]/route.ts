@@ -24,7 +24,9 @@ export async function PUT(
     const {
       name,
       fixedAssetName,
+      fixedAssetCode,
       managementCode,
+      department,
       autoGenManagementCode,
       sku,
       categoryId,
@@ -63,6 +65,8 @@ export async function PUT(
       data: {
         ...(name && { name }),
         ...(fixedAssetName !== undefined && { fixedAssetName: fixedAssetName?.trim() || null }),
+        ...(fixedAssetCode !== undefined && { fixedAssetCode: fixedAssetCode?.trim() || null }),
+        ...(department !== undefined && { department: department?.trim() || null }),
         ...(finalManagementCode !== undefined && { managementCode: finalManagementCode }),
         ...(sku !== undefined && { sku: sku || null }),
         ...(categoryId !== undefined && { categoryId: categoryId || null }),

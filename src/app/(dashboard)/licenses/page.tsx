@@ -1944,17 +1944,20 @@ export default function LicensesPage() {
           <table className="w-full text-left text-xs border-collapse min-w-[900px]">
             <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               <tr>
-                <th className="py-2 px-2.5 sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[175px]">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={paginatedGroups.length > 0 && selectedGroupIds.size === paginatedGroups.length}
-                      onChange={handleToggleSelectAll}
-                      className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                      title="Chọn tất cả các gói trên trang này"
-                    />
-                    <span>{language === 'en' ? 'LICENSE NAME & KEY' : 'TÊN BẢN QUYỀN & KEY'}</span>
-                  </div>
+                <th className="py-2 px-2 w-10 text-center sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                  <input
+                    type="checkbox"
+                    checked={paginatedGroups.length > 0 && selectedGroupIds.size === paginatedGroups.length}
+                    onChange={handleToggleSelectAll}
+                    className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                    title="Chọn tất cả các gói trên trang này"
+                  />
+                </th>
+                <th className="py-2 px-2 w-12 text-center text-slate-500 font-bold min-w-[48px]">
+                  {language === 'en' ? 'No.' : 'STT'}
+                </th>
+                <th className="py-2 px-2.5 min-w-[175px]">
+                  {language === 'en' ? 'LICENSE NAME & KEY' : 'TÊN BẢN QUYỀN & KEY'}
                 </th>
                 <th className="py-2 px-2.5 min-w-[140px]">{language === 'en' ? 'TYPE & COMPANY' : 'LOẠI & CÔNG TY'}</th>
                 <th className="py-2 px-2.5 min-w-[210px]">{language === 'en' ? 'SEATS ALLOCATION' : 'PHÂN BỐ SEATS'}</th>
@@ -1969,35 +1972,15 @@ export default function LicensesPage() {
                 // Shimmering Skeleton Loader
                 Array.from({ length: 5 }).map((_, idx) => (
                   <tr key={idx} className="animate-pulse">
-                    <td className="py-2.5 px-2.5">
+                    <td colSpan={9} className="py-2.5 px-2.5">
                       <div className="h-3.5 w-32 bg-slate-200 dark:bg-slate-800 rounded-md mb-1" />
                       <div className="h-2.5 w-20 bg-slate-100 dark:bg-slate-800/60 rounded-md" />
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded-md mb-1" />
-                      <div className="h-2.5 w-24 bg-slate-100 dark:bg-slate-800/60 rounded-md" />
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-md mb-1" />
-                      <div className="h-2 w-20 bg-slate-100 dark:bg-slate-800/60 rounded-full" />
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded-md" />
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <div className="h-3.5 w-16 bg-slate-200 dark:bg-slate-800 rounded-md" />
-                    </td>
-                    <td className="py-2.5 px-2">
-                      <div className="h-3.5 w-20 bg-slate-200 dark:bg-slate-800 rounded-md" />
-                    </td>
-                    <td className="py-2.5 px-2 text-center">
-                      <div className="h-6 w-6 bg-slate-200 dark:bg-slate-800 rounded-lg mx-auto" />
                     </td>
                   </tr>
                 ))
               ) : filteredLicenses.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center text-slate-400 space-y-2">
+                  <td colSpan={9} className="p-12 text-center text-slate-400 space-y-2">
                     <Key className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
                     <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{language === 'en' ? 'No matching software licenses found' : 'Không tìm thấy bản quyền phần mềm nào phù hợp'}</p>
                     <button
@@ -2017,7 +2000,7 @@ export default function LicensesPage() {
                   </td>
                 </tr>
               ) : (
-                paginatedGroups.map((group) => {
+                paginatedGroups.map((group, idx) => {
                   const masterLic = group.masterLicense;
                   const isExpanded = expandedGroupIds.has(group.id);
                   const hasBatches = group.hasMultipleBatches;
@@ -2059,27 +2042,39 @@ export default function LicensesPage() {
                               ? 'bg-purple-50/60 dark:bg-purple-950/40 font-semibold'
                               : 'hover:bg-purple-50/40 dark:hover:bg-purple-950/30'
                             : 'hover:bg-purple-50/40 dark:hover:bg-purple-950/30'
-                        }`}
+                        } ${selectedGroupIds.has(group.id) ? 'bg-purple-50/70 dark:bg-purple-950/50' : ''}`}
                         title={hasBatches ? (isExpanded ? 'Bấm để thu gọn các đợt mua (Chuột phải để mở menu thao tác)' : 'Bấm để mở rộng chi tiết các đợt mua (Chuột phải để mở menu thao tác)') : 'Bấm để xem chi tiết bản quyền (Chuột phải để mở menu thao tác)'}
                       >
-                        {/* Cột 1: Tên & Đợt mua (Sticky Left) */}
-                        <td className="py-2.5 px-2.5 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-purple-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors min-w-[175px]">
+                        {/* Cột Checkbox */}
+                        <td
+                          className="py-2.5 px-2 text-center sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-purple-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors w-10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedGroupIds.has(group.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setSelectedGroupIds((prev) => {
+                                const next = new Set(prev);
+                                if (checked) next.add(group.id);
+                                else next.delete(group.id);
+                                return next;
+                              });
+                            }}
+                            className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          />
+                        </td>
+
+                        {/* Cột STT */}
+                        <td className="py-2.5 px-2 text-center font-mono font-bold text-slate-400 text-[11px] w-12">
+                          {(currentPage - 1) * pageSize + idx + 1}
+                        </td>
+
+                        {/* Cột Tên & Đợt mua */}
+                        <td className="py-2.5 px-2.5 transition-colors min-w-[175px]">
                           <div className="flex items-start gap-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedGroupIds.has(group.id)}
-                              onClick={(e) => e.stopPropagation()}
-                              onChange={(e) => {
-                                const checked = e.target.checked;
-                                setSelectedGroupIds((prev) => {
-                                  const next = new Set(prev);
-                                  if (checked) next.add(group.id);
-                                  else next.delete(group.id);
-                                  return next;
-                                });
-                              }}
-                              className="mt-1 rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer shrink-0"
-                            />
                             {hasBatches ? (
                               <button
                                 type="button"
@@ -2347,7 +2342,7 @@ export default function LicensesPage() {
                       {/* Expanded Sub-table: Chi tiết từng đợt mua & Cân đối theo công ty */}
                       {hasBatches && isExpanded && (
                         <tr className="bg-slate-50/70 dark:bg-slate-900/80 border-y border-purple-200 dark:border-purple-800/80 animate-in fade-in duration-200">
-                          <td colSpan={7} className="p-3.5 pl-6 sm:pl-10">
+                          <td colSpan={9} className="p-3.5 pl-6 sm:pl-10">
                             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-purple-200 dark:border-purple-800/80 shadow-xs overflow-hidden">
                               {/* Sub-table Header with 2 Tabs */}
                               <div className="flex items-center justify-between px-4 py-2 bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-indigo-950/40 border-b border-purple-100 dark:border-purple-800 flex-wrap gap-2">

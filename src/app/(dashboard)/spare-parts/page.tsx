@@ -43,12 +43,15 @@ import {
   FileSpreadsheet,
   BarChart3,
 } from 'lucide-react';
+import DepartmentFixedAssetSelectorModal, { SelectedFixedAsset } from '@/components/assets/DepartmentFixedAssetSelectorModal';
 
 interface SparePart {
   id: string;
   name: string;
   managementCode?: string;
   fixedAssetName?: string;
+  fixedAssetCode?: string;
+  department?: string;
   sku?: string;
   categoryId?: string;
   category?: { id: string; name: string };
@@ -112,10 +115,16 @@ export default function SparePartsPage() {
   const [maintenanceType, setMaintenanceType] = useState<'UPGRADE' | 'REPLACEMENT' | 'REPAIR' | 'OTHER'>('UPGRADE');
   const [createMaintenanceLog, setCreateMaintenanceLog] = useState(true);
 
+  // Selector state
+  const [isFixedAssetSelectorOpen, setIsFixedAssetSelectorOpen] = useState(false);
+  const [selectorTarget, setSelectorTarget] = useState<'create' | 'edit'>('create');
+
   // Create form state
   const [formName, setFormName] = useState('');
   const [formManagementCode, setFormManagementCode] = useState('');
   const [formFixedAssetName, setFormFixedAssetName] = useState('');
+  const [formFixedAssetCode, setFormFixedAssetCode] = useState('');
+  const [formDepartment, setFormDepartment] = useState('');
   const [formSku, setFormSku] = useState('');
   const [formCategory, setFormCategory] = useState('');
   const [formQty, setFormQty] = useState('0');
@@ -133,6 +142,8 @@ export default function SparePartsPage() {
   const [editName, setEditName] = useState('');
   const [editManagementCode, setEditManagementCode] = useState('');
   const [editFixedAssetName, setEditFixedAssetName] = useState('');
+  const [editFixedAssetCode, setEditFixedAssetCode] = useState('');
+  const [editDepartment, setEditDepartment] = useState('');
   const [editSku, setEditSku] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editMinStock, setEditMinStock] = useState('5');
@@ -304,6 +315,8 @@ export default function SparePartsPage() {
     setEditName(part.name);
     setEditManagementCode(part.managementCode || '');
     setEditFixedAssetName(part.fixedAssetName || '');
+    setEditFixedAssetCode(part.fixedAssetCode || '');
+    setEditDepartment(part.department || '');
     setEditSku(part.sku || '');
     setEditCategory(part.categoryId || '');
     setEditMinStock(String(part.minStock || 5));
@@ -329,6 +342,8 @@ export default function SparePartsPage() {
           name: editName.trim(),
           managementCode: editManagementCode.trim() || undefined,
           fixedAssetName: editFixedAssetName.trim() || undefined,
+          fixedAssetCode: editFixedAssetCode.trim() || undefined,
+          department: editDepartment.trim() || undefined,
           sku: editSku.trim() || undefined,
           categoryId: editCategory || undefined,
           minStock: parseInt(editMinStock) || 5,
@@ -351,6 +366,8 @@ export default function SparePartsPage() {
             ...drawerPart,
             name: editName.trim(),
             fixedAssetName: editFixedAssetName.trim() || undefined,
+            fixedAssetCode: editFixedAssetCode.trim() || undefined,
+            department: editDepartment.trim() || undefined,
             sku: editSku.trim() || undefined,
             categoryId: editCategory || undefined,
             category: categories.find((c) => c.id === editCategory),
@@ -388,6 +405,8 @@ export default function SparePartsPage() {
           name: formName.trim(),
           managementCode: formManagementCode.trim() || undefined,
           fixedAssetName: formFixedAssetName.trim() || undefined,
+          fixedAssetCode: formFixedAssetCode.trim() || undefined,
+          department: formDepartment.trim() || undefined,
           sku: formSku.trim() || undefined,
           categoryId: formCategory || undefined,
           quantity: parseInt(formQty) || 0,
@@ -538,6 +557,8 @@ export default function SparePartsPage() {
     setFormName('');
     setFormManagementCode('');
     setFormFixedAssetName('');
+    setFormFixedAssetCode('');
+    setFormDepartment('');
     setFormSku('');
     setFormCategory('');
     setFormQty('0');
@@ -586,6 +607,39 @@ export default function SparePartsPage() {
     const start = (currentPage - 1) * pageSize;
     return filteredParts.slice(start, start + pageSize);
   }, [filteredParts, currentPage, pageSize]);
+
+  // Checkbox selection state
+  const [selectedPartIds, setSelectedPartIds] = useState<string[]>([]);
+
+  const handleSelectAll = () => {
+    if (paginatedParts.length > 0 && selectedPartIds.length === paginatedParts.length) {
+      setSelectedPartIds([]);
+    } else {
+      setSelectedPartIds(paginatedParts.map((p) => p.id));
+    }
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedPartIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedPartIds.length) return;
+    if (!confirm(isEn ? `Are you sure you want to delete ${selectedPartIds.length} selected spare parts?` : `Bạn có chắc chắn muốn xóa ${selectedPartIds.length} phụ tùng / linh kiện đã chọn?`)) return;
+    try {
+      await Promise.all(
+        selectedPartIds.map((id) =>
+          fetch(`/api/spare-parts/${id}`, { method: 'DELETE' })
+        )
+      );
+      setSelectedPartIds([]);
+      loadParts(true);
+    } catch {
+      alert(isEn ? 'Failed to delete some items' : 'Lỗi khi xóa một số linh kiện');
+    }
+  };
 
   // Excel Export Handler
   const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -850,6 +904,34 @@ export default function SparePartsPage() {
 
       {/* Inventory Table */}
       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+        {/* Bulk Actions Banner */}
+        {selectedPartIds.length > 0 && (
+          <div className="bg-indigo-50 border-b border-indigo-100 px-4 py-2.5 flex items-center justify-between text-xs animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-indigo-900">
+                {isEn ? `Selected ${selectedPartIds.length} items` : `Đã chọn ${selectedPartIds.length} phụ tùng / linh kiện`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isEn ? `Delete (${selectedPartIds.length})` : `Xóa (${selectedPartIds.length})`}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPartIds([])}
+                className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold transition-all border border-slate-200 cursor-pointer"
+              >
+                {isEn ? 'Deselect all' : 'Bỏ chọn'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {loading && parts.length === 0 ? (
           <div className="p-12 text-center">
             <Loader2 className="w-7 h-7 text-indigo-600 animate-spin mx-auto mb-2" />
@@ -868,8 +950,18 @@ export default function SparePartsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <thead className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
                 <tr>
+                  <th className="px-3 py-3.5 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={paginatedParts.length > 0 && selectedPartIds.length === paginatedParts.length}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      title={isEn ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                    />
+                  </th>
+                  <th className="px-3 py-3.5 w-12 text-center">{isEn ? 'No.' : 'STT'}</th>
                   <th className="px-5 py-3.5">{isEn ? 'Part / Component Name' : 'Tên Phụ Tùng / Linh Kiện'}</th>
                   <th className="px-4 py-3.5">{isEn ? 'Mgt Code' : 'Mã Quản Lý'}</th>
                   <th className="px-4 py-3.5">{isEn ? 'SKU Code' : 'Mã SKU'}</th>
@@ -882,15 +974,28 @@ export default function SparePartsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {paginatedParts.map((p) => {
+                {paginatedParts.map((p, idx) => {
+                  const isSelected = selectedPartIds.includes(p.id);
+                  const stt = (currentPage - 1) * pageSize + idx + 1;
                   const isLow = p.quantity <= p.minStock;
                   return (
                     <tr
                       key={p.id}
                       onClick={() => openDrawer(p)}
-                      className="hover:bg-indigo-50/40 cursor-pointer transition-colors group"
+                      className={`hover:bg-indigo-50/40 cursor-pointer transition-colors group ${isSelected ? 'bg-indigo-50/70' : ''}`}
                       title={isEn ? "Click to view details & history" : "Bấm để xem chi tiết & lịch sử"}
                     >
+                      <td className="px-3 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => handleToggleSelect(p.id)}
+                          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="px-3 py-3.5 text-center font-mono font-bold text-slate-500 text-[11px]">
+                        {stt}
+                      </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
@@ -1825,53 +1930,126 @@ export default function SparePartsPage() {
                 />
               </div>
 
-              {/* Mã quản lý & Tên tài sản cố định */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Mã quản lý */}
-                <div className="p-3 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
-                      <span>{isEn ? 'Mgt Code' : 'Mã quản lý (MQL)'}</span>
-                    </label>
+              {/* KHỐI LIÊN KẾT TÀI SẢN CỐ ĐỊNH KHOA PHÒNG & KIỂM KÊ */}
+              <div className="p-3.5 bg-gradient-to-br from-indigo-50/50 via-slate-50 to-blue-50/40 border border-indigo-200/80 rounded-2xl space-y-3">
+                {/* Header khối */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span className="text-[11px] font-black uppercase text-indigo-950 tracking-wide flex items-center gap-1">
+                      <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>{isEn ? 'Department Fixed Asset & Mgmt Code' : 'Tài sản cố định & Mã quản lý theo khoa phòng'}</span>
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectorTarget('edit');
+                      setIsFixedAssetSelectorOpen(true);
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                  >
+                    <Layers className="w-3 h-3" />
+                    <span>{isEn ? '📋 Select from Catalog' : '📋 Chọn từ TSCĐ khoa phòng'}</span>
+                  </button>
+                </div>
+
+                {/* Badge trạng thái đã liên kết */}
+                {(editFixedAssetCode || editFixedAssetName) && (
+                  <div className="p-2 bg-indigo-100/70 border border-indigo-200 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-indigo-900 flex items-center gap-1 text-[11px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <span>{isEn ? 'Linked Asset:' : 'Đã liên kết TSCĐ:'}</span>
+                      </span>
+                      {editFixedAssetCode && (
+                        <span className="font-mono font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 text-[10.5px]">
+                          🏷️ {editFixedAssetCode}
+                        </span>
+                      )}
+                      {editFixedAssetName && (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {editFixedAssetName}
+                        </span>
+                      )}
+                      {editDepartment && (
+                        <span className="text-[10px] bg-slate-200/80 px-1.5 py-0.2 rounded font-medium text-slate-700">
+                          🏢 {editDepartment}
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
-                        const gen = `MQL-${Date.now().toString().slice(-6)}`;
-                        setEditManagementCode(gen);
+                        setEditFixedAssetCode('');
+                        setEditFixedAssetName('');
                       }}
-                      className="text-[10px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded font-bold border border-emerald-300 cursor-pointer"
+                      className="text-[10.5px] text-rose-600 hover:text-rose-700 font-bold hover:underline cursor-pointer"
                     >
-                      ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                      {isEn ? 'Unlink' : 'Gỡ liên kết'}
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="MQL-xxxxxx"
-                    value={editManagementCode}
-                    onChange={(e) => setEditManagementCode(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-mono font-bold text-emerald-900 text-xs uppercase"
-                  />
-                </div>
+                )}
 
-                {/* Tên tài sản cố định */}
-                <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                {/* 3 Trường: Mã TSCĐ, Tên TSCĐ, Mã Quản Lý (MQL) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* 1. Mã tài sản cố định (Mã TSCĐ) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1 mb-1">
+                      <Tag className="w-3 h-3 text-blue-600" />
+                      <span>{isEn ? 'Fixed Asset Code' : 'Mã TSCĐ'}</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isEn ? "e.g. PCKH-HP-440..." : "VD: PCKH-HP-440..."}
+                      value={editFixedAssetCode}
+                      onChange={(e) => setEditFixedAssetCode(e.target.value.toUpperCase())}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-blue-950 outline-none focus:ring-1 focus:ring-blue-500 uppercase"
+                    />
+                  </div>
+
+                  {/* 2. Tên tài sản cố định (TSCĐ) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1 mb-1">
+                      <FileText className="w-3 h-3 text-indigo-600" />
                       <span>{isEn ? 'Fixed Asset Name' : 'Tên TSCĐ'}</span>
                     </label>
-                    <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold border border-blue-200">
-                      {isEn ? 'Optional' : 'Tùy chọn'}
-                    </span>
+                    <input
+                      type="text"
+                      placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
+                      value={editFixedAssetName}
+                      onChange={(e) => setEditFixedAssetName(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
-                    value={editFixedAssetName}
-                    onChange={(e) => setEditFixedAssetName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
-                  />
+
+                  {/* 3. Mã quản lý (MQL) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
+                        <span>{isEn ? 'Mgt Code' : 'Mã QL (MQL)'}</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const gen = `MQL-${Date.now().toString().slice(-6)}`;
+                          setEditManagementCode(gen);
+                        }}
+                        className="text-[9.5px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1 py-0.2 rounded font-bold border border-emerald-300 cursor-pointer"
+                      >
+                        ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="MQL-xxxxxx"
+                      value={editManagementCode}
+                      onChange={(e) => setEditManagementCode(e.target.value.toUpperCase())}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-emerald-900 outline-none focus:ring-1 focus:ring-emerald-500 uppercase"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -2043,53 +2221,126 @@ export default function SparePartsPage() {
                 />
               </div>
 
-              {/* Mã quản lý & Tên tài sản cố định */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Mã quản lý */}
-                <div className="p-3 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
-                      <span>{isEn ? 'Mgt Code' : 'Mã quản lý (MQL)'}</span>
-                    </label>
+              {/* KHỐI LIÊN KẾT TÀI SẢN CỐ ĐỊNH KHOA PHÒNG & KIỂM KÊ */}
+              <div className="p-3.5 bg-gradient-to-br from-indigo-50/50 via-slate-50 to-blue-50/40 border border-indigo-200/80 rounded-2xl space-y-3">
+                {/* Header khối */}
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                    <span className="text-[11px] font-black uppercase text-indigo-950 tracking-wide flex items-center gap-1">
+                      <Layers className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>{isEn ? 'Department Fixed Asset & Mgmt Code' : 'Tài sản cố định & Mã quản lý theo khoa phòng'}</span>
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectorTarget('create');
+                      setIsFixedAssetSelectorOpen(true);
+                    }}
+                    className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer"
+                  >
+                    <Layers className="w-3 h-3" />
+                    <span>{isEn ? '📋 Select from Catalog' : '📋 Chọn từ TSCĐ khoa phòng'}</span>
+                  </button>
+                </div>
+
+                {/* Badge trạng thái đã liên kết */}
+                {(formFixedAssetCode || formFixedAssetName) && (
+                  <div className="p-2 bg-indigo-100/70 border border-indigo-200 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-indigo-900 flex items-center gap-1 text-[11px]">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                        <span>{isEn ? 'Linked Asset:' : 'Đã liên kết TSCĐ:'}</span>
+                      </span>
+                      {formFixedAssetCode && (
+                        <span className="font-mono font-bold px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 text-[10.5px]">
+                          🏷️ {formFixedAssetCode}
+                        </span>
+                      )}
+                      {formFixedAssetName && (
+                        <span className="font-semibold text-slate-800 text-[11px]">
+                          {formFixedAssetName}
+                        </span>
+                      )}
+                      {formDepartment && (
+                        <span className="text-[10px] bg-slate-200/80 px-1.5 py-0.2 rounded font-medium text-slate-700">
+                          🏢 {formDepartment}
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => {
-                        const gen = `MQL-${Date.now().toString().slice(-6)}`;
-                        setFormManagementCode(gen);
+                        setFormFixedAssetCode('');
+                        setFormFixedAssetName('');
                       }}
-                      className="text-[10px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded font-bold border border-emerald-300 cursor-pointer"
+                      className="text-[10.5px] text-rose-600 hover:text-rose-700 font-bold hover:underline cursor-pointer"
                     >
-                      ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                      {isEn ? 'Unlink' : 'Gỡ liên kết'}
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="MQL-xxxxxx"
-                    value={formManagementCode}
-                    onChange={(e) => setFormManagementCode(e.target.value.toUpperCase())}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-emerald-500 font-mono font-bold text-emerald-900 text-xs uppercase"
-                  />
-                </div>
+                )}
 
-                {/* Tên tài sản cố định */}
-                <div className="p-3 bg-blue-50/50 border border-blue-200/80 rounded-2xl">
-                  <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                    <label className="font-bold text-slate-800 flex items-center gap-1.5 text-xs">
-                      <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
+                {/* 3 Trường: Mã TSCĐ, Tên TSCĐ, Mã Quản Lý (MQL) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  {/* 1. Mã tài sản cố định (Mã TSCĐ) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1 mb-1">
+                      <Tag className="w-3 h-3 text-blue-600" />
+                      <span>{isEn ? 'Fixed Asset Code' : 'Mã TSCĐ'}</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={isEn ? "e.g. PCKH-HP-440..." : "VD: PCKH-HP-440..."}
+                      value={formFixedAssetCode}
+                      onChange={(e) => setFormFixedAssetCode(e.target.value.toUpperCase())}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-blue-950 outline-none focus:ring-1 focus:ring-blue-500 uppercase"
+                    />
+                  </div>
+
+                  {/* 2. Tên tài sản cố định (TSCĐ) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1 mb-1">
+                      <FileText className="w-3 h-3 text-indigo-600" />
                       <span>{isEn ? 'Fixed Asset Name' : 'Tên TSCĐ'}</span>
                     </label>
-                    <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded font-semibold border border-blue-200">
-                      {isEn ? 'Optional' : 'Tùy chọn'}
-                    </span>
+                    <input
+                      type="text"
+                      placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
+                      value={formFixedAssetName}
+                      onChange={(e) => setFormFixedAssetName(e.target.value)}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 outline-none focus:ring-1 focus:ring-indigo-500"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    placeholder={isEn ? "e.g. RAM DDR4 16GB..." : "VD: Thanh RAM DDR4 16GB..."}
-                    value={formFixedAssetName}
-                    onChange={(e) => setFormFixedAssetName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 font-medium text-xs"
-                  />
+
+                  {/* 3. Mã quản lý (MQL) */}
+                  <div className="p-2.5 bg-white border border-slate-200 rounded-xl">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-800 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block"></span>
+                        <span>{isEn ? 'Mgt Code' : 'Mã QL (MQL)'}</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const gen = `MQL-${Date.now().toString().slice(-6)}`;
+                          setFormManagementCode(gen);
+                        }}
+                        className="text-[9.5px] text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-1 py-0.2 rounded font-bold border border-emerald-300 cursor-pointer"
+                      >
+                        ⚡ {isEn ? 'Auto' : 'Tự sinh'}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="MQL-xxxxxx"
+                      value={formManagementCode}
+                      onChange={(e) => setFormManagementCode(e.target.value.toUpperCase())}
+                      className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-emerald-900 outline-none focus:ring-1 focus:ring-emerald-500 uppercase"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -2243,6 +2494,41 @@ export default function SparePartsPage() {
           </div>
         </div>
       )}
+
+      {/* Modal chọn tài sản cố định từ danh mục khoa phòng */}
+      <DepartmentFixedAssetSelectorModal
+        isOpen={isFixedAssetSelectorOpen}
+        onClose={() => setIsFixedAssetSelectorOpen(false)}
+        defaultDepartment={
+          selectorTarget === 'edit'
+            ? locations.find((l) => l.id === editLocation)?.name || editDepartment || ''
+            : locations.find((l) => l.id === formLocation)?.name || formDepartment || ''
+        }
+        selectedFixedAssetCode={selectorTarget === 'edit' ? editFixedAssetCode : formFixedAssetCode}
+        selectedManagementCode={selectorTarget === 'edit' ? editManagementCode : formManagementCode}
+        onSelect={(selected: SelectedFixedAsset) => {
+          if (selectorTarget === 'edit') {
+            setEditFixedAssetCode(selected.fixedAssetCode);
+            setEditFixedAssetName(selected.fixedAssetName);
+            setEditManagementCode(selected.managementCode);
+            if (selected.department) setEditDepartment(selected.department);
+          } else {
+            setFormFixedAssetCode(selected.fixedAssetCode);
+            setFormFixedAssetName(selected.fixedAssetName);
+            setFormManagementCode(selected.managementCode);
+            if (selected.department) setFormDepartment(selected.department);
+          }
+        }}
+        onUnlink={() => {
+          if (selectorTarget === 'edit') {
+            setEditFixedAssetCode('');
+            setEditFixedAssetName('');
+          } else {
+            setFormFixedAssetCode('');
+            setFormFixedAssetName('');
+          }
+        }}
+      />
     </div>
   );
 }

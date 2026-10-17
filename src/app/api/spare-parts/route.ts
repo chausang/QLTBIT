@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
+    const department = searchParams.get('department') || '';
     const lowStockOnly = searchParams.get('lowStock') === 'true';
 
     const where: any = {};
@@ -21,9 +22,14 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { fixedAssetName: { contains: search, mode: 'insensitive' } },
+        { fixedAssetCode: { contains: search, mode: 'insensitive' } },
         { managementCode: { contains: search, mode: 'insensitive' } },
         { sku: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    if (department && department !== 'ALL') {
+      where.department = { contains: department, mode: 'insensitive' };
     }
 
     const spareParts = await prisma.sparePart.findMany({
@@ -92,7 +98,9 @@ export async function POST(request: NextRequest) {
     const {
       name,
       fixedAssetName,
+      fixedAssetCode,
       managementCode,
+      department,
       autoGenManagementCode,
       sku,
       categoryId,
@@ -128,7 +136,9 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         fixedAssetName: fixedAssetName?.trim() || null,
+        fixedAssetCode: fixedAssetCode ? String(fixedAssetCode).trim() : null,
         managementCode: finalManagementCode || null,
+        department: department ? String(department).trim() : null,
         sku: sku?.trim() || null,
         categoryId: categoryId || null,
         quantity: Number(quantity) || 0,

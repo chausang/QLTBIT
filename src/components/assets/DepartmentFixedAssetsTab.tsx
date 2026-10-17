@@ -68,7 +68,13 @@ export interface DepartmentFixedAssetItem {
   auditOrderIndex?: number | null;
   isGroupHeader: boolean;
   linkedAsset?: LinkedItem | null;
+  linkedAssets?: LinkedItem[];
   linkedSparePart?: LinkedItem | null;
+  linkedSpareParts?: LinkedItem[];
+  totalLinkedAssetsCount?: number;
+  totalLinkedSparePartsCount?: number;
+  totalLinkedItemsCount?: number;
+  auditMatchStatus?: 'MATCHED' | 'MISMATCH' | 'UNLINKED';
 }
 
 export default function DepartmentFixedAssetsTab() {
@@ -83,6 +89,8 @@ export default function DepartmentFixedAssetsTab() {
   const [departmentFilter, setDepartmentFilter] = useState('ALL');
   const [warehouseFilter, setWarehouseFilter] = useState('ALL');
   const [groupFilter, setGroupFilter] = useState('ALL');
+  const [auditFilter, setAuditFilter] = useState<'ALL' | 'MATCHED' | 'MISMATCH' | 'UNLINKED'>('ALL');
+  const [viewingAuditItem, setViewingAuditItem] = useState<DepartmentFixedAssetItem | null>(null);
 
   // Bộ lọc có sẵn từ backend
   const [filterOptions, setFilterOptions] = useState<{
@@ -111,6 +119,7 @@ export default function DepartmentFixedAssetsTab() {
 
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [importScope, setImportScope] = useState<'IT_ONLY' | 'ALL'>('IT_ONLY');
   const [autoGenMgmtCodeOnImport, setAutoGenMgmtCodeOnImport] = useState(true);
   const [clearExistingOnImport, setClearExistingOnImport] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -121,6 +130,20 @@ export default function DepartmentFixedAssetsTab() {
   const [pageSize, setPageSize] = useState(25);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+
+  // Thống kê đối soát kiểm kê IT
+  const auditStats = useMemo(() => {
+    const nonHeaders = items.filter((i) => !i.isGroupHeader);
+    const matched = nonHeaders.filter((i) => i.auditMatchStatus === 'MATCHED').length;
+    const mismatch = nonHeaders.filter((i) => i.auditMatchStatus === 'MISMATCH').length;
+    const unlinked = nonHeaders.filter((i) => !i.auditMatchStatus || i.auditMatchStatus === 'UNLINKED').length;
+    return { matched, mismatch, unlinked, total: nonHeaders.length };
+  }, [items]);
+
+  const displayItems = useMemo(() => {
+    if (auditFilter === 'ALL') return items;
+    return items.filter((item) => item.isGroupHeader || item.auditMatchStatus === auditFilter);
+  }, [items, auditFilter]);
 
   // Tải dữ liệu
   const loadData = async (page: any = currentPage, limit: any = pageSize) => {
@@ -290,6 +313,7 @@ export default function DepartmentFixedAssetsTab() {
       formData.append('file', importFile);
       formData.append('autoGenManagementCode', String(autoGenMgmtCodeOnImport));
       formData.append('clearExisting', String(clearExistingOnImport));
+      formData.append('importMode', importScope);
 
       const res = await fetch('/api/department-fixed-assets/import', {
         method: 'POST',
@@ -361,6 +385,79 @@ export default function DepartmentFixedAssetsTab() {
         </div>
       </div>
 
+      {/* 1.1 THANH ĐỐI SOÁT KIỂM KÊ IT (THIẾT BỊ + LINH KIỆN SO VỚI TSCĐ KHOA PHÒNG) */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-3 rounded-2xl border border-indigo-900/60 shadow-xs flex flex-wrap items-center justify-between gap-3 text-white">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
+            <Sparkles className="w-4 h-4 text-indigo-400" />
+          </div>
+          <div>
+            <div className="text-xs font-bold flex items-center gap-2">
+              <span>{txt('Đối Soát Kiểm Kê IT & TSCĐ Khoa Phòng', 'IT & Department Fixed Assets Audit', 'IT設備・部品と固定資産の突合棚卸')}</span>
+              <span className="text-[11px] font-normal text-indigo-300">
+                ({txt('Tổng thiết bị + linh kiện gán với TSCĐ', 'Total devices + parts linked to fixed assets', '固定資産に紐付くIT機器・部品合計')})
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-300">
+              {txt('Tổng kiểm kê trang hiện tại:', 'Current page audit items:', '表示中データの棚卸:')} <span className="font-bold text-white">{auditStats.total}</span> {txt('mục TSCĐ', 'asset rows', '件')}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => setAuditFilter('ALL')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${auditFilter === 'ALL'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800'
+              }`}
+          >
+            <span>{txt('Tất cả', 'All', 'すべて')}</span>
+            <span className="px-1.5 py-0.2 bg-slate-200/40 rounded-full text-[10px]">{auditStats.total}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAuditFilter('MATCHED')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${auditFilter === 'MATCHED'
+              ? 'bg-emerald-500 text-white shadow-xs'
+              : 'bg-emerald-950/60 text-emerald-300 hover:bg-emerald-900/60 border border-emerald-800/60'
+              }`}
+          >
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span>{txt('Khớp đủ IT', 'Matched', '一致')}</span>
+            <span className="px-1.5 py-0.2 bg-emerald-400/30 rounded-full text-[10px] font-mono">{auditStats.matched}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAuditFilter('MISMATCH')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${auditFilter === 'MISMATCH'
+              ? 'bg-amber-500 text-slate-950 shadow-xs'
+              : 'bg-amber-950/60 text-amber-300 hover:bg-amber-900/60 border border-amber-800/60'
+              }`}
+          >
+            <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+            <span>{txt('Lệch / Thiếu IT', 'Mismatch', '不一致/不足')}</span>
+            <span className="px-1.5 py-0.2 bg-amber-400/30 rounded-full text-[10px] font-mono">{auditStats.mismatch}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAuditFilter('UNLINKED')}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${auditFilter === 'UNLINKED'
+              ? 'bg-slate-300 text-slate-900 shadow-xs'
+              : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 border border-slate-700/60'
+              }`}
+          >
+            <LinkIcon className="w-3.5 h-3.5 text-slate-400" />
+            <span>{txt('Chưa liên kết IT', 'Unlinked', '未連携')}</span>
+            <span className="px-1.5 py-0.2 bg-slate-700 rounded-full text-[10px] font-mono">{auditStats.unlinked}</span>
+          </button>
+        </div>
+      </div>
+
       {/* 2. THANH CÔNG CỤ TÌM KIẾM, LỌC VÀ THAO TÁC */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
@@ -412,6 +509,18 @@ export default function DepartmentFixedAssetsTab() {
               {filterOptions.assetGroups.map((g) => (
                 <option key={g} value={g}>{g}</option>
               ))}
+            </select>
+
+            {/* Lọc Trạng thái Kiểm kê IT */}
+            <select
+              value={auditFilter}
+              onChange={(e) => setAuditFilter(e.target.value as any)}
+              className="px-3 py-2 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 text-indigo-900 dark:text-indigo-200 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+            >
+              <option value="ALL">{txt('⚖️ Đối soát IT: Tất cả', 'IT Audit: All', 'IT棚卸: 全件')}</option>
+              <option value="MATCHED">{txt('🟢 Khớp đủ IT', '🟢 Matched IT', '🟢 IT一致')}</option>
+              <option value="MISMATCH">{txt('🟡 Lệch / Thiếu IT', '🟡 Mismatch IT', '🟡 IT不一致')}</option>
+              <option value="UNLINKED">{txt('⚪ Chưa liên kết IT', '⚪ Unlinked IT', '⚪ IT未連携')}</option>
             </select>
 
             {/* Nút Thêm mới */}
@@ -519,19 +628,19 @@ export default function DepartmentFixedAssetsTab() {
                   />
                 </th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 w-12">{txt('STT', 'No.', 'STT')}</th>
-                
+
                 {/* CỘT MÃ QUẢN LÝ (NẰM TRƯỚC TÊN TSCĐ, SAU CỘT STT) */}
-                <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[130px] bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
+                <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[140px] bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300">
                   <div className="flex items-center justify-center gap-1">
                     <Sparkles className="w-3 h-3 text-indigo-500" />
-                    <span>{txt('Mã quản lý', 'Mgmt Code', '管理コード')}</span>
+                    <span>{txt('Mã QL & Đối Soát IT', 'Mgmt Code & IT Audit', '管理コード・IT突合')}</span>
                   </div>
                 </th>
 
                 <th rowSpan={2} className="px-3 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[220px] text-left">{txt('Tên tài sản cố định', 'Asset Name', '資産名')}</th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[120px]">{txt('Mã số TSC', 'Asset Code', '資産コード')}</th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[90px]">{txt('Nơi sử dụng', 'Location', '使用場所')}</th>
-                
+
                 {/* 3 Cột màu vàng theo hình */}
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[90px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200">{txt('Hãng SX', 'Brand', 'メーカー')}</th>
                 <th rowSpan={2} className="px-2 py-2 border-r border-slate-300 dark:border-slate-700 min-w-[90px] bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200">{txt('Nước SX', 'Origin', '原産国')}</th>
@@ -601,7 +710,7 @@ export default function DepartmentFixedAssetsTab() {
                   </td>
                 </tr>
               ) : (
-                items.map((item, idx) => {
+                displayItems.map((item, idx) => {
                   if (item.isGroupHeader) {
                     const isGroupSelected = selectedIds.includes(item.id);
                     return (
@@ -640,9 +749,8 @@ export default function DepartmentFixedAssetsTab() {
                   return (
                     <tr
                       key={item.id}
-                      className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${
-                        isSelected ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''
-                      }`}
+                      className={`hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors ${isSelected ? 'bg-indigo-50/40 dark:bg-indigo-950/30' : ''
+                        }`}
                     >
                       {/* Checkbox */}
                       <td className="px-2 py-2 text-center border-r border-slate-200 dark:border-slate-800">
@@ -659,37 +767,77 @@ export default function DepartmentFixedAssetsTab() {
                         {item.orderIndex || idx + 1}
                       </td>
 
-                      {/* CỘT MÃ QUẢN LÝ (NẰM TRƯỚC TÊN TSCĐ, SAU CỘT STT) */}
+                      {/* CỘT MÃ QUẢN LÝ & ĐỐI SOÁT IT */}
                       <td className="px-2.5 py-2 text-center border-r border-slate-200 dark:border-slate-800 bg-indigo-50/30 dark:bg-indigo-950/20">
-                        {item.managementCode ? (
-                          <div className="flex flex-col items-center gap-1">
+                        <div className="flex flex-col items-center gap-1.5">
+                          {item.managementCode ? (
                             <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400 px-2 py-0.5 bg-indigo-100/60 dark:bg-indigo-900/60 rounded-md border border-indigo-200 dark:border-indigo-800 text-[11px]">
                               {item.managementCode}
                             </span>
-                            {/* Liên kết Thiết bị */}
-                            {item.linkedAsset && (
-                              <span
-                                className="text-[10px] text-emerald-600 dark:text-emerald-400 flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/50"
-                                title={`Đã liên kết Thiết bị: [${item.linkedAsset.assetTag}] ${item.linkedAsset.name}`}
+                          ) : (
+                            <span className="text-slate-300 dark:text-slate-600 italic text-[11px]">—</span>
+                          )}
+
+                          {/* Huy hiệu đối soát kiểm kê IT */}
+                          {item.auditMatchStatus === 'MATCHED' ? (
+                            <button
+                              type="button"
+                              onClick={() => setViewingAuditItem(item)}
+                              className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1 hover:brightness-105 transition-all cursor-pointer shadow-2xs"
+                              title={txt('Bấm xem chi tiết đối soát IT: Khớp đủ số lượng', 'Click to view IT audit details: Fully matched', 'クリックして突合詳細を表示: 一致')}
+                            >
+                              <CheckCircle className="w-2.5 h-2.5 text-emerald-600" />
+                              <span>{txt('Khớp', 'Matched', '一致')} {item.totalLinkedItemsCount || 0}/{item.bookQuantity || 1}</span>
+                            </button>
+                          ) : item.auditMatchStatus === 'MISMATCH' ? (
+                            <button
+                              type="button"
+                              onClick={() => setViewingAuditItem(item)}
+                              className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800 flex items-center gap-1 hover:brightness-105 transition-all cursor-pointer shadow-2xs"
+                              title={txt('Bấm xem chi tiết đối soát IT: Lệch số lượng IT so với sổ sách', 'Click to view IT audit details: Qty mismatch', 'クリックして突合詳細を表示: 不一致')}
+                            >
+                              <AlertCircle className="w-2.5 h-2.5 text-amber-600" />
+                              <span>{txt('Lệch', 'Mismatch', '不一致')} {item.totalLinkedItemsCount || 0}/{item.bookQuantity || 1}</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setViewingAuditItem(item)}
+                              className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700 flex items-center gap-1 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+                              title={txt('Bấm xem chi tiết đối soát IT: Chưa gán thiết bị/linh kiện nào', 'Click to view IT audit details: Unlinked', 'クリックして突合詳細を表示: 未連携')}
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                              <span>{txt('Chưa gán', 'Unlinked', '未連携')} 0/{item.bookQuantity || 1}</span>
+                            </button>
+                          )}
+
+                          {/* Chi tiết liên kết: Thiết bị & Linh kiện */}
+                          <div className="flex items-center gap-1 flex-wrap justify-center">
+                            {item.linkedAssets && item.linkedAssets.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setViewingAuditItem(item)}
+                                className="text-[10px] text-emerald-700 dark:text-emerald-300 font-medium flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/50 hover:bg-emerald-100 transition-colors"
+                                title={`Gồm ${item.linkedAssets.length} thiết bị: ${item.linkedAssets.map((a) => a.assetTag).join(', ')}`}
                               >
-                                <Laptop className="w-2.5 h-2.5" />
-                                <span>{item.linkedAsset.assetTag}</span>
-                              </span>
+                                <Laptop className="w-2.5 h-2.5 text-emerald-600" />
+                                <span>{item.linkedAssets.length} máy</span>
+                              </button>
                             )}
-                            {/* Liên kết Phụ tùng */}
-                            {item.linkedSparePart && (
-                              <span
-                                className="text-[10px] text-amber-600 dark:text-amber-400 flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/50"
-                                title={`Đã liên kết Phụ tùng: [${item.linkedSparePart.sku || item.linkedSparePart.name}]`}
+
+                            {item.linkedSpareParts && item.linkedSpareParts.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setViewingAuditItem(item)}
+                                className="text-[10px] text-amber-700 dark:text-amber-300 font-medium flex items-center gap-0.5 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200/50 hover:bg-amber-100 transition-colors"
+                                title={`Gồm ${item.linkedSpareParts.length} mục linh kiện (Tổng SL: ${item.totalLinkedSparePartsCount || item.linkedSpareParts.length})`}
                               >
-                                <Boxes className="w-2.5 h-2.5" />
-                                <span>{item.linkedSparePart.sku || 'Linh kiện'}</span>
-                              </span>
+                                <Boxes className="w-2.5 h-2.5 text-amber-600" />
+                                <span>{item.totalLinkedSparePartsCount || item.linkedSpareParts.length} linh kiện</span>
+                              </button>
                             )}
                           </div>
-                        ) : (
-                          <span className="text-slate-300 dark:text-slate-600 italic text-[11px]">—</span>
-                        )}
+                        </div>
                       </td>
 
                       {/* Tên TSCĐ */}
@@ -1094,7 +1242,7 @@ export default function DepartmentFixedAssetsTab() {
       {/* 5. MODAL NHẬP EXCEL (IMPORT) */}
       {isImportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-3 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-emerald-900 text-white rounded-t-3xl">
               <h3 className="font-bold text-sm flex items-center gap-2">
                 <Upload className="w-4 h-4 text-emerald-400" />
@@ -1103,14 +1251,15 @@ export default function DepartmentFixedAssetsTab() {
               <button
                 type="button"
                 onClick={() => setIsImportModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg"
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleImportSubmit} className="p-6 space-y-4">
-              <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center hover:border-emerald-500 transition-colors bg-slate-50/50 dark:bg-slate-800/30">
+              {/* Vùng tải file */}
+              <div className="border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-5 text-center hover:border-emerald-500 transition-colors bg-slate-50/50 dark:bg-slate-800/30">
                 <FileSpreadsheet className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
                 <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                   {importFile ? importFile.name : txt('Kéo thả file Excel vào đây hoặc bấm để chọn', 'Drag & drop Excel file here or click to browse', 'Excelファイルをここにドロップ')}
@@ -1126,9 +1275,102 @@ export default function DepartmentFixedAssetsTab() {
                 />
               </div>
 
-              {/* Tùy chọn */}
+              {/* LỰA CHỌN PHẠM VI NHẬP (IMPORT SCOPE) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Filter className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                    <span>{txt('Phạm vi nhập dữ liệu từ file Excel', 'Import Scope', 'インポート範囲')}</span>
+                  </label>
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                    {importScope === 'IT_ONLY'
+                      ? txt('Chế độ: Chỉ tài sản CNTT', 'Mode: IT Only', 'IT資産のみ')
+                      : txt('Chế độ: Nhập toàn bộ', 'Mode: All Assets', '全資産')}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {/* Option 1: Chỉ nhập CNTT */}
+                  <div
+                    onClick={() => setImportScope('IT_ONLY')}
+                    className={`relative p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      importScope === 'IT_ONLY'
+                        ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-950 dark:text-emerald-100 ring-2 ring-emerald-500/20 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-xl ${importScope === 'IT_ONLY' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
+                          <Laptop className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold flex items-center gap-1">
+                            <span>{txt('Chỉ nhập tài sản CNTT', 'IT Assets Only', 'IT資産のみ')}</span>
+                          </div>
+                          <span className="inline-block text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
+                            {txt('Khuyên dùng', 'Recommended', '推奨')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                        importScope === 'IT_ONLY' ? 'border-emerald-600 bg-emerald-600' : 'border-slate-300 dark:border-slate-600'
+                      }`}>
+                        {importScope === 'IT_ONLY' && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                      {txt(
+                        'Chỉ lọc lấy các thiết bị CNTT: Máy tính, Laptop, Máy in, Mạng, Server, Tivi, Smart phone, Máy chiếu, Camera...',
+                        'Filters only IT devices: Computers, Laptops, Printers, Network, Servers, TVs, Smartphones, Cameras...',
+                        'PC、プリンタ、NW機器、テレビ、スマホ等のIT資産のみ自動抽出して取込'
+                      )}
+                    </p>
+                  </div>
+
+                  {/* Option 2: Nhập tất cả */}
+                  <div
+                    onClick={() => setImportScope('ALL')}
+                    className={`relative p-3.5 rounded-2xl border-2 cursor-pointer transition-all ${
+                      importScope === 'ALL'
+                        ? 'border-indigo-500 bg-indigo-50/70 dark:bg-indigo-950/40 text-indigo-950 dark:text-indigo-100 ring-2 ring-indigo-500/20 shadow-xs'
+                        : 'border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 bg-white dark:bg-slate-800/40 text-slate-700 dark:text-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className={`p-1.5 rounded-xl ${importScope === 'ALL' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'}`}>
+                          <Layers className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold flex items-center gap-1">
+                            <span>{txt('Nhập tất cả từ file', 'Import All from File', 'ファイル全体取込')}</span>
+                          </div>
+                          <span className="inline-block text-[10px] font-bold text-indigo-700 dark:text-indigo-400">
+                            {txt('Toàn bộ TSCĐ', 'All Assets', '全資産')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
+                        importScope === 'ALL' ? 'border-indigo-600 bg-indigo-600' : 'border-slate-300 dark:border-slate-600'
+                      }`}>
+                        {importScope === 'ALL' && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
+                      {txt(
+                        'Nhập tất cả tài sản cố định trong file không phân biệt loại (gồm cả tài sản Hành chính, Y tế, Bàn ghế nội thất...).',
+                        'Imports all fixed assets from file without filtering (including administrative, medical, furniture...).',
+                        'フィルタリングせず全固定資産（事務用品、医療機器、什器等含む）を取り込み'
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tùy chọn nâng cao */}
               <div className="space-y-2.5 bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 text-xs">
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 dark:text-slate-300 select-none">
                   <input
                     type="checkbox"
                     checked={autoGenMgmtCodeOnImport}
@@ -1138,7 +1380,7 @@ export default function DepartmentFixedAssetsTab() {
                   <span>⚡ {txt('Tự động sinh Mã quản lý (MQL-...) nếu dòng chưa có mã', 'Auto generate Management Code if empty', '空欄の場合に管理コードを自動生成')}</span>
                 </label>
 
-                <label className="flex items-center gap-2 cursor-pointer font-medium text-rose-600 dark:text-rose-400">
+                <label className="flex items-center gap-2 cursor-pointer font-medium text-rose-600 dark:text-rose-400 select-none">
                   <input
                     type="checkbox"
                     checked={clearExistingOnImport}
@@ -1148,9 +1390,13 @@ export default function DepartmentFixedAssetsTab() {
                   <span>⚠️ {txt('Xóa toàn bộ dữ liệu TSCĐ hiện tại trước khi nhập mới', 'Clear all existing records before import', '既存データを全削除して新規取込')}</span>
                 </label>
 
-                <div className="pt-1 border-t border-slate-200 dark:border-slate-700/60 text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 shrink-0" />
-                  <span>{txt('Chỉ nhập tài sản thuộc CNTT quản lý; STT được hệ thống tự động đánh số tăng dần chuẩn xác.', 'Only imports IT-managed assets; numbering is automatically generated.', 'IT管理資産のみ取り込み、連番は自動付与されます。')}</span>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 text-[11px] text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>
+                    {importScope === 'IT_ONLY'
+                      ? txt('Tự động nhận diện thiết bị công nghệ thông tin (kể cả tivi, smart phone, máy tính bảng...), kho CNTT hoặc khoa phòng.', 'Smart filter: Auto-detects IT equipment (including TVs, smartphones, tablets...), IT warehouse or dept.', 'スマート抽出: 機器名（テレビ、スマホ含む）、IT倉庫または部署で自動識別。')
+                      : txt('Giữ nguyên đầy đủ toàn bộ các dòng tài sản trong file Excel; STT được tự động đánh số tăng dần chuẩn xác.', 'Keeps all asset rows intact; numbering is automatically generated.', '全件モード: Excel内のすべての資産行をそのまま取り込み、連番は自動付与されます。')}
+                  </span>
                 </div>
               </div>
 
@@ -1167,11 +1413,10 @@ export default function DepartmentFixedAssetsTab() {
               {/* Thông báo kết quả */}
               {importMessage && (
                 <div
-                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                    importMessage.type === 'success'
-                      ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-200'
-                      : 'bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-200'
-                  }`}
+                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${importMessage.type === 'success'
+                    ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200 border border-emerald-200'
+                    : 'bg-rose-50 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200 border border-rose-200'
+                    }`}
                 >
                   {importMessage.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
                   <span>{importMessage.text}</span>
@@ -1198,14 +1443,221 @@ export default function DepartmentFixedAssetsTab() {
                   <button
                     type="submit"
                     disabled={isImporting || !importFile}
-                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
                   >
                     {isImporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                    <span>{txt('Tiến Hành Nhập File', 'Import Now', 'インポート実行')}</span>
+                    <span>
+                      {importScope === 'IT_ONLY'
+                        ? txt('Nhập Tài Sản CNTT', 'Import IT Assets', 'IT資産を取込')
+                        : txt('Nhập Tất Cả Dữ Liệu', 'Import All Assets', '全資産を取込')}
+                    </span>
                   </button>
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* 5. MODAL XEM CHI TIẾT ĐỐI SOÁT KIỂM KÊ IT & TSCĐ KHOA PHÒNG */}
+      {viewingAuditItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-4xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-6">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-900 text-white">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
+                  <Sparkles className="w-5 h-5 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base flex items-center gap-2">
+                    <span>{txt('Chi Tiết Đối Soát Kiểm Kê IT & TSCĐ', 'IT & Fixed Asset Audit Details', 'IT設備・部品の突合棚卸詳細')}</span>
+                    {viewingAuditItem.auditMatchStatus === 'MATCHED' ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>{txt('Khớp Đủ', 'Matched', '一致')}</span>
+                      </span>
+                    ) : viewingAuditItem.auditMatchStatus === 'MISMATCH' ? (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        <span>{txt('Lệch / Thiếu', 'Mismatch', '不一致')}</span>
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-700 text-slate-300 border border-slate-600">
+                        {txt('Chưa Liên Kết', 'Unlinked', '未連携')}
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {viewingAuditItem.name} {viewingAuditItem.fixedAssetCode ? `• Mã TSC: ${viewingAuditItem.fixedAssetCode}` : ''} {viewingAuditItem.managementCode ? `• MQL: ${viewingAuditItem.managementCode}` : ''}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingAuditItem(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5 max-h-[78vh] overflow-y-auto">
+              {/* Thẻ Thống kê So sánh Đối chiếu */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-blue-50 dark:bg-blue-950/30 p-3.5 rounded-2xl border border-blue-200 dark:border-blue-800/50">
+                  <div className="text-[11px] font-bold text-blue-700 dark:text-blue-300 uppercase">{txt('SL Sổ Sách', 'Book Quantity', '帳簿数量')}</div>
+                  <div className="text-2xl font-black text-blue-900 dark:text-blue-100 mt-1 font-mono">{viewingAuditItem.bookQuantity || 0}</div>
+                  <div className="text-[10px] text-blue-600/80 dark:text-blue-400 mt-0.5">{txt('Chỉ tiêu kế toán', 'Accounting target', '会計基準')}</div>
+                </div>
+
+                <div className="bg-indigo-50 dark:bg-indigo-950/30 p-3.5 rounded-2xl border border-indigo-200 dark:border-indigo-800/50">
+                  <div className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase">{txt('Thiết Bị IT Gán', 'Linked Devices', '紐付IT機器')}</div>
+                  <div className="text-2xl font-black text-indigo-900 dark:text-indigo-100 mt-1 font-mono">{viewingAuditItem.linkedAssets?.length || 0}</div>
+                  <div className="text-[10px] text-indigo-600/80 dark:text-indigo-400 mt-0.5">{txt('Máy tính, máy in...', 'PCs, printers...', 'PC、プリンター等')}</div>
+                </div>
+
+                <div className="bg-amber-50 dark:bg-amber-950/30 p-3.5 rounded-2xl border border-amber-200 dark:border-amber-800/50">
+                  <div className="text-[11px] font-bold text-amber-700 dark:text-amber-300 uppercase">{txt('Linh Kiện IT Gán', 'Linked Spare Parts', '紐付IT部品')}</div>
+                  <div className="text-2xl font-black text-amber-900 dark:text-amber-100 mt-1 font-mono">{viewingAuditItem.totalLinkedSparePartsCount || 0}</div>
+                  <div className="text-[10px] text-amber-600/80 dark:text-amber-400 mt-0.5">{txt('Tổng số lượng phụ tùng', 'Total spare parts qty', '総部品数量')}</div>
+                </div>
+
+                <div className={`p-3.5 rounded-2xl border ${viewingAuditItem.auditMatchStatus === 'MATCHED'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/50 text-emerald-900 dark:text-emerald-100'
+                  : 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800/50 text-rose-900 dark:text-rose-100'
+                  }`}>
+                  <div className="text-[11px] font-bold uppercase">{txt('Tổng IT Thực Tế', 'Total IT Items', 'IT実数合計')}</div>
+                  <div className="text-2xl font-black mt-1 font-mono">{viewingAuditItem.totalLinkedItemsCount || 0}</div>
+                  <div className="text-[10px] mt-0.5">
+                    {viewingAuditItem.auditMatchStatus === 'MATCHED'
+                      ? txt('🟢 Khớp 100% sổ sách', '🟢 Fully matched', '🟢 帳簿と一致')
+                      : txt(`⚠️ Lệch ${Math.abs((viewingAuditItem.totalLinkedItemsCount || 0) - (viewingAuditItem.bookQuantity || 0))} so với sổ`, `Mismatch by diff`, '不一致')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thông tin Khoa Phòng */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-xs flex flex-wrap gap-4 text-slate-600 dark:text-slate-300">
+                <span>📍 <strong>Khoa/Phòng:</strong> {viewingAuditItem.department || '—'}</span>
+                <span>🏢 <strong>Kho:</strong> {viewingAuditItem.warehouse || '—'}</span>
+                <span>📦 <strong>Nhóm:</strong> {viewingAuditItem.assetGroup || '—'}</span>
+                <span>🏷️ <strong>Mã Quản Lý:</strong> <code className="bg-indigo-100/60 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-1.5 py-0.5 rounded font-mono">{viewingAuditItem.managementCode || 'Chưa có'}</code></span>
+                <span>🔢 <strong>Mã TSCĐ:</strong> <code className="bg-slate-200/60 dark:bg-slate-700/60 px-1.5 py-0.5 rounded font-mono">{viewingAuditItem.fixedAssetCode || 'Chưa có'}</code></span>
+              </div>
+
+              {/* Danh sách 1: Thiết Bị IT Liên Kết */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wide">
+                    <Laptop className="w-4 h-4 text-emerald-500" />
+                    <span>{txt('1. Thiết Bị IT Đã Liên Kết', '1. Linked IT Assets', '1. 紐付済みIT機器')} ({viewingAuditItem.linkedAssets?.length || 0})</span>
+                  </h4>
+                </div>
+
+                {viewingAuditItem.linkedAssets && viewingAuditItem.linkedAssets.length > 0 ? (
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold">
+                        <tr>
+                          <th className="px-3 py-2">Mã Tag</th>
+                          <th className="px-3 py-2">Tên Thiết Bị</th>
+                          <th className="px-3 py-2">Serial (SN)</th>
+                          <th className="px-3 py-2">Hãng / Model</th>
+                          <th className="px-3 py-2">Người Sử Dụng</th>
+                          <th className="px-3 py-2 text-center">Trạng Thái</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-medium">
+                        {viewingAuditItem.linkedAssets.map((asset) => (
+                          <tr key={asset.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="px-3 py-2 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                              <a href={`/assets?search=${encodeURIComponent(asset.assetTag)}`} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
+                                {asset.assetTag}
+                                <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                              </a>
+                            </td>
+                            <td className="px-3 py-2 font-semibold text-slate-800 dark:text-slate-100">{asset.name}</td>
+                            <td className="px-3 py-2 font-mono text-slate-500">{asset.serialNumber || '—'}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{asset.brand || ''} {asset.model || ''}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{asset.assignedTo || 'Chưa cấp phát'}</td>
+                            <td className="px-3 py-2 text-center">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                {asset.status || 'IN_USE'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-xs text-slate-400">
+                    {txt('Chưa có thiết bị nào liên kết với TSCĐ này.', 'No IT assets linked to this record.', 'この固定資産に紐付くIT機器はありません。')}
+                  </div>
+                )}
+              </div>
+
+              {/* Danh sách 2: Phụ Tùng / Linh Kiện IT Liên Kết */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wide">
+                    <Boxes className="w-4 h-4 text-amber-500" />
+                    <span>{txt('2. Phụ Tùng & Linh Kiện IT Đã Liên Kết', '2. Linked Spare Parts', '2. 紐付済みIT部品')} ({viewingAuditItem.linkedSpareParts?.length || 0})</span>
+                  </h4>
+                </div>
+
+                {viewingAuditItem.linkedSpareParts && viewingAuditItem.linkedSpareParts.length > 0 ? (
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold">
+                        <tr>
+                          <th className="px-3 py-2">Mã SKU</th>
+                          <th className="px-3 py-2">Tên Phụ Tùng / Linh Kiện</th>
+                          <th className="px-3 py-2 text-center">Số Lượng</th>
+                          <th className="px-3 py-2 text-center">Đơn Vị Tính</th>
+                          <th className="px-3 py-2">Kho / Vị Trí</th>
+                          <th className="px-3 py-2">Khoa Phòng</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-800 font-medium">
+                        {viewingAuditItem.linkedSpareParts.map((part) => (
+                          <tr key={part.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                            <td className="px-3 py-2 font-mono font-bold text-amber-600 dark:text-amber-400">
+                              <a href={`/spare-parts?search=${encodeURIComponent(part.sku || part.name)}`} target="_blank" rel="noreferrer" className="hover:underline flex items-center gap-1">
+                                {part.sku || '—'}
+                                <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                              </a>
+                            </td>
+                            <td className="px-3 py-2 font-semibold text-slate-800 dark:text-slate-100">{part.name}</td>
+                            <td className="px-3 py-2 text-center font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                              {part.quantity || 1}
+                            </td>
+                            <td className="px-3 py-2 text-center text-slate-500">{part.unit || 'cái'}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{part.location || '—'}</td>
+                            <td className="px-3 py-2 text-slate-600 dark:text-slate-300">{part.department || viewingAuditItem.department || '—'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 text-center text-xs text-slate-400">
+                    {txt('Chưa có phụ tùng / linh kiện nào liên kết với TSCĐ này.', 'No spare parts linked to this record.', 'この固定資産に紐付くIT部品はありません。')}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end items-center px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40">
+              <button
+                type="button"
+                onClick={() => setViewingAuditItem(null)}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                {txt('Đóng', 'Close', '閉じる')}
+              </button>
+            </div>
           </div>
         </div>
       )}

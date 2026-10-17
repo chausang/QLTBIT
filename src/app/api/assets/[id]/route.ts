@@ -231,6 +231,7 @@ export async function PUT(
         assetTag: newAssetTag ? normalizeAssetTag(newAssetTag) : existing.assetTag,
         name: body.name !== undefined ? body.name : existing.name,
         fixedAssetName: body.fixedAssetName !== undefined ? (body.fixedAssetName ? body.fixedAssetName.trim() : null) : existing.fixedAssetName,
+        fixedAssetCode: body.fixedAssetCode !== undefined ? (body.fixedAssetCode ? String(body.fixedAssetCode).trim() : null) : existing.fixedAssetCode,
         managementCode: finalManagementCode !== undefined ? finalManagementCode : existing.managementCode,
         categoryId: body.categoryId ? body.categoryId : existing.categoryId,
         brand: body.brand !== undefined ? (body.brand || null) : existing.brand,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { QuickLink } from '@/components/common/QuickLink';
 import { DocumentQuickPreviewModal } from '@/components/documents/document-quick-preview-modal';
@@ -108,7 +108,25 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const [selectedDetailAsset, setSelectedDetailAsset] = useState<any>(initialAsset);
+  const [loadedDetailAsset, setLoadedDetailAsset] = useState<any>(null);
+
+  // Đối tượng hiển thị luôn là thiết bị hiện tại được truyền vào:
+  // Nếu loadedDetailAsset có cùng id với initialAsset -> dùng loadedDetailAsset (đầy đủ chi tiết API).
+  // Nếu chưa có hoặc initialAsset vừa đổi sang thiết bị khác -> dùng ngay initialAsset (Zero-Flicker instant render).
+  const selectedDetailAsset = useMemo(() => {
+    if (loadedDetailAsset && initialAsset && loadedDetailAsset.id === initialAsset.id) {
+      return loadedDetailAsset;
+    }
+    return initialAsset;
+  }, [loadedDetailAsset, initialAsset]);
+
+  const setSelectedDetailAsset = (updater: any) => {
+    if (typeof updater === 'function') {
+      setLoadedDetailAsset((prev: any) => updater(prev || selectedDetailAsset || initialAsset));
+    } else {
+      setLoadedDetailAsset(updater);
+    }
+  };
   const [isDocPreviewOpen, setIsDocPreviewOpen] = useState(false);
   const [detailSoftwareSearch, setDetailSoftwareSearch] = useState('');
   const [detailSoftwareFilter, setDetailSoftwareFilter] = useState<'ALL' | 'MATCHED' | 'UNMANAGED' | 'CRACK' | 'OTHER'>('ALL');
@@ -156,29 +174,39 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
     return dateObj.toLocaleDateString(isJa ? 'ja-JP' : (isEn ? 'en-US' : 'vi-VN'));
   };
 
+  // Tải chi tiết và nhật ký bảo trì theo đúng initialAsset.id khi modal mở,
+  // trang bị cờ hủy bỏ (isCancelled) triệt tiêu hoàn toàn race condition và giật đổi thông tin.
   useEffect(() => {
-    setSelectedDetailAsset(initialAsset);
-  }, [initialAsset]);
-
-  useEffect(() => {
-    if (isOpen && selectedDetailAsset?.id) {
-      setDetailMaintenanceLogs([]);
-      setDetailSoftwareSearch('');
-      setDetailSoftwareFilter('ALL');
-
-      Promise.all([
-        fetch(`/api/assets/${selectedDetailAsset.id}/maintenance`).then((r) => r.json()).catch(() => null),
-        fetch(`/api/assets/${selectedDetailAsset.id}`).then((r) => r.json()).catch(() => null),
-      ]).then(([maintData, assetData]) => {
-        if (maintData?.success && Array.isArray(maintData.data)) {
-          setDetailMaintenanceLogs(maintData.data);
-        }
-        if (assetData?.data) {
-          setSelectedDetailAsset(assetData.data);
-        }
-      });
+    if (!isOpen || !initialAsset?.id) {
+      setLoadedDetailAsset(null);
+      return;
     }
-  }, [isOpen, selectedDetailAsset?.id]);
+
+    const currentId = initialAsset.id;
+    let isCancelled = false;
+
+    setDetailMaintenanceLogs([]);
+    setDetailSoftwareSearch('');
+    setDetailSoftwareFilter('ALL');
+
+    Promise.all([
+      fetch(`/api/assets/${currentId}/maintenance`).then((r) => r.json()).catch(() => null),
+      fetch(`/api/assets/${currentId}`).then((r) => r.json()).catch(() => null),
+    ]).then(([maintData, assetData]) => {
+      if (isCancelled) return;
+
+      if (maintData?.success && Array.isArray(maintData.data)) {
+        setDetailMaintenanceLogs(maintData.data);
+      }
+      if (assetData?.data && assetData.data.id === currentId) {
+        setLoadedDetailAsset(assetData.data);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [isOpen, initialAsset?.id]);
 
   const convertCurrency = (amount: number, fromCurr: string, toCurr: string = 'VND') => {
     if (!amount) return 0;

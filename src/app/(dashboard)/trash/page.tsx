@@ -92,6 +92,62 @@ export default function TrashPage() {
   // 📄 Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(25);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
+
+  const handleToggleSelectItem = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllItems = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const pageIds = paginatedItems.map((i) => i.id);
+      setSelectedItemIds(Array.from(new Set([...selectedItemIds, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedItems.map((i) => i.id));
+      setSelectedItemIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleBulkRestore = async () => {
+    if (selectedItemIds.length === 0) return;
+    if (!confirm(isEn ? `Restore ${selectedItemIds.length} selected items back to active database?` : `Khôi phục ${selectedItemIds.length} mục đã chọn về hệ thống?`)) return;
+
+    const idsToRestore = [...selectedItemIds];
+    setSelectedItemIds([]);
+    setItems((prev) => prev.filter((i) => !idsToRestore.includes(i.id)));
+
+    try {
+      for (const id of idsToRestore) {
+        await fetch(`/api/trash/${id}/restore`, { method: 'POST' });
+      }
+      loadData();
+    } catch {
+      alert('Lỗi kết nối khi khôi phục hàng loạt');
+      loadData();
+    }
+  };
+
+  const handleBulkDeletePermanently = async () => {
+    if (selectedItemIds.length === 0) return;
+    if (!confirm(isEn ? `⚠️ WARNING: Permanently delete ${selectedItemIds.length} selected items? This CANNOT be undone!` : `⚠️ CẢNH BÁO: Xóa vĩnh viễn ${selectedItemIds.length} mục đã chọn? Không thể khôi phục!`)) return;
+
+    const idsToDelete = [...selectedItemIds];
+    setSelectedItemIds([]);
+    setItems((prev) => prev.filter((i) => !idsToDelete.includes(i.id)));
+
+    try {
+      for (const id of idsToDelete) {
+        await fetch(`/api/trash/${id}`, { method: 'DELETE' });
+      }
+      loadData();
+    } catch {
+      alert('Lỗi kết nối khi xóa vĩnh viễn hàng loạt');
+      loadData();
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -437,29 +493,76 @@ export default function TrashPage() {
         </div>
       </div>
 
+      {/* Bulk Actions Banner */}
+      {selectedItemIds.length > 0 && (
+        <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl animate-in fade-in slide-in-from-top duration-200">
+          <div className="flex items-center gap-2 text-xs font-semibold text-purple-900 dark:text-purple-200">
+            <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+              {selectedItemIds.length}
+            </span>
+            <span>{isEn ? `Selected ${selectedItemIds.length} item(s)` : `Đã chọn ${selectedItemIds.length} mục`}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedItemIds([])}
+              className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer"
+            >
+              {isEn ? 'Deselect all' : 'Bỏ chọn'}
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkRestore}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>{isEn ? `Restore (${selectedItemIds.length})` : `Khôi phục (${selectedItemIds.length})`}</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleBulkDeletePermanently}
+              className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isEn ? `Purge (${selectedItemIds.length})` : `Xóa vĩnh viễn (${selectedItemIds.length})`}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
         <table className="w-full table-fixed text-left text-xs border-collapse">
           <thead className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider select-none">
             <tr>
-              <th className="py-3 px-3 w-[34%]">{isEn ? 'ITEM & CODE' : 'TÊN MỤC & MÃ ĐỐI TƯỢNG'}</th>
-              <th className="py-3 px-3 w-[16%]">{isEn ? 'TYPE' : 'PHÂN LOẠI'}</th>
-              <th className="py-3 px-3 w-[20%]">{isEn ? 'DELETED BY / AT' : 'NGƯỜI XÓA & THỜI ĐIỂM'}</th>
-              <th className="py-3 px-3 w-[15%]">{isEn ? 'RETENTION' : 'THỜI HẠN CÒN LẠI'}</th>
+              <th className="py-3 px-2 w-10 text-center">
+                <input
+                  type="checkbox"
+                  checked={paginatedItems.length > 0 && paginatedItems.every((i) => selectedItemIds.includes(i.id))}
+                  onChange={handleSelectAllItems}
+                  className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                  title={isEn ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                />
+              </th>
+              <th className="py-3 px-2 w-12 text-center text-slate-500 font-bold">{isEn ? 'No.' : 'STT'}</th>
+              <th className="py-3 px-3 w-[32%]">{isEn ? 'ITEM & CODE' : 'TÊN MỤC & MÃ ĐỐI TƯỢNG'}</th>
+              <th className="py-3 px-3 w-[15%]">{isEn ? 'TYPE' : 'PHÂN LOẠI'}</th>
+              <th className="py-3 px-3 w-[19%]">{isEn ? 'DELETED BY / AT' : 'NGƯỜI XÓA & THỜI ĐIỂM'}</th>
+              <th className="py-3 px-3 w-[14%]">{isEn ? 'RETENTION' : 'THỜI HẠN CÒN LẠI'}</th>
               <th className="py-3 px-3 text-right w-[15%]">{isEn ? 'ACTIONS' : 'THAO TÁC'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {loading ? (
               <tr>
-                <td colSpan={5} className="py-12 text-center text-slate-400">
+                <td colSpan={7} className="py-12 text-center text-slate-400">
                   <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-purple-600" />
                   <span>{isEn ? 'Loading recycle bin...' : 'Đang tải danh sách thùng rác...'}</span>
                 </td>
               </tr>
             ) : items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-14 text-center text-slate-400">
+                <td colSpan={7} className="py-14 text-center text-slate-400">
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-2">
                     <CheckCircle2 className="w-6 h-6 text-emerald-500" />
                   </div>
@@ -472,12 +575,29 @@ export default function TrashPage() {
                 </td>
               </tr>
             ) : (
-              paginatedItems.map((item) => {
+              paginatedItems.map((item, idx) => {
                 const daysLeft = getDaysRemaining(item.expiresAt);
                 const isUrgent = daysLeft <= 3;
 
                 return (
-                  <tr key={item.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors">
+                  <tr key={item.id} className={`hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors ${
+                    selectedItemIds.includes(item.id) ? 'bg-purple-50/60 dark:bg-purple-950/30' : ''
+                  }`}>
+                    {/* Checkbox */}
+                    <td className="py-3 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedItemIds.includes(item.id)}
+                        onChange={() => {}}
+                        onClick={(e) => handleToggleSelectItem(item.id, e)}
+                        className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                      />
+                    </td>
+
+                    {/* STT */}
+                    <td className="py-3 px-2 text-center font-mono font-bold text-slate-400 text-[11px]">
+                      {(currentPage - 1) * pageSize + idx + 1}
+                    </td>
                     {/* Cột 1: Tên mục & Mã */}
                     <td className="py-3 px-3">
                       <div className="min-w-0">

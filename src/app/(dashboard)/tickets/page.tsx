@@ -1748,6 +1748,9 @@ export default function TicketsPage() {
                     className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                   />
                 </th>
+                <th className="py-3 px-2 w-[48px] text-center text-slate-500 font-bold">
+                  {isEn ? 'No.' : 'STT'}
+                </th>
                 <th className="py-3 px-3.5 w-[24%]">{isEn ? 'TICKET & TITLE' : 'Mã & Tiêu Đề Sự Cố'}</th>
                 <th className="py-3 px-3 w-[13%]">{isEn ? 'CATEGORY' : 'Phân Loại'}</th>
                 <th className="py-3 px-2.5 w-[10%]">{isEn ? 'PRIORITY' : 'Mức Độ'}</th>
@@ -1760,14 +1763,14 @@ export default function TicketsPage() {
             <tbody className="divide-y divide-slate-100">
               {loading && tickets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-slate-400">
+                  <td colSpan={9} className="py-16 text-center text-slate-400">
                     <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
                     <span className="font-semibold text-xs text-slate-500">{isEn ? 'Loading tickets...' : 'Đang tải danh sách ticket...'}</span>
                   </td>
                 </tr>
               ) : filteredTickets.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-16 text-center text-slate-400 space-y-2">
+                  <td colSpan={9} className="py-16 text-center text-slate-400 space-y-2">
                     <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto text-xl font-bold">
                       🎫
                     </div>
@@ -1786,7 +1789,7 @@ export default function TicketsPage() {
                   </td>
                 </tr>
               ) : (
-                paginatedTickets.map((t) => {
+                paginatedTickets.map((t, idx) => {
                   const cat = CATEGORY_MAP[t.category] || CATEGORY_MAP.OTHER;
                   const pri = PRIORITY_MAP[t.priority] || PRIORITY_MAP.MEDIUM;
                   const sta = STATUS_MAP[t.status] || STATUS_MAP.OPEN;
@@ -1812,6 +1815,11 @@ export default function TicketsPage() {
                           onChange={(e) => handleToggleSelectTicket(t.id, e as any)}
                           className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-3.5 h-3.5 cursor-pointer"
                         />
+                      </td>
+
+                      {/* STT */}
+                      <td className="py-3 px-2 text-center font-mono font-bold text-slate-400 text-[11px]">
+                        {(currentPage - 1) * pageSize + idx + 1}
                       </td>
 
                       {/* Mã & Tiêu Đề Sự Cố (2 DÒNG RÕ RÀNG) */}

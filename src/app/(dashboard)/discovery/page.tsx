@@ -1412,6 +1412,7 @@ export default function DiscoveryPage() {
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 text-[11px]">
                   <tr>
+                    <th className="p-3 w-12 text-center text-slate-500 font-bold">STT</th>
                     <th className="p-3">Địa Chỉ IP & Hostname</th>
                     <th className="p-3">VLAN / Dải Mạng</th>
                     <th className="p-3">Hãng (OUI) & Model</th>
@@ -1425,7 +1426,7 @@ export default function DiscoveryPage() {
                 <tbody className="divide-y divide-slate-100">
                   {devices.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="p-8 text-center text-slate-400">
+                      <td colSpan={9} className="p-8 text-center text-slate-400">
                         <Wifi className="w-8 h-8 text-slate-300 mx-auto mb-2" />
                         <p className="font-semibold text-xs text-slate-600">Chưa có kết quả quét nào</p>
                         <p className="text-[11px] text-slate-400 mt-1">
@@ -1435,7 +1436,7 @@ export default function DiscoveryPage() {
                     </tr>
                   ) : filteredDevices.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="p-6 text-center text-slate-400 text-xs">
+                      <td colSpan={9} className="p-6 text-center text-slate-400 text-xs">
                         Không tìm thấy thiết bị phù hợp với bộ lọc.
                       </td>
                     </tr>
@@ -1452,6 +1453,9 @@ export default function DiscoveryPage() {
                           }
                         }}
                       >
+                        <td className="p-3 text-center font-mono font-bold text-slate-400 text-[11px]">
+                          {(currentPage - 1) * pageSize + idx + 1}
+                        </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />

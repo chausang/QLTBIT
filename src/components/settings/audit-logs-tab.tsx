@@ -324,6 +324,7 @@ export const AuditLogsSettingsTab: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
               <tr>
+                <th className="py-3 px-3 w-12 text-center text-slate-500 font-bold">{isEn ? 'No.' : 'STT'}</th>
                 <th className="py-3 px-4">{isEn ? 'Time' : 'Thời gian'}</th>
                 <th className="py-3 px-4">{isEn ? 'Performed By' : 'Người thực hiện'}</th>
                 <th className="py-3 px-4 text-center">{isEn ? 'Action' : 'Hành động'}</th>
@@ -335,21 +336,21 @@ export const AuditLogsSettingsTab: React.FC = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <RefreshCw className="w-6 h-6 animate-spin mx-auto text-purple-600 mb-2" />
                     <span>Đang tải danh sách nhật ký hoạt động...</span>
                   </td>
                 </tr>
               ) : logs.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-400">
+                  <td colSpan={7} className="py-12 text-center text-slate-400">
                     <History className="w-8 h-8 mx-auto text-slate-300 mb-1.5" />
                     <p className="font-bold text-xs text-slate-600">Không tìm thấy bản ghi nhật ký nào</p>
                     <p className="text-[11px]">Thử điều chỉnh lại bộ lọc thời gian hoặc từ khóa tìm kiếm.</p>
                   </td>
                 </tr>
               ) : (
-                logs.map((log) => {
+                logs.map((log, idx) => {
                   const badge = ACTION_BADGES[log.action] || {
                     label: log.action,
                     bg: 'bg-slate-100',
@@ -363,6 +364,9 @@ export const AuditLogsSettingsTab: React.FC = () => {
                       onClick={() => setSelectedLog(log)}
                       className="hover:bg-purple-50/40 dark:hover:bg-purple-950/20 transition-colors cursor-pointer"
                     >
+                      <td className="py-3 px-3 text-center font-mono font-bold text-slate-400 text-[11px]">
+                        {(page - 1) * pageSize + idx + 1}
+                      </td>
                       {/* Thời gian */}
                       <td className="py-3 px-4 font-mono text-[11px] whitespace-nowrap text-slate-600 dark:text-slate-400">
                         <div className="flex items-center gap-1.5">

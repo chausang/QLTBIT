@@ -526,6 +526,45 @@ export default function ServicesPage() {
   const [formData, setFormData] = useState(initialForm);
   const [editFormData, setEditFormData] = useState(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+
+  const handleToggleSelectService = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllServices = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const pageIds = paginatedServices.map((s) => s.id);
+      setSelectedServiceIds(Array.from(new Set([...selectedServiceIds, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedServices.map((s) => s.id));
+      setSelectedServiceIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleBulkDeleteServices = async () => {
+    if (selectedServiceIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedServiceIds.length} dịch vụ đã chọn? Hành động này không thể hoàn tác.`)) return;
+
+    const idsToDelete = [...selectedServiceIds];
+    setSelectedServiceIds([]);
+    setServices((prev) => prev.filter((s) => !idsToDelete.includes(s.id)));
+
+    try {
+      for (const sid of idsToDelete) {
+        await fetch(`/api/services/${sid}`, { method: 'DELETE' });
+      }
+      invalidateClientCache('/api/services');
+      triggerDataRefresh('services');
+      await loadData(true);
+    } catch (err) {
+      console.error('Lỗi khi xóa hàng loạt dịch vụ:', err);
+      await loadData(true);
+    }
+  };
 
   // ==================== CRUD HANDLERS CHO CÁC DROPDOWN ====================
   const handleAddVendor = async (name: string) => {
@@ -1820,41 +1859,104 @@ export default function ServicesPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
-          <div className="w-full overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[900px]">
-              <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th className="py-2 px-2.5 sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[155px]">
-                    {language === 'en' ? 'SERVICE CODE & NAME' : 'MÃ DỊCH VỤ & TÊN GÓI'}
-                  </th>
-                  <th className="py-2 px-2 min-w-[105px]">{language === 'en' ? 'CATEGORY' : 'PHÂN LOẠI'}</th>
-                  <th className="py-2 px-2 min-w-[120px] max-w-[200px]">{language === 'en' ? 'VENDOR / CARRIER' : 'ĐỐI TÁC / NHÀ MẠNG'}</th>
-                  <th className="py-2 px-2 min-w-[105px]">{language === 'en' ? 'ACCOUNT # / STATIC IP' : 'MÃ THUÊ BAO / IP'}</th>
-                  <th className="py-2 px-2 min-w-[100px]">{language === 'en' ? 'COST & CYCLE' : 'CHI PHÍ & CHU KỲ'}</th>
-                  <th className="py-2 px-2 min-w-[90px]">{language === 'en' ? 'RENEWAL DATE' : 'HẠN GIA HẠN'}</th>
-                  <th className="py-2 px-1.5 text-right sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[110px]">
-                    {language === 'en' ? 'ACTIONS' : 'THAO TÁC'}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {paginatedServices.map((svc) => {
-                  const typeObj = DEFAULT_SERVICE_TYPES.find((t) => t.value === svc.serviceType);
-                  const TypeIcon = typeObj?.icon || Globe;
-                  const cycleObj = BILLING_CYCLES.find((b) => b.value === svc.billingCycle);
+        <div className="space-y-3">
+          {/* Bulk Actions Banner */}
+          {selectedServiceIds.length > 0 && (
+            <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl animate-in fade-in slide-in-from-top duration-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-purple-900 dark:text-purple-200">
+                <span className="w-5 h-5 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  {selectedServiceIds.length}
+                </span>
+                <span>{language === 'en' ? `Selected ${selectedServiceIds.length} service(s)` : `Đã chọn ${selectedServiceIds.length} dịch vụ`}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedServiceIds([])}
+                  className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer"
+                >
+                  {language === 'en' ? 'Deselect all' : 'Bỏ chọn'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDeleteServices}
+                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? `Delete (${selectedServiceIds.length})` : `Xóa (${selectedServiceIds.length})`}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
-                  return (
-                    <tr
-                      key={svc.id}
-                      onClick={() => {
-                        setSelectedService(svc);
-                        setIsDetailModalOpen(true);
-                      }}
-                      className="hover:bg-purple-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
-                    >
-                      {/* 1. Mã & Tên (Sticky Left - 2 lines) */}
-                      <td className="py-2 px-2.5 sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-purple-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors min-w-[155px]">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden">
+            <div className="w-full overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse min-w-[900px]">
+                <thead className="bg-slate-50/90 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-700 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-2 px-2 w-10 text-center sticky left-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]">
+                      <input
+                        type="checkbox"
+                        checked={paginatedServices.length > 0 && paginatedServices.every((s) => selectedServiceIds.includes(s.id))}
+                        onChange={handleSelectAllServices}
+                        className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                        title={language === 'en' ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                      />
+                    </th>
+                    <th className="py-2 px-2 w-12 text-center text-slate-500 font-bold min-w-[48px]">
+                      {language === 'en' ? 'No.' : 'STT'}
+                    </th>
+                    <th className="py-2 px-2.5 min-w-[155px]">
+                      {language === 'en' ? 'SERVICE CODE & NAME' : 'MÃ DỊCH VỤ & TÊN GÓI'}
+                    </th>
+                    <th className="py-2 px-2 min-w-[105px]">{language === 'en' ? 'CATEGORY' : 'PHÂN LOẠI'}</th>
+                    <th className="py-2 px-2 min-w-[120px] max-w-[200px]">{language === 'en' ? 'VENDOR / CARRIER' : 'ĐỐI TÁC / NHÀ MẠNG'}</th>
+                    <th className="py-2 px-2 min-w-[105px]">{language === 'en' ? 'ACCOUNT # / STATIC IP' : 'MÃ THUÊ BAO / IP'}</th>
+                    <th className="py-2 px-2 min-w-[100px]">{language === 'en' ? 'COST & CYCLE' : 'CHI PHÍ & CHU KỲ'}</th>
+                    <th className="py-2 px-2 min-w-[90px]">{language === 'en' ? 'RENEWAL DATE' : 'HẠN GIA HẠN'}</th>
+                    <th className="py-2 px-1.5 text-right sticky right-0 z-20 bg-slate-50 dark:bg-slate-800 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] min-w-[110px]">
+                      {language === 'en' ? 'ACTIONS' : 'THAO TÁC'}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {paginatedServices.map((svc, idx) => {
+                    const typeObj = DEFAULT_SERVICE_TYPES.find((t) => t.value === svc.serviceType);
+                    const TypeIcon = typeObj?.icon || Globe;
+                    const cycleObj = BILLING_CYCLES.find((b) => b.value === svc.billingCycle);
+
+                    return (
+                      <tr
+                        key={svc.id}
+                        onClick={() => {
+                          setSelectedService(svc);
+                          setIsDetailModalOpen(true);
+                        }}
+                        className={`hover:bg-purple-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group ${
+                          selectedServiceIds.includes(svc.id) ? 'bg-purple-50/60 dark:bg-slate-800/60' : ''
+                        }`}
+                      >
+                        {/* Checkbox */}
+                        <td
+                          className="py-2 px-2 text-center sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover:bg-purple-50/90 dark:group-hover:bg-slate-800/90 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors w-10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedServiceIds.includes(svc.id)}
+                            onChange={() => {}}
+                            onClick={(e) => handleToggleSelectService(svc.id, e)}
+                            className="rounded border-slate-300 dark:border-slate-700 text-purple-600 focus:ring-purple-500 cursor-pointer"
+                          />
+                        </td>
+
+                        {/* STT */}
+                        <td className="py-2 px-2 text-center font-mono font-bold text-slate-400 text-[11px] w-12">
+                          {(currentPage - 1) * pageSize + idx + 1}
+                        </td>
+
+                        {/* 1. Mã & Tên */}
+                        <td className="py-2 px-2.5 transition-colors min-w-[155px]">
                         <div className="flex items-start gap-1.5">
                           <div className="w-6 h-6 rounded-lg bg-purple-50 dark:bg-purple-950 text-purple-700 dark:text-purple-300 flex items-center justify-center font-bold shrink-0 mt-0.5 border border-purple-200 dark:border-purple-800">
                             <TypeIcon className="w-3 h-3" />
@@ -2039,6 +2141,7 @@ export default function ServicesPage() {
             itemName={language === 'en' ? 'services' : 'dịch vụ'}
           />
         </div>
+      </div>
       )}
         </>
       )}

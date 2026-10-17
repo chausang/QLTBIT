@@ -319,6 +319,45 @@ export default function DocumentsPage() {
   // 📄 Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(25);
+  const [selectedDocIds, setSelectedDocIds] = useState<string[]>([]);
+
+  const handleToggleSelectDoc = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedDocIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllDocs = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const pageIds = paginatedDocuments.map((d) => d.id);
+      setSelectedDocIds(Array.from(new Set([...selectedDocIds, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedDocuments.map((d) => d.id));
+      setSelectedDocIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleBulkDeleteDocs = async () => {
+    if (selectedDocIds.length === 0) return;
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${selectedDocIds.length} tài liệu đã chọn? Dữ liệu sẽ được chuyển vào thùng rác.`)) return;
+
+    const idsToDelete = [...selectedDocIds];
+    setSelectedDocIds([]);
+    setDocuments((prev) => prev.filter((d) => !idsToDelete.includes(d.id)));
+
+    try {
+      for (const id of idsToDelete) {
+        await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+      }
+      invalidateClientCache('/api/documents');
+      triggerDataRefresh('documents');
+      loadDocuments();
+    } catch {
+      alert('Lỗi kết nối khi xóa hàng loạt');
+      loadDocuments();
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1491,34 +1530,91 @@ export default function DocumentsPage() {
         </div>
       ) : viewMode === 'TABLE' ? (
         /* ==================== VIEW MODE: TABLE VIEW ==================== */
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
-                  <th className="py-2.5 px-3 pl-4">Hồ sơ / Giấy tờ</th>
-                  <th className="py-2.5 px-3">Gói mua sắm / Dự án</th>
-                  <th className="py-2.5 px-3">Phân loại</th>
-                  <th className="py-2.5 px-3">Số HĐ / Hóa đơn</th>
-                  <th className="py-2.5 px-3">Công ty & Đối tác</th>
-                  <th className="py-2.5 px-3">Thiết bị liên kết</th>
-                  <th className="py-2.5 px-3">Ngày lập</th>
-                  <th className="py-2.5 px-3 text-right">Tổng tiền (VNĐ)</th>
-                  <th className="py-2.5 px-3 pr-4 text-center">{isEn ? 'Actions' : 'Thao tác'}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                {paginatedDocuments.map((doc) => {
-                  const attachList = Array.isArray(doc.attachments) && doc.attachments.length > 0
-                    ? doc.attachments
-                    : (doc.fileUrl ? [{ url: doc.fileUrl, name: doc.fileName, size: doc.fileSize, type: doc.fileType }] : []);
+        <div className="space-y-3">
+          {/* Bulk Actions Banner */}
+          {selectedDocIds.length > 0 && (
+            <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-2xl animate-in fade-in slide-in-from-top duration-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-blue-900">
+                <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  {selectedDocIds.length}
+                </span>
+                <span>{isEn ? `Selected ${selectedDocIds.length} document(s)` : `Đã chọn ${selectedDocIds.length} tài liệu`}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDocIds([])}
+                  className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
+                >
+                  {isEn ? 'Deselect all' : 'Bỏ chọn'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDeleteDocs}
+                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isEn ? `Delete (${selectedDocIds.length})` : `Xóa (${selectedDocIds.length})`}</span>
+                </button>
+              </div>
+            </div>
+          )}
 
-                  return (
-                    <tr
-                      key={doc.id}
-                      onClick={() => handleOpenEdit(doc)}
-                      className="hover:bg-blue-50/40 transition-colors cursor-pointer group"
-                    >
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-wider">
+                    <th className="py-2.5 px-2 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={paginatedDocuments.length > 0 && paginatedDocuments.every((d) => selectedDocIds.includes(d.id))}
+                        onChange={handleSelectAllDocs}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        title={isEn ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                      />
+                    </th>
+                    <th className="py-2.5 px-2 w-12 text-center text-slate-500 font-bold">{isEn ? 'No.' : 'STT'}</th>
+                    <th className="py-2.5 px-3">Hồ sơ / Giấy tờ</th>
+                    <th className="py-2.5 px-3">Gói mua sắm / Dự án</th>
+                    <th className="py-2.5 px-3">Phân loại</th>
+                    <th className="py-2.5 px-3">Số HĐ / Hóa đơn</th>
+                    <th className="py-2.5 px-3">Công ty & Đối tác</th>
+                    <th className="py-2.5 px-3">Thiết bị liên kết</th>
+                    <th className="py-2.5 px-3">Ngày lập</th>
+                    <th className="py-2.5 px-3 text-right">Tổng tiền (VNĐ)</th>
+                    <th className="py-2.5 px-3 pr-4 text-center">{isEn ? 'Actions' : 'Thao tác'}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+                  {paginatedDocuments.map((doc, idx) => {
+                    const attachList = Array.isArray(doc.attachments) && doc.attachments.length > 0
+                      ? doc.attachments
+                      : (doc.fileUrl ? [{ url: doc.fileUrl, name: doc.fileName, size: doc.fileSize, type: doc.fileType }] : []);
+
+                    return (
+                      <tr
+                        key={doc.id}
+                        onClick={() => handleOpenEdit(doc)}
+                        className={`hover:bg-blue-50/40 transition-colors cursor-pointer group ${
+                          selectedDocIds.includes(doc.id) ? 'bg-blue-50/70' : ''
+                        }`}
+                      >
+                        {/* Checkbox */}
+                        <td className="py-2 px-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedDocIds.includes(doc.id)}
+                            onChange={() => {}}
+                            onClick={(e) => handleToggleSelectDoc(doc.id, e)}
+                            className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                        </td>
+
+                        {/* STT */}
+                        <td className="py-2 px-2 text-center font-mono font-bold text-slate-400 text-[11px]">
+                          {(currentPage - 1) * pageSize + idx + 1}
+                        </td>
                       {/* Title & File Name */}
                       <td className="py-2 px-3 pl-4">
                         <div className="flex items-center space-x-2.5">
@@ -1682,6 +1778,7 @@ export default function DocumentsPage() {
             itemName={language === 'en' ? 'documents' : 'hồ sơ'}
           />
         </div>
+      </div>
       ) : (
         /* ==================== VIEW MODE: GRID VIEW ==================== */
         <div className="space-y-4">

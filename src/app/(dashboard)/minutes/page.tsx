@@ -81,6 +81,43 @@ export default function MinutesManagementPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [selectedMinuteIds, setSelectedMinuteIds] = useState<string[]>([]);
+
+  const handleToggleSelectMinute = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedMinuteIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllMinutes = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const allIds = filteredMinutes.map((m) => m.id);
+      setSelectedMinuteIds(Array.from(new Set([...selectedMinuteIds, ...allIds])));
+    } else {
+      const currentIds = new Set(filteredMinutes.map((m) => m.id));
+      setSelectedMinuteIds((prev) => prev.filter((id) => !currentIds.has(id)));
+    }
+  };
+
+  const handleBulkDeleteMinutes = async () => {
+    if (selectedMinuteIds.length === 0) return;
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa ${selectedMinuteIds.length} biên bản đã chọn không?`)) return;
+
+    const idsToDelete = [...selectedMinuteIds];
+    setSelectedMinuteIds([]);
+    setMinutes((prev) => prev.filter((m) => !idsToDelete.includes(m.id)));
+
+    try {
+      for (const id of idsToDelete) {
+        await fetch(`/api/minutes/${id}`, { method: 'DELETE' });
+      }
+      loadData();
+    } catch {
+      alert('Lỗi kết nối khi xóa hàng loạt');
+      loadData();
+    }
+  };
 
   // Form state
   const [formData, setFormData] = useState<MinutePayload>({
@@ -888,27 +925,81 @@ export default function MinutesManagementPage() {
             </button>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
-                  <th className="p-3.5 w-12 text-center">STT</th>
-                  <th className="p-3.5">Mã & Tiêu Đề Biên Bản</th>
-                  <th className="p-3.5">Loại Biên Bản</th>
-                  <th className="p-3.5">Khoa Phòng / Bộ Phận</th>
-                  <th className="p-3.5">Liên Kết Đề Nghị</th>
-                  <th className="p-3.5">Bên Giao / Nhận</th>
-                  <th className="p-3.5 text-center">Thiết Bị</th>
-                  <th className="p-3.5">Ngày Lập</th>
-                  <th className="p-3.5 text-center">Trạng Thái</th>
-                  <th className="p-3.5 text-center w-36">Thao Tác</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredMinutes.map((item, idx) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="p-3.5 text-center font-mono text-slate-400">{idx + 1}</td>
-                    <td className="p-3.5">
+          <div className="space-y-3">
+            {/* Bulk Actions Banner */}
+            {selectedMinuteIds.length > 0 && (
+              <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-2xl animate-in fade-in slide-in-from-top duration-200">
+                <div className="flex items-center gap-2 text-xs font-semibold text-blue-900">
+                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">
+                    {selectedMinuteIds.length}
+                  </span>
+                  <span>Đã chọn {selectedMinuteIds.length} biên bản</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMinuteIds([])}
+                    className="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
+                  >
+                    Bỏ chọn
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkDeleteMinutes}
+                    className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Xóa ({selectedMinuteIds.length})</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
+                    <th className="p-3.5 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={filteredMinutes.length > 0 && filteredMinutes.every((m) => selectedMinuteIds.includes(m.id))}
+                        onChange={handleSelectAllMinutes}
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        title="Chọn tất cả biên bản"
+                      />
+                    </th>
+                    <th className="p-3.5 w-12 text-center">STT</th>
+                    <th className="p-3.5">Mã & Tiêu Đề Biên Bản</th>
+                    <th className="p-3.5">Loại Biên Bản</th>
+                    <th className="p-3.5">Khoa Phòng / Bộ Phận</th>
+                    <th className="p-3.5">Liên Kết Đề Nghị</th>
+                    <th className="p-3.5">Bên Giao / Nhận</th>
+                    <th className="p-3.5 text-center">Thiết Bị</th>
+                    <th className="p-3.5">Ngày Lập</th>
+                    <th className="p-3.5 text-center">Trạng Thái</th>
+                    <th className="p-3.5 text-center w-36">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredMinutes.map((item, idx) => (
+                    <tr
+                      key={item.id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        selectedMinuteIds.includes(item.id) ? 'bg-blue-50/70' : ''
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedMinuteIds.includes(item.id)}
+                          onChange={() => {}}
+                          onClick={(e) => handleToggleSelectMinute(item.id, e)}
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        />
+                      </td>
+                      <td className="p-3.5 text-center font-mono text-slate-400">{idx + 1}</td>
+                      <td className="p-3.5">
                       <div
                         className="font-bold text-slate-900 text-xs hover:text-blue-600 cursor-pointer"
                         onClick={() => setPrintingMinute(item)}
@@ -1013,6 +1104,7 @@ export default function MinutesManagementPage() {
               </tbody>
             </table>
           </div>
+        </div>
         )}
       </div>
 

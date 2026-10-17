@@ -28,6 +28,7 @@ import { ManageableDropdown as SearchableSelect } from '@/components/ui/manageab
 import { getCategoryFields, getFriendlySpecLabel, formatPrice, renderCategoryIcon } from './types';
 import { CustomSpecsBuilder } from '@/components/common/CustomSpecsBuilder';
 import { AttachedEquipmentPicker } from './AttachedEquipmentPicker';
+import DepartmentFixedAssetSelectorModal, { SelectedFixedAsset } from './DepartmentFixedAssetSelectorModal';
 
 export interface AssetAddModalProps {
   isOpen: boolean;
@@ -119,6 +120,7 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
   const [selectedLicenseIds, setSelectedLicenseIds] = useState<string[]>([]);
   const [aiLookupLoading, setAiLookupLoading] = useState(false);
   const [aiLookupStatus, setAiLookupStatus] = useState<string | null>(null);
+  const [isFixedAssetSelectorOpen, setIsFixedAssetSelectorOpen] = useState(false);
 
   const userDropdownItems = (users || []).map((u: any) => ({
     id: u.id,
@@ -130,6 +132,7 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
   const [formData, setFormData] = useState<any>({
     name: '',
     fixedAssetName: '',
+    fixedAssetCode: '',
     managementCode: '',
     assetTag: '',
     categoryId: '',
@@ -153,6 +156,15 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
     notes: '',
   });
 
+  // Xác định Khoa/Phòng ban hiện thời để gợi ý lọc danh mục TSCĐ
+  const currentDepartment = React.useMemo(() => {
+    const loc = locations?.find((l: any) => l.id === formData.locationId);
+    if (loc?.name) return loc.name;
+    const usr = users?.find((u: any) => u.id === formData.assignedUserId);
+    if (usr?.department) return usr.department;
+    return '';
+  }, [formData.locationId, formData.assignedUserId, locations, users]);
+
   useEffect(() => {
     if (isOpen) {
       setModalActiveTab('general');
@@ -161,6 +173,7 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
       setFormData({
         name: '',
         fixedAssetName: '',
+        fixedAssetCode: '',
         managementCode: '',
         assetTag: '',
         categoryId: categories[0]?.id || '',
@@ -526,53 +539,126 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Mã quản lý & Tên tài sản cố định */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Mã quản lý */}
-                    <div className="p-3.5 bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 rounded-2xl">
-                      <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
-                          <span>{txt('Mã quản lý (MQL)', 'Management Code', '管理コード')}</span>
-                        </label>
+                  {/* KHỐI LIÊN KẾT TÀI SẢN CỐ ĐỊNH KHOA PHÒNG & KIỂM KÊ */}
+                  <div className="p-4 bg-gradient-to-br from-indigo-50/50 via-slate-50 to-blue-50/40 dark:from-indigo-950/20 dark:via-slate-900/40 dark:to-blue-950/20 border border-indigo-200/80 dark:border-indigo-900/50 rounded-2xl space-y-3">
+                    {/* Header khối */}
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                        <span className="text-xs font-black uppercase text-indigo-950 dark:text-indigo-200 tracking-wide flex items-center gap-1.5">
+                          <Layers className="w-4 h-4 text-indigo-600" />
+                          <span>{txt('Tài sản cố định (TSCĐ) & Mã quản lý theo khoa phòng', 'Department Fixed Asset & Management Code', '部署固定資産台帳・管理コード連携')}</span>
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsFixedAssetSelectorOpen(true)}
+                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>{txt('📋 Chọn từ TSCĐ khoa phòng', '📋 Select from Dept Catalog', '📋 部署台帳から選択')}</span>
+                        {currentDepartment && (
+                          <span className="bg-indigo-500/80 text-[10px] px-1.5 py-0.2 rounded-md font-medium max-w-[120px] truncate">
+                            {currentDepartment}
+                          </span>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* Badge trạng thái đã liên kết */}
+                    {(formData.fixedAssetCode || formData.fixedAssetName) && (
+                      <div className="p-2.5 bg-indigo-100/70 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-indigo-900 dark:text-indigo-200 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                            <span>{txt('Đã liên kết TSCĐ:', 'Linked to Asset:', '固定資産連携済:')}</span>
+                          </span>
+                          {formData.fixedAssetCode && (
+                            <span className="font-mono font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-900 dark:text-blue-200 text-[11px]">
+                              🏷️ {formData.fixedAssetCode}
+                            </span>
+                          )}
+                          {formData.fixedAssetName && (
+                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                              {formData.fixedAssetName}
+                            </span>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            const gen = `MQL-${Date.now().toString().slice(-6)}`;
-                            setFormData((prev: any) => ({ ...prev, managementCode: gen }));
+                            setFormData((prev: any) => ({
+                              ...prev,
+                              fixedAssetCode: '',
+                              fixedAssetName: '',
+                            }));
                           }}
-                          className="text-[10.5px] text-emerald-700 dark:text-emerald-300 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md font-bold border border-emerald-300 dark:border-emerald-700 cursor-pointer transition-colors"
+                          className="text-[11px] text-rose-600 hover:text-rose-700 dark:text-rose-400 font-bold hover:underline cursor-pointer"
                         >
-                          ⚡ {txt('Tự sinh mã', 'Auto Generate', '自動生成')}
+                          {txt('Gỡ liên kết', 'Unlink', '解除')}
                         </button>
                       </div>
-                      <input
-                        type="text"
-                        placeholder={txt('Tự sinh hoặc để trống để liên kết...', 'Auto gen or blank to link...', '空欄または自動採番...')}
-                        value={formData.managementCode || ''}
-                        onChange={(e) => setFormData({ ...formData, managementCode: e.target.value.toUpperCase() })}
-                        className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-bold text-emerald-900 dark:text-emerald-300 outline-none focus:ring-2 focus:ring-emerald-500 uppercase"
-                      />
-                    </div>
+                    )}
 
-                    {/* Tên tài sản cố định (Liên kết với kiểm kê tài sản - Không bắt buộc) */}
-                    <div className="p-3.5 bg-blue-50/40 dark:bg-blue-950/20 border border-blue-200/80 dark:border-blue-900/40 rounded-2xl">
-                      <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-blue-600 inline-block"></span>
-                          <span>{txt('Tên tài sản cố định (TSCĐ)', 'Fixed Asset Name (Accounting/Audit)', '固定資産名称')}</span>
+                    {/* 3 Trường: Mã TSCĐ, Tên TSCĐ, Mã Quản Lý (MQL) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* 1. Mã tài sản cố định (Mã TSCĐ) */}
+                      <div className="p-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mb-1.5">
+                          <Tag className="w-3.5 h-3.5 text-blue-600" />
+                          <span>{txt('Mã tài sản cố định (Mã TSCĐ)', 'Fixed Asset Code', '固定資産コード')}</span>
                         </label>
-                        <span className="text-[10px] text-blue-700 dark:text-blue-300 bg-blue-100/80 dark:bg-blue-900/50 px-2 py-0.5 rounded-md font-semibold border border-blue-200 dark:border-blue-800">
-                          {txt('Liên kết kiểm kê • Không bắt buộc', 'Linked to Audit • Optional', '棚卸連携・任意')}
-                        </span>
+                        <input
+                          type="text"
+                          placeholder={txt('VD: PCKH-HP-440, TS-001...', 'e.g. PCKH-HP-440...', '例：PCKH-HP-440...')}
+                          value={formData.fixedAssetCode || ''}
+                          onChange={(e) => setFormData({ ...formData, fixedAssetCode: e.target.value.toUpperCase() })}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono font-bold text-blue-950 dark:text-blue-300 outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                        />
                       </div>
-                      <input
-                        type="text"
-                        placeholder={txt('VD: Bộ máy vi tính để bàn HP ProDesk 400 G6 (Để trống nếu trùng tên thiết bị)...', 'e.g. Desktop Computer HP ProDesk 400 G6 (Leave blank if same as device)...', '例：デスクトップPC HP ProDesk 400 G6（未設定可）...')}
-                        value={formData.fixedAssetName || ''}
-                        onChange={(e) => setFormData({ ...formData, fixedAssetName: e.target.value })}
-                        className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400 placeholder:font-normal"
-                      />
+
+                      {/* 2. Tên tài sản cố định (TSCĐ) */}
+                      <div className="p-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 mb-1.5">
+                          <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                          <span>{txt('Tên tài sản cố định (TSCĐ)', 'Fixed Asset Name', '固定資産名称')}</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={txt('Tên theo sổ kiểm kê khoa phòng...', 'Name per department book...', '台帳記載の名称...')}
+                          value={formData.fixedAssetName || ''}
+                          onChange={(e) => setFormData({ ...formData, fixedAssetName: e.target.value })}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      {/* 3. Mã quản lý (MQL) */}
+                      <div className="p-3 bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block"></span>
+                            <span>{txt('Mã quản lý (MQL)', 'Management Code', '管理コード')}</span>
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const gen = `MQL-${Date.now().toString().slice(-6)}`;
+                              setFormData((prev: any) => ({ ...prev, managementCode: gen }));
+                            }}
+                            className="text-[10px] text-emerald-700 dark:text-emerald-300 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/60 px-1.5 py-0.2 rounded font-bold border border-emerald-300 dark:border-emerald-700 cursor-pointer"
+                          >
+                            ⚡ {txt('Tự sinh', 'Auto', '自動')}
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="MQL-xxxxxx"
+                          value={formData.managementCode || ''}
+                          onChange={(e) => setFormData({ ...formData, managementCode: e.target.value.toUpperCase() })}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-mono font-bold text-emerald-900 dark:text-emerald-300 outline-none focus:ring-2 focus:ring-emerald-500 uppercase"
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -1394,6 +1480,30 @@ export const AssetAddModal: React.FC<AssetAddModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Modal chọn tài sản cố định từ danh mục khoa phòng */}
+          <DepartmentFixedAssetSelectorModal
+            isOpen={isFixedAssetSelectorOpen}
+            onClose={() => setIsFixedAssetSelectorOpen(false)}
+            defaultDepartment={currentDepartment}
+            selectedFixedAssetCode={formData.fixedAssetCode}
+            selectedManagementCode={formData.managementCode}
+            onSelect={(selected: SelectedFixedAsset) => {
+              setFormData((prev: any) => ({
+                ...prev,
+                fixedAssetCode: selected.fixedAssetCode,
+                fixedAssetName: selected.fixedAssetName,
+                managementCode: selected.managementCode,
+              }));
+            }}
+            onUnlink={() => {
+              setFormData((prev: any) => ({
+                ...prev,
+                fixedAssetCode: '',
+                fixedAssetName: '',
+              }));
+            }}
+          />
         </div>
   );
 };

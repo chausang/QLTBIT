@@ -68,40 +68,108 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Tra cứu liên kết mã quản lý với Thiết Bị và Phụ Tùng Linh Kiện
+    // Tra cứu liên kết theo Mã Quản Lý (MQL) và Mã Tài Sản Cố Định (TSCĐ) với Thiết Bị và Phụ Tùng Linh Kiện
     const mgmtCodes = items
       .map((i) => i.managementCode)
       .filter((c): c is string => Boolean(c && c.trim() !== ''));
+    const faCodes = items
+      .map((i) => i.fixedAssetCode)
+      .filter((c): c is string => Boolean(c && c.trim() !== ''));
 
-    let linkedAssetsMap = new Map<string, any>();
-    let linkedSparePartsMap = new Map<string, any>();
+    let matchedAssets: any[] = [];
+    let matchedSpareParts: any[] = [];
 
-    if (mgmtCodes.length > 0) {
-      const [matchedAssets, matchedSpareParts] = await Promise.all([
-        prisma.asset.findMany({
-          where: { managementCode: { in: mgmtCodes } },
-          select: { id: true, assetTag: true, name: true, managementCode: true, status: true, brand: true },
-        }),
-        prisma.sparePart.findMany({
-          where: { managementCode: { in: mgmtCodes } },
-          select: { id: true, sku: true, name: true, managementCode: true, quantity: true },
-        }),
+    const assetConditions: any[] = [];
+    if (mgmtCodes.length > 0) assetConditions.push({ managementCode: { in: mgmtCodes } });
+    if (faCodes.length > 0) assetConditions.push({ fixedAssetCode: { in: faCodes } });
+
+    const sparePartConditions: any[] = [];
+    if (mgmtCodes.length > 0) sparePartConditions.push({ managementCode: { in: mgmtCodes } });
+    if (faCodes.length > 0) sparePartConditions.push({ fixedAssetCode: { in: faCodes } });
+
+    if (assetConditions.length > 0 || sparePartConditions.length > 0) {
+      const [assetsResult, sparePartsResult] = await Promise.all([
+        assetConditions.length > 0
+          ? prisma.asset.findMany({
+              where: { OR: assetConditions },
+              select: {
+                id: true,
+                assetTag: true,
+                name: true,
+                managementCode: true,
+                fixedAssetCode: true,
+                status: true,
+                brand: true,
+                model: true,
+                serialNumber: true,
+                location: { select: { name: true } },
+              },
+            })
+          : Promise.resolve([]),
+        sparePartConditions.length > 0
+          ? prisma.sparePart.findMany({
+              where: { OR: sparePartConditions },
+              select: {
+                id: true,
+                sku: true,
+                name: true,
+                managementCode: true,
+                fixedAssetCode: true,
+                quantity: true,
+                unit: true,
+                department: true,
+              },
+            })
+          : Promise.resolve([]),
       ]);
-
-      matchedAssets.forEach((a) => {
-        if (a.managementCode) linkedAssetsMap.set(a.managementCode, a);
-      });
-      matchedSpareParts.forEach((sp) => {
-        if (sp.managementCode) linkedSparePartsMap.set(sp.managementCode, sp);
-      });
+      matchedAssets = assetsResult;
+      matchedSpareParts = sparePartsResult;
     }
 
-    // Ghép thông tin liên kết vào từng item
-    const enrichedItems = items.map((item) => ({
-      ...item,
-      linkedAsset: item.managementCode ? linkedAssetsMap.get(item.managementCode) || null : null,
-      linkedSparePart: item.managementCode ? linkedSparePartsMap.get(item.managementCode) || null : null,
-    }));
+    // Ghép thông tin liên kết vào từng item TSCĐ
+    const enrichedItems = items.map((item) => {
+      const itemMgmt = item.managementCode?.trim();
+      const itemFa = item.fixedAssetCode?.trim();
+
+      const linkedAssets = matchedAssets.filter((a) => {
+        if (itemMgmt && a.managementCode === itemMgmt) return true;
+        if (itemFa && a.fixedAssetCode === itemFa) return true;
+        return false;
+      });
+
+      const linkedSpareParts = matchedSpareParts.filter((sp) => {
+        if (itemMgmt && sp.managementCode === itemMgmt) return true;
+        if (itemFa && sp.fixedAssetCode === itemFa) return true;
+        return false;
+      });
+
+      const totalLinkedAssetsCount = linkedAssets.length;
+      const totalLinkedSparePartsCount = linkedSpareParts.reduce((sum, sp) => sum + (Number(sp.quantity) || 1), 0);
+      const totalLinkedItemsCount = totalLinkedAssetsCount + totalLinkedSparePartsCount;
+
+      // Đánh giá trạng thái đối soát kiểm kê IT
+      const expectedQuantity = item.bookQuantity || 1;
+      let auditMatchStatus: 'MATCHED' | 'MISMATCH' | 'UNLINKED' = 'UNLINKED';
+      if (totalLinkedItemsCount > 0) {
+        if (totalLinkedItemsCount === expectedQuantity) {
+          auditMatchStatus = 'MATCHED';
+        } else {
+          auditMatchStatus = 'MISMATCH';
+        }
+      }
+
+      return {
+        ...item,
+        linkedAsset: linkedAssets[0] || null,
+        linkedAssets,
+        linkedSparePart: linkedSpareParts[0] || null,
+        linkedSpareParts,
+        totalLinkedAssetsCount,
+        totalLinkedSparePartsCount,
+        totalLinkedItemsCount,
+        auditMatchStatus,
+      };
+    });
 
     // Thống kê nhanh bằng SQL aggregate (tối ưu cực nhanh, không kéo toàn bộ bảng về RAM)
     const [statsAggregate, statsCount] = await Promise.all([

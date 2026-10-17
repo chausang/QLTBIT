@@ -504,6 +504,43 @@ export default function PasswordsPage() {
   // 📄 Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(25);
+  const [selectedPasswordIds, setSelectedPasswordIds] = useState<string[]>([]);
+
+  const handleToggleSelectPassword = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPasswordIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const handleSelectAllPasswords = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      const pageIds = paginatedPasswords.map((p) => p.id);
+      setSelectedPasswordIds(Array.from(new Set([...selectedPasswordIds, ...pageIds])));
+    } else {
+      const pageIds = new Set(paginatedPasswords.map((p) => p.id));
+      setSelectedPasswordIds((prev) => prev.filter((id) => !pageIds.has(id)));
+    }
+  };
+
+  const handleBulkDeletePasswords = async () => {
+    if (selectedPasswordIds.length === 0) return;
+    if (!confirm(isEn ? `Permanently delete ${selectedPasswordIds.length} selected accounts?` : `Bạn có chắc chắn muốn xóa ${selectedPasswordIds.length} tài khoản đã chọn không?`)) return;
+
+    const idsToDelete = [...selectedPasswordIds];
+    setSelectedPasswordIds([]);
+    setPasswords((prev) => prev.filter((p) => !idsToDelete.includes(p.id)));
+
+    try {
+      for (const id of idsToDelete) {
+        await fetch(`/api/passwords/${id}`, { method: 'DELETE' });
+      }
+      loadPasswords();
+    } catch {
+      alert('Lỗi khi xóa hàng loạt');
+      loadPasswords();
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -1285,11 +1322,50 @@ export default function PasswordsPage() {
             )}
           </div>
 
+          {/* Bulk Actions Banner */}
+          {selectedPasswordIds.length > 0 && (
+            <div className="flex items-center justify-between p-2.5 mb-2 bg-indigo-50 border border-indigo-200 rounded-xl animate-in fade-in slide-in-from-top duration-200">
+              <div className="flex items-center gap-2 text-xs font-semibold text-indigo-900">
+                <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-bold">
+                  {selectedPasswordIds.length}
+                </span>
+                <span>{isEn ? `Selected ${selectedPasswordIds.length} account(s)` : `Đã chọn ${selectedPasswordIds.length} tài khoản`}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedPasswordIds([])}
+                  className="px-2.5 py-1 text-xs text-slate-600 hover:text-slate-900 font-medium cursor-pointer"
+                >
+                  {isEn ? 'Deselect all' : 'Bỏ chọn'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkDeletePasswords}
+                  className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{isEn ? `Delete (${selectedPasswordIds.length})` : `Xóa (${selectedPasswordIds.length})`}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* High-Density KeePass Table */}
           <div className="flex-1 overflow-x-auto overflow-y-auto max-h-[calc(100vh-270px)] scrollbar-thin">
             <table className="w-full text-left text-xs border-collapse">
               <thead className="sticky top-0 z-10 bg-slate-100/95 backdrop-blur-xs text-slate-600 text-[11px] font-bold uppercase tracking-wider border-b border-slate-200">
                 <tr>
+                  <th className="w-8 px-2 py-2.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={paginatedPasswords.length > 0 && paginatedPasswords.every((p) => selectedPasswordIds.includes(p.id))}
+                      onChange={handleSelectAllPasswords}
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                      title={isEn ? "Select all on this page" : "Chọn tất cả trên trang này"}
+                    />
+                  </th>
+                  <th className="w-10 px-2 py-2.5 text-center text-slate-500 font-bold">{isEn ? 'No.' : 'STT'}</th>
                   <th className="w-8 px-2 py-2.5 text-center">⭐</th>
                   <th className="px-3 py-2.5">Tiêu đề (Title)</th>
                   <th className="px-3 py-2.5">Tên đăng nhập (User Name)</th>
@@ -1302,7 +1378,7 @@ export default function PasswordsPage() {
               <tbody className="divide-y divide-slate-100 text-slate-800">
                 {filteredPasswords.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="text-center py-12 text-slate-400 space-y-2">
+                    <td colSpan={9} className="text-center py-12 text-slate-400 space-y-2">
                       <Lock className="w-8 h-8 text-slate-300 mx-auto" />
                       <p className="font-semibold text-xs text-slate-600">Không tìm thấy tài khoản nào</p>
                       <p className="text-[11px]">Bấm "+ Thêm Mật Khẩu" hoặc "Import KeePass" để nạp tài khoản.</p>
@@ -1324,9 +1400,29 @@ export default function PasswordsPage() {
                           setIsDetailModalOpen(true);
                         }}
                         className={`transition-colors cursor-pointer group hover:bg-indigo-50/50 ${
-                          rowIdx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'
+                          selectedPasswordIds.includes(item.id)
+                            ? 'bg-indigo-50/70'
+                            : rowIdx % 2 === 1
+                            ? 'bg-slate-50/40'
+                            : 'bg-white'
                         }`}
                       >
+                        {/* Checkbox */}
+                        <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedPasswordIds.includes(item.id)}
+                            onChange={() => {}}
+                            onClick={(e) => handleToggleSelectPassword(item.id, e)}
+                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                          />
+                        </td>
+
+                        {/* STT */}
+                        <td className="px-2 py-2 text-center font-mono font-bold text-slate-400 text-[11px]">
+                          {(currentPage - 1) * pageSize + rowIdx + 1}
+                        </td>
+
                         {/* Favorite Star */}
                         <td className="px-2 py-2 text-center" onClick={(e) => e.stopPropagation()}>
                           <button
