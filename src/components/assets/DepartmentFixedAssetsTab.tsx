@@ -134,6 +134,13 @@ export default function DepartmentFixedAssetsTab() {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
 
+  const pageSizeRef = useRef(25);
+  const isPageSizeChangingRef = useRef(false);
+
+  useEffect(() => {
+    pageSizeRef.current = pageSize;
+  }, [pageSize]);
+
   // Thống kê đối soát kiểm kê IT
   const auditStats = useMemo(() => {
     const nonHeaders = items.filter((i) => !i.isGroupHeader);
@@ -149,9 +156,9 @@ export default function DepartmentFixedAssetsTab() {
   }, [items, auditFilter]);
 
   // Tải dữ liệu
-  const loadData = async (page: any = currentPage, limit: any = pageSize) => {
+  const loadData = async (page: any = currentPage, limit: any = pageSizeRef.current) => {
     const targetPage = typeof page === 'number' ? page : currentPage;
-    const targetLimit = typeof limit === 'number' ? limit : pageSize;
+    const targetLimit = typeof limit === 'number' ? limit : pageSizeRef.current;
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -178,16 +185,33 @@ export default function DepartmentFixedAssetsTab() {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    if (isPageSizeChangingRef.current) return;
+    setCurrentPage(page);
+    loadData(page, pageSizeRef.current);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    pageSizeRef.current = newSize;
+    setPageSize(newSize);
+    setCurrentPage(1);
+    isPageSizeChangingRef.current = true;
+    loadData(1, newSize);
+    setTimeout(() => {
+      isPageSizeChangingRef.current = false;
+    }, 150);
+  };
+
   useEffect(() => {
     setCurrentPage(1);
-    loadData(1, pageSize);
+    loadData(1, pageSizeRef.current);
   }, [departmentFilter, warehouseFilter, groupFilter]);
 
   // Handle Search Debounce
   useEffect(() => {
     const timer = setTimeout(() => {
       setCurrentPage(1);
-      loadData(1, pageSize);
+      loadData(1, pageSizeRef.current);
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
@@ -970,15 +994,8 @@ export default function DepartmentFixedAssetsTab() {
           totalPages={totalPages}
           totalCount={totalCount}
           pageSize={pageSize}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-            loadData(page, pageSize);
-          }}
-          onPageSizeChange={(newSize) => {
-            setPageSize(newSize);
-            setCurrentPage(1);
-            loadData(1, newSize);
-          }}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
           pageSizeOptions={[15, 25, 50, 100]}
           itemName={txt('tài sản', 'assets', '件')}
         />

@@ -64,7 +64,9 @@ export function TablePaginationBar({
             onChange={(e) => {
               const newSize = Number(e.target.value);
               onPageSizeChange(newSize);
-              onPageChange(1);
+              if (currentPage !== 1) {
+                onPageChange(1);
+              }
               if (storageKey && typeof window !== 'undefined') {
                 try {
                   localStorage.setItem(storageKey, String(newSize));
