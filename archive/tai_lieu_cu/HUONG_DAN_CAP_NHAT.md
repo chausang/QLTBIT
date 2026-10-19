@@ -1,4 +1,4 @@
-﻿# 🔄 HƯỚNG DẪN CẬP NHẬT MÃ NGUỒN (UPDATE CODE) SIMPLY IT
+# 🔄 HƯỚNG DẪN CẬP NHẬT MÃ NGUỒN (UPDATE CODE) SIMPLY IT
 > **Tài liệu hướng dẫn nâng cấp phiên bản mới nhất từ GitHub an toàn 100%, bảo toàn nguyên vẹn cơ sở dữ liệu và cấu hình hệ thống!**
 
 ---
@@ -62,7 +62,7 @@ Nếu trước đây bạn tải mã nguồn bằng nút *Download ZIP* trên Gi
 1. **Bước 1: Sao lưu cấu hình**:
    * Vào thư mục phần mềm cũ, copy file **`.env`** ra màn hình Desktop để lưu lại mật khẩu và cấu hình kết nối.
 2. **Bước 2: Tải bản mới**:
-   * Truy cập: **[https://github.com/takien26/Simply-it-community](https://github.com/takien26/Simply-it-community)** > Bấm nút **`Code`** màu xanh > Chọn **`Download ZIP`**.
+   * Truy cập: **[https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)** > Bấm nút **`Code`** màu xanh > Chọn **`Download ZIP`**.
    * Giải nén file `.zip` mới tải về.
 3. **Bước 3: Ghi đè file code**:
    * Copy toàn bộ file trong thư mục mới tải về và dán đè (Replace) vào thư mục phần mềm hiện tại của bạn.
@@ -163,4 +163,4 @@ pm2 restart simply-it
 
 ### 3. Cần hỗ trợ cập nhật?
 * 📧 Email hỗ trợ tác giả: **`takien26@gmail.com`**
-* 🐙 Báo cáo lỗi (Issue) trên GitHub: [https://github.com/takien26/Simply-it-community/issues](https://github.com/takien26/Simply-it-community/issues)
+* 🐙 Báo cáo lỗi (Issue) trên GitHub: [https://github.com/chausang/QLTBIT/issues](https://github.com/chausang/QLTBIT/issues)

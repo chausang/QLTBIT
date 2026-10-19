@@ -20,7 +20,7 @@ Hệ thống hỗ trợ 3 phương án cài đặt phổ biến nhất. Hãy ch�
 Dù bạn cài theo cách nào, trước tiên hãy tải bộ mã nguồn về máy:
 
 ### • Cách 0.1: Tải trực tiếp file ZIP (Dễ nhất cho người mới)
-1. Mở trình duyệt và truy cập trang GitHub: **[https://github.com/takien26/Simply-it-community](https://github.com/takien26/Simply-it-community)**
+1. Mở trình duyệt và truy cập trang GitHub: **[https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)**
 2. Bấm vào nút màu xanh lá cây: **`<> Code`** (ở phía trên bên phải danh sách file).
 3. Chọn dòng: **`Download ZIP`**.
 4. Sau khi tải về xong, nhấp chuột phải vào file `.zip` vừa tải > Chọn **Extract All... (Giải nén tất cả)** vào một thư mục dễ nhớ (ví dụ: `D:\Simply-it-community` hoặc `C:\Simply-it-community`).
@@ -28,8 +28,8 @@ Dù bạn cài theo cách nào, trước tiên hãy tải bộ mã nguồn về 
 ### • Cách 0.2: Tải bằng Git (Dành cho người đã cài Git)
 Mở cửa sổ dòng lệnh (Terminal hoặc PowerShell) và gõ lệnh sau:
 ```bash
-git clone https://github.com/takien26/Simply-it-community.git
-cd Simply-it-community
+git clone https://github.com/chausang/QLTBIT.git
+cd QLTBIT
 ```
 
 ---
@@ -134,8 +134,8 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y docker.io docker-compose-v2 git
 sudo systemctl enable --now docker
 
-# 3. Tải mã nguồn Simply IT Community
-sudo git clone https://github.com/takien26/Simply-it-community.git /opt/simply-it
+# 3. Tải mã nguồn QLTBIT
+sudo git clone https://github.com/chausang/QLTBIT.git /opt/simply-it
 sudo chown -R $USER:$USER /opt/simply-it
 cd /opt/simply-it
 
@@ -167,7 +167,7 @@ sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'Admin@123';"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE it_asset_db TO postgres;"
 
 # 3. Tải mã nguồn và cài thư viện
-sudo git clone https://github.com/takien26/Simply-it-community.git /opt/simply-it
+sudo git clone https://github.com/chausang/QLTBIT.git /opt/simply-it
 sudo chown -R $USER:$USER /opt/simply-it
 cd /opt/simply-it
 cp .env.example .env
@@ -342,7 +342,7 @@ docker compose up -d --build
 
 * 👤 **Tác giả phát triển**: **Tạ Trung Kiên**
 * 📧 **Email**: `takien26@gmail.com`
-* 🐙 **Mã nguồn chính thức (GitHub)**: [https://github.com/takien26/Simply-it-community](https://github.com/takien26/Simply-it-community)
+* 🐙 **Mã nguồn chính thức (GitHub)**: [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
 * 👑 **Bản Enterprise**: Nếu doanh nghiệp của bạn cần các tính năng nâng cao (Sơ đồ mặt bằng văn phòng 2D, Tự động quét thiết bị mạng Auto-Discovery, Đợt kiểm kê tài sản chuyên sâu, Webhooks tích hợp, Đăng nhập tập trung SSO/LDAP), vui lòng liên hệ tác giả qua email trên để được hỗ trợ và cấp License bản quyền chính hãng.
 
 ---

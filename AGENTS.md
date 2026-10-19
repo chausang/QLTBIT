@@ -12,10 +12,9 @@ Trước khi thực hiện bất kỳ thao tác nào, hãy tuân thủ các ch�
 ---
 
 ## 2. Quy Ước Bắt Buộc (Critical Rules)
-1. **Đồng bộ 2 Repository GitHub**:
-   - Khi commit và push, phải luôn đẩy mã nguồn lên cả 2 repository:
-     - Repo 1: `https://github.com/takien26/Simply-it-community.git`
-     - Repo 2: `https://github.com/takien26/Simply-IT.git`
+1. **Đồng bộ Repository GitHub**:
+   - Khi commit và push, đẩy mã nguồn lên repository chính thức của dự án:
+     - Repo chính: `https://github.com/chausang/QLTBIT.git` (origin)
 2. **Kiểm tra biên dịch trước khi hoàn thành**:
    - Luôn chạy lệnh `npm run build` để đảm bảo 0 lỗi TypeScript và cú pháp trước khi push code.
 3. **Phong cách Lập trình Tối giản (Lazy Senior Dev / Ponytail)**:

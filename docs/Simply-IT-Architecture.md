@@ -219,8 +219,8 @@ docker-compose up -d --build app
 ```bash
 # 1. Cài đặt Node.js 22+ & PostgreSQL 16+
 # 2. Clone và cài đặt
-git clone https://github.com/takien26/Simply-it-community.git
-cd Simply-it-community
+git clone https://github.com/chausang/QLTBIT.git
+cd QLTBIT
 npm install
 
 # 3. Cấu hình .env

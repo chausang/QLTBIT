@@ -1,6 +1,6 @@
-# 📘 Simply IT — Community Edition (CE)
-> **"One platform. Simple IT."**  
-> An open-source, modern, and unified IT Asset Management (ITAM) and Helpdesk (ITSM) platform for growing teams and enterprises.
+# 🏥 QLTBIT — Chương Trình Quản Lý Thiết Bị Trong Bệnh Viện
+> **"Giải pháp chuyển đổi số toàn diện quản lý tài sản, trang thiết bị CNTT và tiếp nhận hỗ trợ sự cố cho Bệnh viện, Cơ sở Y tế & Doanh nghiệp."**  
+> An open-source, modern, and unified IT Asset Management (ITAM) and Helpdesk (ITSM) platform tailored for hospitals, healthcare facilities, and growing organizations.
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -9,151 +9,158 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 
-[English Overview](#english-overview) • [Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [📖 **Tài Liệu Hướng Dẫn Word (.docx)**](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx) • [📦 Thư Mục Lưu Trữ Cũ](./archive/)
+[Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [English Overview](#english-overview) • [Cài Đặt Nhanh](#-cài-đặt-nhanh-với-docker-30-giây) • [Tài Liệu Hướng Dẫn Word (.docx)](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)
 
 > 💡 **Bạn mới làm quen hoặc không rành về kỹ thuật?**  
-> 👉 Mở ngay tài liệu Microsoft Word chi tiết, trực quan tại: **[HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)** *(Dành riêng cho người không chuyên: Cài đặt 1-Click bằng chuột và hướng dẫn sử dụng từng tính năng)*.
-
+> 👉 Mở ngay tài liệu Microsoft Word chi tiết, trực quan tại: **[HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)** *(Dành riêng cho người không chuyên: Cài đặt 1-Click bằng chuột và hướng dẫn chi tiết từng tính năng)*.
 
 ---
 
-## 🚀 Quick Start with Docker (30 Seconds)
+## 🚀 Cài Đặt Nhanh Với Docker (30 Giây)
 
-The fastest way to deploy Simply IT Community Edition on your server or local machine:
+Cách nhanh nhất và chuẩn xác nhất để triển khai chương trình QLTBIT trên máy chủ hoặc máy trạm cá nhân:
 
 ```bash
-# 1. Clone this repository
-git clone https://github.com/takien26/simply-it-community.git
-cd simply-it-community
+# 1. Tải mã nguồn dự án từ GitHub
+git clone https://github.com/chausang/QLTBIT.git
+cd QLTBIT
 
-# 2. Start PostgreSQL and Simply IT containers
+# 2. Khởi chạy toàn bộ hệ thống bằng Docker Compose
 docker compose up -d
 ```
 
-Open your browser at **`http://localhost:3000`** and log in with default credentials:
-* **Email:** `admin@company.com`
-* **Password:** `Admin@123`
+Sau khi các container khởi động hoàn tất, truy cập hệ thống qua trình duyệt web:
+* 🌐 **Cổng Web thông thường (HTTP):** `http://localhost:3000`
+* 🔒 **Cổng bảo mật HTTPS (Hỗ trợ Camera quét mã QR/mã vạch trên Điện thoại & Tablet):** `https://localhost:3443`
 
-*(You will be prompted to change the default password after first login).*
+**Tài khoản đăng nhập quản trị mặc định:**
+* **Email:** `admin@company.com`
+* **Mật khẩu:** `Admin@123`
+
+*(Hệ thống sẽ yêu cầu đổi mật khẩu mới trong lần đăng nhập đầu tiên để đảm bảo an toàn).*
+
+---
+
+## <a name="tổng-quan-tiếng-việt"></a>🇻🇳 Tổng Quan Tiếng Việt
+
+**QLTBIT** là nền tảng quản trị tài sản trang thiết bị CNTT & tiếp nhận yêu cầu hỗ trợ kỹ thuật tinh gọn, chuyên sâu dành cho các Bệnh viện, Trung tâm Y tế, Phòng khám hoặc Doanh nghiệp:
+
+### ✨ Các Tính Năng Nổi Bật
+
+1. **Quản lý Tài sản & Trang thiết bị Khoa/Phòng (ITAM)**:
+   - Quản lý phân bổ máy trạm, laptop, màn hình, máy in tem nhãn, thiết bị mạng, máy quét mã vạch theo từng Khoa/Phòng bệnh viện.
+   - Theo dõi trọn vẹn vòng đời tài sản từ lúc mua sắm, bàn giao, bảo hành, sửa chữa, thay thế linh kiện đến khi thanh lý.
+   - Tự động thống kê số lượng thiết bị theo trạng thái (Đang sử dụng, Sẵn sàng, Hỏng chờ sửa, Dự phòng).
+2. **In Tem Nhãn & Quét Mã QR Kiểm Kê Hiện Trường**:
+   - Tự động tạo và in tem mã QR / Barcode chuẩn khổ Decal văn phòng và tem dán thiết bị y tế.
+   - Quét mã QR trực tiếp qua Camera điện thoại di động / máy tính bảng để kiểm kê thực tế tại từng khoa phòng.
+   - Hỗ trợ nhập và xuất dữ liệu 2 chiều nhanh chóng bằng file Microsoft Excel.
+3. **Cổng Tiếp Nhận & Xử Lý Sự Cố Khoa Phòng (Helpdesk / ITSM)**:
+   - Cổng tự phục vụ (Self-Service) cho cán bộ, y bác sĩ, điều dưỡng gửi phiếu yêu cầu hỗ trợ sự cố máy tính, máy in, mạng.
+   - Phân công kỹ thuật viên phụ trách, phân loại mức độ ưu tiên (P1 Khẩn cấp đến P4 Thấp) và cam kết thời gian hoàn thành (SLA).
+   - Nhật ký trao đổi trực quan, gửi hình ảnh đính kèm lỗi và lập biên bản bàn giao xử lý sự cố.
+4. **Quản trị Bản Quyền Phần Mềm & Dịch Vụ**:
+   - Quản lý số lượng giấy phép (Seat) bản quyền hệ điều hành, phần mềm văn phòng, diệt virus và phần mềm chuyên môn.
+   - Cảnh báo trực quan các hợp đồng dịch vụ mạng, bản quyền sắp hết hạn trước 30 ngày.
+5. **Két Sắt Mật Khẩu An Toàn (Password Vault)**:
+   - Lưu trữ an toàn thông tin tài khoản quản trị mạng, máy chủ cơ sở dữ liệu, router wifi với mã hóa cấp quân sự AES-256.
+6. **Thu Thập Cấu Hình Máy Tự Động (Agent Scan)**:
+   - Cung cấp script / agent thu thập tự động thông tin CPU, RAM, Ổ cứng, Số Serial, Tên máy và gửi thẳng về máy chủ chỉ với 1 cú click.
+7. **Trợ Lý Ảo AI Copilot Thông Minh**:
+   - Tích hợp Google Gemini API hỗ trợ tư vấn kỹ thuật, gợi ý cách xử lý sự cố và đọc thông số thiết bị từ hình ảnh.
+8. **Đa Ngôn Ngữ Hoàn Toàn**: Chuyển đổi linh hoạt và mượt mà giữa **Tiếng Việt** và **Tiếng Anh**.
 
 ---
 
 ## <a name="english-overview"></a>🌐 English Overview
 
-**Simply IT Community Edition** is designed to streamline day-to-day IT operational workflows without bloated complexity:
+**QLTBIT** is an open-source, modern, and unified IT Asset Management (ITAM) and Helpdesk (ITSM) system specifically designed for hospitals, healthcare facilities, and enterprises.
 
-### ✨ Core Features
+### ✨ Key Capabilities
 
-* **💻 Hardware Asset Management (ITAM)**: Track complete hardware lifecycles (procurement, user allocation, warranties, servicing, disposal).
+* **💻 Hardware Asset Management (ITAM)**: Track complete hardware lifecycles across hospital departments (workstations, clinical laptops, medical barcode printers, network switches, accessories).
 * **🏷️ QR Code & Barcode Labeling**:
   * Auto-generate standard Decal labels for printers.
   * Instant QR code scanning via mobile phone or laptop camera for field audits.
   * Batch Excel import and export.
 * **🎫 Helpdesk & Ticket Portal (ITSM)**:
-  * Self-service user ticket portal.
+  * Self-service user ticket portal for clinical and administrative staff.
   * Technician assignment, priority levels (P1 - P4), and committed resolution deadlines (SLA).
   * Activity thread, attachments, and resolution documentation.
 * **🔑 Software Licenses & SaaS Tracker**:
   * Monitor Seat utilization (`Used / Total Seats`) with color-coded threshold bars.
   * 30-day proactive expiry alerts on the executive dashboard.
 * **🔐 Secure Password Vault**:
-  * AES-256 encrypted credential store for WiFi, server access, and shared systems.
-* **🤖 AI Copilot (BYOK - Bring Your Own Key)**:
+  * AES-256 encrypted credential store for network infrastructure, servers, and departmental logins.
+* **🤖 AI Copilot (Bring Your Own Key)**:
   * Integrate Google Gemini API free-tier key for technical troubleshooting, OCR specs extraction, and advice.
 * **🌐 Bilingual Support**: 100% native support for both **English** and **Tiếng Việt**.
 
 ---
 
-## <a name="tổng-quan-tiếng-việt"></a>🇻🇳 Tổng Quan Tiếng Việt
+## 📊 Bảng So Sánh Tính Năng (Feature Matrix)
 
-**Simply IT Community Edition** là nền tảng quản trị tài sản & hỗ trợ CNTT tinh gọn, mạnh mẽ dành cho doanh nghiệp vừa và nhỏ (SME) hoặc đội ngũ kỹ thuật nội bộ:
-
-### ✨ Các Tính Năng Nổi Bật
-
-1. **Quản lý Vòng đời Tài sản (ITAM)**:
-   - Theo dõi trọn vẹn từ lúc mua, cấp phát cho nhân viên, bảo hành, sửa chữa đến thanh lý.
-   - Quản lý đa chủng loại: Laptop, PC, Màn hình, Máy in, Thiết bị mạng, Phụ kiện...
-2. **In Tem Nhãn & Quét Mã QR Kiểm Kê**:
-   - In tem nhãn mã QR chuẩn khổ Decal văn phòng.
-   - Sử dụng Camera điện thoại / máy tính bảng quét mã kiểm kê thực tế tại chỗ.
-   - Nhập / Xuất dữ liệu 2 chiều với file Excel.
-3. **Cổng Tiếp Nhận Sự Cố & Helpdesk (ITSM)**:
-   - Cổng tự phục vụ (Self-Service) cho nhân viên gửi yêu cầu hỗ trợ.
-   - Phân công kỹ thuật viên, theo dõi tiến độ, cam kết hạn xử lý SLA (P1 đến P4).
-   - Trao đổi bình luận, tải biên bản và hình ảnh lỗi.
-4. **Quản trị Bản Quyền Phần Mềm & Dịch Vụ**:
-   - Quản lý Seat bản quyền (Microsoft 365, CAD, Zoom, Antivirus...).
-   - Cảnh báo trực quan các License và hợp đồng Internet sắp hết hạn trong 30 ngày.
-5. **Két Sắt Mật Khẩu An Toàn**:
-   - Lưu trữ thông tin tài khoản quản trị mạng, server, wifi mã hóa chuẩn AES-256.
-6. **Trợ Lý Ảo AI Copilot**:
-   - Cho phép người dùng tự điền Google Gemini API Key miễn phí để hỏi đáp kỹ thuật và đọc tem thông số máy ảnh.
-7. **Song Ngữ Hoàn Chỉnh**: Hỗ trợ chuyển đổi tức thì giữa **Tiếng Việt** và **Tiếng Anh**.
-
----
-
-## 📊 Feature Comparison: Community vs. Enterprise
-
-| Feature | Community Edition (Free) | Enterprise Edition |
+| Tính Năng / Feature | Phiên Bản Miễn Phí (Community) | Phiên Bản Nâng Cao (Enterprise) |
 | :--- | :---: | :---: |
-| Full IT Asset Lifecycle & QR Printing | ✅ Yes | ✅ Yes |
-| Mobile Camera QR Scanner & Audit | ✅ Yes | ✅ Yes |
-| Helpdesk Ticket Portal & SLA (P1 - P4) | ✅ Yes | ✅ Yes |
-| Software License & SaaS Expiry Tracker | ✅ Yes | ✅ Yes |
-| AES-256 Password Vault | ✅ Yes | ✅ Yes |
-| Native Bilingual (Vietnamese & English) | ✅ Yes | ✅ Yes |
-| AI Copilot (Bring Your Own Key) | ✅ Yes | ✅ Cloud Gateway Included |
-| Automated Telegram / Teams Alerts | ❌ | ✅ Yes |
-| Microsoft 365 SSO (Azure AD) | ❌ | ✅ Yes |
-| LDAP / Active Directory Windows Server Sync | ❌ | ✅ Yes |
-| Interactive Floor Maps & Rack Layouts | ❌ | ✅ Yes |
-| Smart Auto-Routing Engine | ❌ | ✅ Yes |
-| Network Discovery LAN Scanner | ❌ | ✅ Yes |
-| Dedicated SLA Support & Custom Deployment | ❌ | ✅ Yes |
+| Quản lý vòng đời thiết bị & In tem QR | ✅ Đầy đủ | ✅ Đầy đủ |
+| Quét mã QR kiểm kê bằng Camera điện thoại | ✅ Đầy đủ | ✅ Đầy đủ |
+| Cổng yêu cầu sự cố Helpdesk & SLA (P1 - P4) | ✅ Đầy đủ | ✅ Đầy đủ |
+| Quản lý bản quyền phần mềm & Hạn sử dụng | ✅ Đầy đủ | ✅ Đầy đủ |
+| Két sắt mật khẩu mã hóa AES-256 | ✅ Đầy đủ | ✅ Đầy đủ |
+| Hỗ trợ song ngữ Tiếng Việt & English | ✅ Đầy đủ | ✅ Đầy đủ |
+| Trợ lý ảo AI Copilot (Google Gemini BYOK) | ✅ Đầy đủ | ✅ Tích hợp sẵn Cloud Gateway |
+| Tự động gửi cảnh báo qua Telegram / Zalo / Teams | ❌ | ✅ Hỗ trợ |
+| Đăng nhập một lần Microsoft 365 (Azure AD SSO) | ❌ | ✅ Hỗ trợ |
+| Đồng bộ người dùng Active Directory / LDAP | ❌ | ✅ Hỗ trợ |
+| Sơ đồ mặt bằng khoa phòng & Tủ Rack trực quan | ❌ | ✅ Hỗ trợ |
+| Quét tự động mạng LAN nội bộ (Network Discovery) | ❌ | ✅ Hỗ trợ |
 
 ---
 
-## 🛠️ Local Development Setup (Manual)
+## 🛠️ Cài Đặt Thủ Công Môi Trường Phát Triển (Manual Setup)
 
-If you wish to run Simply IT without Docker:
+Nếu bạn muốn chạy trực tiếp mã nguồn bằng Node.js và PostgreSQL trên máy tính:
 
-### Prerequisites
-* **Node.js**: `v20.0.0` or later
-* **PostgreSQL**: `v15` or later
+### Yêu Cầu Tiên Quyết
+* **Node.js**: Phiên bản `v20.0.0` trở lên (Khuyến nghị `v22 LTS`)
+* **PostgreSQL**: Phiên bản `v15` hoặc `v16`
 
-### Steps
+### Các Bước Thực Hiện
 
 ```bash
-# 1. Install dependencies
+# 1. Tải mã nguồn về máy
+git clone https://github.com/chausang/QLTBIT.git
+cd QLTBIT
+
+# 2. Cài đặt các gói thư viện phụ thuộc
 npm install
 
-# 2. Copy environment file
+# 3. Tạo file cấu hình môi trường (.env)
 cp .env.example .env
 
-# 3. Update DATABASE_URL in .env with your PostgreSQL credentials
-# Example: DATABASE_URL="postgresql://postgres:password@localhost:5432/it_asset_db?schema=public"
+# 4. Cấu hình chuỗi kết nối DATABASE_URL trong file .env phù hợp với PostgreSQL của bạn
+# Ví dụ: DATABASE_URL="postgresql://postgres:password@localhost:5432/qltbit_db?schema=public"
 
-# 4. Push Prisma schema & seed default data
+# 5. Đồng bộ cấu trúc cơ sở dữ liệu và nạp dữ liệu khởi tạo
 npx prisma db push
 npm run db:seed
 
-# 5. Start development server
+# 6. Khởi động máy chủ phát triển
 npm run dev
 ```
 
-The application will be running at `http://localhost:3000`.
+Mở trình duyệt tại địa chỉ: **`http://localhost:3000`**
 
 ---
 
-## 📄 License
+## 📄 Bản Quyền & Giấy Phép (License)
 
-Simply IT Community Edition is open-sourced software licensed under the **[Apache License 2.0](LICENSE)**.
+Dự án QLTBIT được phát hành dưới giấy phép mã nguồn mở **[Apache License 2.0](LICENSE)**.
 
 ---
 
-## 🤝 Contact & Enterprise Inquiries
+## 🤝 Thông Tin Dự Án & Tác Giả (Contact & Project Info)
 
-* **Author:** Tạ Trung Kiên
-* **Email:** [takien26@gmail.com](mailto:takien26@gmail.com)
-* **GitHub:** [https://github.com/takien26](https://github.com/takien26)
-* **Website / Commercial Inquiries:** [Contact via Email](mailto:takien26@gmail.com)
+* **Repository:** [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
+* **Tác giả / Quản trị dự án:** Châu Sang ([@chausang](https://github.com/chausang))
+* **Báo cáo lỗi & Đóng góp ý kiến (Issues):** [https://github.com/chausang/QLTBIT/issues](https://github.com/chausang/QLTBIT/issues)

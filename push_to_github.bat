@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 echo ========================================================
-echo   SIMPLY IT - ĐỒNG BỘ MÃ NGUỒN LÊN 2 GITHUB REPOSITORIES
+echo   QLTBIT - ĐỒNG BỘ MÃ NGUỒN LÊN GITHUB (chausang/QLTBIT)
 echo ========================================================
 echo.
 
@@ -14,12 +14,8 @@ echo [*] Kiểm tra trạng thái Git...
 "%GIT_EXE%" status -s
 
 echo.
-echo [*] Đang đẩy mã nguồn lên Repository 1 (Simply-it-community)...
+echo [*] Đang đẩy mã nguồn lên GitHub (origin main -> chausang/QLTBIT)...
 "%GIT_EXE%" push origin main
-
-echo.
-echo [*] Đang đẩy mã nguồn lên Repository 2 (Simply-IT)...
-"%GIT_EXE%" push upstream main
 
 echo.
 echo [OK] Đã hoàn tất lệnh đồng bộ!

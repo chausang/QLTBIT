@@ -179,7 +179,7 @@ Tương thích tối đa với thói quen làm việc hàng ngày:
 
 * 👤 **Tác giả sáng lập & phát triển**: **Tạ Trung Kiên**
 * 📧 **Email liên hệ**: `takien26@gmail.com`
-* 🐙 **Kho mã nguồn chính thức (GitHub)**: [https://github.com/takien26/Simply-it-community](https://github.com/takien26/Simply-it-community)
+* 🐙 **Kho mã nguồn chính thức (GitHub)**: [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
 * 🤝 **Hỗ trợ & Hợp tác**: Nếu bạn cần tư vấn triển khai, tùy biến tính năng đặc thù cho doanh nghiệp hoặc đăng ký bản Enterprise, vui lòng gửi email cho tác giả để được hỗ trợ tận tình.
 
 ---
