@@ -19,9 +19,9 @@ if [ -f "docker-compose.yml" ] && command -v docker &> /dev/null && docker compo
     docker compose up -d --build
     echo ""
     echo "🎉 Cập nhật Docker thành công!"
-    echo "🌐 HTTP  : http://localhost:3000 (hoặc http://<IP-MÁY-CHỦ>:3000)"
+    echo "🌐 HTTP  : http://localhost:3001 (hoặc http://<IP-MÁY-CHỦ>:3001)"
     echo "🔒 HTTPS : https://localhost:3443 (hoặc https://<IP-MÁY-CHỦ>:3443 - Dành cho Camera quét mã)"
-    echo "💡 Mở Firewall Ubuntu nếu cần: sudo ufw allow 3000/tcp && sudo ufw allow 3443/tcp && sudo ufw reload"
+    echo "💡 Mở Firewall Ubuntu nếu cần: sudo ufw allow 3001/tcp && sudo ufw allow 3443/tcp && sudo ufw reload"
     exit 0
 fi
 

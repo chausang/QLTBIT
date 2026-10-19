@@ -28,7 +28,7 @@ RUN npm run build
 # 3. Production runner stage
 FROM base AS runner
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
 # Copy needed files
@@ -45,7 +45,7 @@ COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
 # Ensure execution permissions for entrypoint and strip any Windows CRLF
 RUN sed -i 's/\r$//' ./docker-entrypoint.sh && chmod +x ./docker-entrypoint.sh
 
-EXPOSE 3000
+EXPOSE 3001
 EXPOSE 3443
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

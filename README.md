@@ -30,7 +30,7 @@ docker compose up -d
 ```
 
 Sau khi các container khởi động hoàn tất, truy cập hệ thống qua trình duyệt web:
-* 🌐 **Cổng Web thông thường (HTTP):** `http://localhost:3000`
+* 🌐 **Cổng Web thông thường (HTTP):** `http://localhost:3001`
 * 🔒 **Cổng bảo mật HTTPS (Hỗ trợ Camera quét mã QR/mã vạch trên Điện thoại & Tablet):** `https://localhost:3443`
 
 **Tài khoản đăng nhập quản trị mặc định:**
@@ -149,7 +149,7 @@ npm run db:seed
 npm run dev
 ```
 
-Mở trình duyệt tại địa chỉ: **`http://localhost:3000`**
+Mở trình duyệt tại địa chỉ: **`http://localhost:3001`** (hoặc bảo mật **`https://localhost:3443`**)
 
 ---
 

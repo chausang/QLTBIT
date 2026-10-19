@@ -37,13 +37,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-}
       JWT_EXPIRES_IN: "7d"
       NODE_ENV: "production"
-      PORT: 3000
+      PORT: 3001
       HTTPS_PORT: 3443
     volumes:
       - itsm_uploads_data:/app/public/uploads
       - itsm_certs_data:/app/.certificates
     ports:
-      - "3000:3000"
+      - "3001:3001"
       - "3443:3443"
 
 volumes:
