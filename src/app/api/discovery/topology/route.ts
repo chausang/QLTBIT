@@ -243,7 +243,57 @@ export async function GET(request: NextRequest) {
     const gatewayDevice = realDevices.find((d) => d.ipAddress === gatewayIp);
     const gatewayMac = gatewayDevice?.macAddress || '7C:7D:68:CC:05:28';
 
-    // 3. Construct Managed Switches based on Real Network
+    // 3. Fetch configured VLANs from SystemSetting or establish default list matching Tab 1
+    let configuredVlans: any[] = [];
+    try {
+      const vlanSetting = await prisma.systemSetting.findUnique({
+        where: { key: 'discovery_vlans' },
+      });
+      if (vlanSetting?.value) {
+        configuredVlans = JSON.parse(vlanSetting.value);
+      }
+    } catch {}
+
+    if (!Array.isArray(configuredVlans) || configuredVlans.length === 0) {
+      configuredVlans = [
+        { id: 'vlan_1', name: 'VLAN 1 - Mạng Trụ Sở & Văn Phòng', subnet: `${baseSubnet}.0/24`, ipStart: `${baseSubnet}.1`, ipEnd: `${baseSubnet}.254`, description: 'Máy trạm văn phòng, kế toán, ban giám đốc', enabled: true },
+        { id: 'vlan_10', name: 'VLAN 10 - Khoa Khám Bệnh & Cấp Cứu', subnet: '192.168.10.0/24', ipStart: '192.168.10.1', ipEnd: '192.168.10.254', description: 'Máy tính khu khám bệnh, tiếp đón bệnh nhân', enabled: true },
+        { id: 'vlan_20', name: 'VLAN 20 - Máy In & Ngoại Vi', subnet: '192.168.20.0/24', ipStart: '192.168.20.1', ipEnd: '192.168.20.254', description: 'Máy in Canon/HP, máy quét mã vạch, POS', enabled: false },
+        { id: 'vlan_30', name: 'VLAN 30 - Camera An Ninh & IoT', subnet: '192.168.30.0/24', ipStart: '192.168.30.1', ipEnd: '192.168.30.254', description: 'Hệ thống camera Dahua/Hikvision, IoT', enabled: false },
+        { id: 'vlan_50', name: 'VLAN 50 - Máy Chủ & Thiết Bị Mạng', subnet: '10.0.1.0/24', ipStart: '10.0.1.1', ipEnd: '10.0.1.254', description: 'Máy chủ dữ liệu, Router, Firewall, Core Switch', enabled: false },
+      ];
+    }
+
+    const colorPalette: Record<number, string> = {
+      1: '#4F46E5',  // Indigo
+      10: '#0D9488', // Teal
+      20: '#F59E0B', // Amber
+      30: '#EC4899', // Pink
+      50: '#8B5CF6', // Purple
+    };
+
+    // 4. Construct Managed VLANs based on Real Config
+    const realVlans: ManagedVlan[] = configuredVlans.map((v, idx) => {
+      const vNum = parseInt(v.id.replace(/\D/g, '') || String(idx + 1), 10);
+      const subPrefix = v.subnet.split('/')[0].split('.').slice(0, 3).join('.');
+      const deviceCount = realDevices.filter((d) => {
+        if (d.vlanId && (String(d.vlanId) === String(vNum) || d.vlanId === v.id)) return true;
+        return d.ipAddress && d.ipAddress.startsWith(subPrefix + '.');
+      }).length;
+
+      return {
+        vlanId: vNum,
+        name: v.name,
+        subnet: v.subnet,
+        gateway: v.ipStart || `${subPrefix}.1`,
+        description: v.description || 'Phân đoạn mạng nội bộ',
+        color: colorPalette[vNum] || '#06B6D4',
+        deviceCount,
+        enabled: v.enabled !== false,
+      };
+    });
+
+    // 5. Construct Managed Switches based on Real Network
     const realSwitches: ManagedSwitch[] = [
       {
         id: 'sw-lan-main',
@@ -262,24 +312,10 @@ export async function GET(request: NextRequest) {
         sshPort: 22,
         snmpCommunity: 'qltbit_ro',
         status: 'ONLINE',
-        vlans: [1],
+        vlans: realVlans.map((v) => v.vlanId),
         cpuUsage: 12,
         memUsage: 28,
         tempCelsius: 36,
-      },
-    ];
-
-    // 4. Construct Managed VLANs based on Real Network
-    const realVlans: ManagedVlan[] = [
-      {
-        vlanId: 1,
-        name: `VLAN 1 - Mạng Trụ Sở & Văn Phòng (${baseSubnet}.0/24)`,
-        subnet: `${baseSubnet}.0/24`,
-        gateway: gatewayIp,
-        description: 'Dải mạng hoạt động thực tế của văn phòng và máy chủ QLTBIT',
-        color: '#4F46E5', // Indigo
-        deviceCount: realDevices.length,
-        enabled: true,
       },
     ];
 
@@ -415,6 +451,14 @@ export async function GET(request: NextRequest) {
           : 'WORKSTATION';
 
       const nodeId = `dev-${dev.ipAddress.replace(/\./g, '-')}`;
+      // Match with configured VLANs
+      const matchingVlan = configuredVlans.find((v) => {
+        if (dev.vlanId && (dev.vlanId === v.id || dev.vlanId === String(parseInt(v.id.replace(/\D/g, '') || '1', 10)))) return true;
+        const subPrefix = v.subnet.split('/')[0].split('.').slice(0, 3).join('.');
+        return dev.ipAddress && dev.ipAddress.startsWith(subPrefix + '.');
+      }) || configuredVlans[0];
+      const vNum = parseInt(matchingVlan.id.replace(/\D/g, '') || '1', 10);
+
       nodes.push({
         id: nodeId,
         label: dev.hostname || `Host-${dev.ipAddress.split('.')[3]}`,
@@ -422,8 +466,8 @@ export async function GET(request: NextRequest) {
         type: nodeType,
         ip: dev.ipAddress,
         mac: dev.macAddress,
-        vlanId: 1,
-        vlanName: `VLAN 1 (${baseSubnet}.0/24)`,
+        vlanId: vNum,
+        vlanName: matchingVlan.name,
         location: matched?.location?.name || 'Văn Phòng / Khu Vực Làm Việc',
         building: 'Trụ Sở Chính',
         status: 'ONLINE',
@@ -450,7 +494,7 @@ export async function GET(request: NextRequest) {
         linkType: 'ACCESS_1G',
         status: 'UP',
         speed: '1 Gbps',
-        vlanTag: 'VLAN 1',
+        vlanTag: `VLAN ${vNum}`,
       });
     });
 
@@ -773,6 +817,54 @@ export async function POST(request: NextRequest) {
         success: true,
         message: `Đã thêm thiết bị mới vào danh mục tài sản với mã [${generatedAssetTag}]!`,
         data: newAsset,
+      });
+    }
+
+    // Action 5: SAVE_VLANS - Persist synced VLAN configurations
+    if (action === 'SAVE_VLANS') {
+      const { vlans } = body;
+      if (Array.isArray(vlans)) {
+        await prisma.systemSetting.upsert({
+          where: { key: 'discovery_vlans' },
+          create: {
+            key: 'discovery_vlans',
+            value: JSON.stringify(vlans),
+            group: 'network',
+            label: 'Cấu Hình Danh Sách Dải VLAN Khám Phá Mạng',
+            type: 'JSON',
+          },
+          update: {
+            value: JSON.stringify(vlans),
+          },
+        });
+      }
+      return NextResponse.json({
+        success: true,
+        message: 'Đã lưu cấu hình danh sách VLAN đồng bộ thành công!',
+      });
+    }
+
+    // Action 6: SYNC_DEVICES - Persist discovered devices from frontend scan
+    if (action === 'SYNC_DEVICES') {
+      const { devices } = body;
+      if (Array.isArray(devices)) {
+        await prisma.systemSetting.upsert({
+          where: { key: 'network_discovered_devices' },
+          create: {
+            key: 'network_discovered_devices',
+            value: JSON.stringify(devices),
+            group: 'network',
+            label: 'Danh Sách Thiết Bị Khám Phá Mạng Thực Tế',
+            type: 'JSON',
+          },
+          update: {
+            value: JSON.stringify(devices),
+          },
+        });
+      }
+      return NextResponse.json({
+        success: true,
+        message: 'Đã đồng bộ danh sách thiết bị quét được thành công!',
       });
     }
 

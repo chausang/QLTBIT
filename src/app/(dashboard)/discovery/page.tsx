@@ -274,6 +274,11 @@ export default function DiscoveryPage() {
     if (typeof window !== 'undefined') {
       localStorage.setItem('qltbit_discovery_vlans', JSON.stringify(list));
     }
+    fetch('/api/discovery/topology', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'SAVE_VLANS', vlans: list }),
+    }).catch(() => {});
   };
 
   const handleToggleVlan = (id: string) => {
@@ -1612,7 +1617,35 @@ export default function DiscoveryPage() {
       {/* TAB 2: NETWORK TOPOLOGY & SUZIEQ ENGINE */}
       {/* ======================================================== */}
       {activeTab === 'TOPOLOGY' && (
-        <NetworkTopologyTab initialDevices={devices} onTriggerScan={handleScanSubnet} />
+        <NetworkTopologyTab
+          initialDevices={devices}
+          vlanList={vlanList}
+          onUpdateVlans={saveVlanList}
+          onTriggerScan={handleStartScan}
+          onAddDeviceToAsset={(dev) => {
+            setAddingDevice(dev);
+            setAddAssetForm({
+              name: dev.hostname || `Thiết Bị Mạng (${dev.ipAddress})`,
+              brand: dev.vendor || '',
+              model: dev.model || '',
+              serialNumber: '',
+              deviceType:
+                dev.deviceType === 'ROUTER'
+                  ? 'Switch'
+                  : dev.deviceType === 'CAMERA'
+                  ? 'Camera'
+                  : dev.deviceType === 'LAPTOP'
+                  ? 'Laptop'
+                  : 'Máy tính',
+              ipAddress: dev.ipAddress || '',
+              macAddress: dev.macAddress || '',
+              cpu: '',
+              ram: '',
+              storage: '',
+            });
+            setIsAddAssetModalOpen(true);
+          }}
+        />
       )}
 
       {/* ======================================================== */}
