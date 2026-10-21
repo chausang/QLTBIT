@@ -236,7 +236,7 @@ export default function LicensesPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_licenses_page_size');
+      const saved = localStorage.getItem('qltbit_licenses_page_size');
       const n = Number(saved);
       if ([15, 25, 50, 100].includes(n)) setPageSize(n);
     }
@@ -2807,7 +2807,7 @@ export default function LicensesPage() {
           pageSize={pageSize}
           onPageChange={setCurrentPage}
           onPageSizeChange={setPageSize}
-          storageKey="simply_it_licenses_page_size"
+          storageKey="qltbit_licenses_page_size"
           itemName={language === 'en' ? 'licenses' : 'bản quyền'}
         />
       </div>

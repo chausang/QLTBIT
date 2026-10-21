@@ -591,7 +591,7 @@ export default function SparePartsPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_spare_parts_page_size');
+      const saved = localStorage.getItem('qltbit_spare_parts_page_size');
       const n = Number(saved);
       if ([15, 25, 50, 100].includes(n)) setPageSize(n);
     }
@@ -1120,7 +1120,7 @@ export default function SparePartsPage() {
           pageSize={pageSize}
           onPageChange={setCurrentPage}
           onPageSizeChange={setPageSize}
-          storageKey="simply_it_spare_parts_page_size"
+          storageKey="qltbit_spare_parts_page_size"
           itemName={isEn ? 'parts' : 'linh kiện'}
         />
       </div>

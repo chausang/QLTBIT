@@ -210,7 +210,7 @@ Bản cập nhật **v1.0.7** tái cấu trúc mô hình Khoa Phòng / Địa đ
 - **Trình Điều Hành Máy Chủ (`QLTBIT_Server.exe`)**:
   - Khắc phục lỗi hiển thị nhật ký tiến trình (Logs) và tự động nhận diện Node.js.
   - Tự động khởi động PostgreSQL portable khi khởi chạy server.
-- **Tài Liệu Hướng Dẫn Word Dành Cho Người Không Rành Kỹ Thuật (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**:
+- **Tài Liệu Hướng Dẫn Word Dành Cho Người Không Rành Kỹ Thuật (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx`)**:
   - Cầm tay chỉ việc 8 nghiệp vụ thực tế hằng ngày (kiểm kê, cảnh báo tháo RAM, quét QR, sơ đồ 2D...).
 
 ---

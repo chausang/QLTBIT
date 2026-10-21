@@ -465,7 +465,7 @@ def main():
         box_type="success"
     )
 
-    output_path = r"d:\Antigravity\QLTBIT\HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx"
+    output_path = r"d:\Antigravity\QLTBIT\HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx"
     doc.save(output_path)
     try:
         print(f"[OK] Da tao thanh cong tai lieu Word tai: {output_path}")

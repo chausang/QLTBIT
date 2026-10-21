@@ -28,7 +28,7 @@ III. CÁCH 2: TRIỂN KHAI TỰ ĐỘNG HÀNG LOẠT QUA DOMAIN CONTROLLER (GPO)
 1. Copy file 'agent.ps1' vào thư mục chia sẻ SYSVOL:
    \\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1
 2. Mở Group Policy Management Console (gpmc.msc) trên Domain Controller.
-3. Tạo GPO mới: 'SIMPLY_IT_Agent_Deployment' và gán vào OU chứa máy tính.
+3. Tạo GPO mới: 'QLTBIT_Agent_Deployment' và gán vào OU chứa máy tính.
 4. Chỉnh sửa GPO:
    Computer Configuration -> Policies -> Windows Settings -> Scripts -> Startup
 5. Chọn tab 'PowerShell Scripts' -> Bấm 'Add':

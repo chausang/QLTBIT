@@ -239,7 +239,7 @@ export default function DiscoveryPage() {
   const [vlanList, setVlanList] = useState<VlanConfig[]>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('simply_it_discovery_vlans');
+        const saved = localStorage.getItem('qltbit_discovery_vlans');
         if (saved) return JSON.parse(saved);
       } catch {}
     }
@@ -261,7 +261,7 @@ export default function DiscoveryPage() {
   const saveVlanList = (list: VlanConfig[]) => {
     setVlanList(list);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('simply_it_discovery_vlans', JSON.stringify(list));
+      localStorage.setItem('qltbit_discovery_vlans', JSON.stringify(list));
     }
   };
 
@@ -436,7 +436,7 @@ export default function DiscoveryPage() {
                 ...prev,
               ];
               if (typeof window !== 'undefined') {
-                localStorage.setItem('simply_it_discovery_vlans', JSON.stringify(updated));
+                localStorage.setItem('qltbit_discovery_vlans', JSON.stringify(updated));
               }
               return updated;
             }
@@ -863,7 +863,7 @@ export default function DiscoveryPage() {
   // Pagination state with localStorage persistence
   const [pageSize, setPageSize] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_discovery_page_size');
+      const saved = localStorage.getItem('qltbit_discovery_page_size');
       if (saved) {
         const parsed = parseInt(saved, 10);
         if ([15, 25, 50, 100].includes(parsed)) return parsed;
@@ -1568,7 +1568,7 @@ export default function DiscoveryPage() {
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
-              storageKey="simply_it_discovery_page_size"
+              storageKey="qltbit_discovery_page_size"
               itemName={isEn ? 'devices' : 'thiết bị'}
             />
           </div>

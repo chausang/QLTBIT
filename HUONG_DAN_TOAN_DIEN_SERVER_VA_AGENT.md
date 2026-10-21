@@ -385,7 +385,7 @@ Tại thư mục `D:\QLTBIT`, khi bạn chọn phím `[4]` trong menu `start_qlt
      `\\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1`
 2. **Tạo Group Policy Object (GPO):**
    * Mở **Group Policy Management Console** (`gpmc.msc`).
-   * Tạo GPO mới đặt tên: `SIMPLY_IT_Agent_Deployment`.
+   * Tạo GPO mới đặt tên: `QLTBIT_Agent_Deployment`.
    * Chuột phải chọn **Edit**, điều hướng đến:
      `Computer Configuration` ➔ `Policies` ➔ `Windows Settings` ➔ `Scripts (Startup/Shutdown)` ➔ Nhấp đúp **Startup**.
 3. **Thêm Script chạy:**

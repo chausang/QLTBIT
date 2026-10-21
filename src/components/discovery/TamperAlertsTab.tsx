@@ -1052,7 +1052,7 @@ export function TamperAlertsTab() {
               pageSize={auditPageSize}
               onPageChange={setAuditPage}
               onPageSizeChange={setAuditPageSize}
-              storageKey="simply_it_audit_log_page_size"
+              storageKey="qltbit_audit_log_page_size"
               itemName="sự kiện thay đổi"
             />
           </div>

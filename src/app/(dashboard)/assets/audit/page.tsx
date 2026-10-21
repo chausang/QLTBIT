@@ -453,7 +453,7 @@ export default function AssetsAuditPage() {
     loadCampaigns();
 
     // Check Local Storage for active session
-    const saved = localStorage.getItem('simply_it_current_audit_session');
+    const saved = localStorage.getItem('qltbit_current_audit_session');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -474,7 +474,7 @@ export default function AssetsAuditPage() {
   // Sync session back to localStorage
   useEffect(() => {
     if (currentSession) {
-      localStorage.setItem('simply_it_current_audit_session', JSON.stringify(currentSession));
+      localStorage.setItem('qltbit_current_audit_session', JSON.stringify(currentSession));
     }
   }, [currentSession]);
 
@@ -623,7 +623,7 @@ export default function AssetsAuditPage() {
         triggerDataRefresh('audit-campaigns');
         if (currentSession?.id === campaignId) {
           setCurrentSession(null);
-          localStorage.removeItem('simply_it_current_audit_session');
+          localStorage.removeItem('qltbit_current_audit_session');
           setViewMode('CAMPAIGNS');
         }
       } else {
@@ -1746,7 +1746,7 @@ export default function AssetsAuditPage() {
   // Pagination state with localStorage persistence for audit reconciliation table
   const [pageSize, setPageSize] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_asset_audit_page_size');
+      const saved = localStorage.getItem('qltbit_asset_audit_page_size');
       if (saved) {
         const parsed = parseInt(saved, 10);
         if ([15, 25, 50, 100].includes(parsed)) return parsed;
@@ -3425,7 +3425,7 @@ export default function AssetsAuditPage() {
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
-              storageKey="simply_it_asset_audit_page_size"
+              storageKey="qltbit_asset_audit_page_size"
               itemName={isEn ? 'reconciliation assets' : 'thiết bị đối soát'}
             />
           </div>

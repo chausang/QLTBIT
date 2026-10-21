@@ -75,7 +75,7 @@ export const AuditLogsSettingsTab: React.FC = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_audit_logs_page_size');
+      const saved = localStorage.getItem('qltbit_audit_logs_page_size');
       const n = Number(saved);
       if ([15, 25, 50, 100].includes(n)) setPageSize(n);
     }
@@ -451,7 +451,7 @@ export const AuditLogsSettingsTab: React.FC = () => {
           pageSize={pageSize}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
-          storageKey="simply_it_audit_logs_page_size"
+          storageKey="qltbit_audit_logs_page_size"
           itemName={isEn ? 'audit logs' : 'nhật ký'}
         />
       </div>

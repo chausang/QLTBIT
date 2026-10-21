@@ -569,8 +569,8 @@ namespace QLTBITInstaller
             {
                 SetStatus("⏳ [4/5] Cấu hình tường lửa Windows Firewall...", 75);
                 AppendLog("4/5 Mở cổng tường lửa Windows: 3001 (HTTP) và 3443 (HTTPS)...");
-                RunHiddenCommand("netsh", "advfirewall firewall add rule name=\"SIMPLY_IT_HTTP_3001\" dir=in action=allow protocol=TCP localport=3001");
-                RunHiddenCommand("netsh", "advfirewall firewall add rule name=\"SIMPLY_IT_HTTPS_3443\" dir=in action=allow protocol=TCP localport=3443");
+                RunHiddenCommand("netsh", "advfirewall firewall add rule name=\"QLTBIT_HTTP_3001\" dir=in action=allow protocol=TCP localport=3001");
+                RunHiddenCommand("netsh", "advfirewall firewall add rule name=\"QLTBIT_HTTPS_3443\" dir=in action=allow protocol=TCP localport=3443");
                 AppendLog("✅ Đã thiết lập luật tường lửa thành công!");
             }
 

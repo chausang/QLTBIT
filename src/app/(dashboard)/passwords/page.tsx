@@ -544,7 +544,7 @@ export default function PasswordsPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_passwords_page_size');
+      const saved = localStorage.getItem('qltbit_passwords_page_size');
       const n = Number(saved);
       if ([15, 25, 50, 100].includes(n)) setPageSize(n);
     }
@@ -1613,7 +1613,7 @@ export default function PasswordsPage() {
             pageSize={pageSize}
             onPageChange={setCurrentPage}
             onPageSizeChange={setPageSize}
-            storageKey="simply_it_passwords_page_size"
+            storageKey="qltbit_passwords_page_size"
             itemName={isEn ? 'accounts' : 'tài khoản'}
           />
         </div>

@@ -244,7 +244,7 @@ Bản cập nhật **v1.0.5** giải quyết triệt để vấn đề cài đ�
 - **Tối ưu hóa thư mục gốc (Project Cleanup)**:
   - Gom toàn bộ 13 file markdown/PDF kỹ thuật cũ và file tạm ở thư mục gốc vào thư mục mới: `archive/` (`archive/tai_lieu_cu/` và `archive/temp/`).
   - Thư mục gốc dự án trở nên gọn gàng, sạch sẽ, chỉ giữ lại các thành phần thực thi và tài liệu cốt lõi.
-- **Tài Liệu Hướng Dẫn Word Trực Quan (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**:
+- **Tài Liệu Hướng Dẫn Word Trực Quan (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx`)**:
   - Biên soạn tài liệu Microsoft Word chuyên nghiệp, định dạng đẹp mắt với màu sắc chuẩn doanh nghiệp, bảng biểu, hộp lưu ý nổi bật.
   - Văn phong "cầm tay chỉ việc", trực quan, dễ hiểu 100% dành riêng cho người không rành công nghệ, kế toán, văn phòng, quản lý kho.
   - Hướng dẫn cài đặt 1-Click bằng chuột (cho Server và Agent máy trạm), kèm hướng dẫn sử dụng 8 nghiệp vụ thực tế hằng ngày (kiểm kê, cảnh báo tháo trộm RAM, bàn giao, thu hồi khi nghỉ việc, quét QR điện thoại, sơ đồ 2D).

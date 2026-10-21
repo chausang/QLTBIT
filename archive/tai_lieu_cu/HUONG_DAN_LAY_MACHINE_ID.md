@@ -102,7 +102,7 @@ powershell -Command "$u=(Get-CimInstance Win32_ComputerSystemProduct).UUID; $c=(
 ## III. HƯỚNG DẪN KÍCH HOẠT BẢN QUYỀN SAU KHI NHẬN FILE .LIC
 
 Sau khi gửi Machine ID, bạn sẽ nhận được tập tin bản quyền định dạng chứng thư số:
-* Tên tập tin: `simply_it_license_<TenDonVi>.lic`
+* Tên tập tin: `qltbit_license_<TenDonVi>.lic`
 * Nội dung chứa chứng thư số RSA 2048-bit và khối khóa bản quyền `-----BEGIN QLTBIT ENTERPRISE LICENSE KEY-----`.
 
 ### 🌟 Cách 1: Kéo & Thả Tập Tin .lic (Kích hoạt 1-Click — Khuyên dùng)

@@ -23,9 +23,9 @@
 
 # binaries
 *.exe
-!SimplyIT_Setup.exe
-!SimplyIT_Server.exe
-!Cai_Dat_SimplyIT.exe
+!QLTBIT_Setup.exe
+!QLTBIT_Server.exe
+!Cai_Dat_QLTBIT.exe
 
 # portable database
 pgsql/

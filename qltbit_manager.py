@@ -111,7 +111,7 @@ def launch_installer():
         check_env()
 
 def open_word_guide():
-    doc_path = os.path.join(PROJECT_DIR, "HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx")
+    doc_path = os.path.join(PROJECT_DIR, "HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx")
     if os.path.exists(doc_path):
         print("\n[*] Đang mở Tài liệu Hướng dẫn Sử dụng (Word)...")
         if os.name == 'nt':

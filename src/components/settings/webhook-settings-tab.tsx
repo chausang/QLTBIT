@@ -346,7 +346,7 @@ export function WebhookSettingsTab() {
                     </button>
                   </div>
                   <p className="text-slate-400 text-[11px]">
-                    Đặt tên cho Bot (VD: <i>QLTBIT Alert Bot</i>) và Username (kết thúc bằng <i>_bot</i>, VD: <i>simply_it_alert_bot</i>). Bạn sẽ nhận được <b>HTTP API Token</b> (dạng <code>7123456789:AAHq_...</code>).
+                    Đặt tên cho Bot (VD: <i>QLTBIT Alert Bot</i>) và Username (kết thúc bằng <i>_bot</i>, VD: <i>qltbit_alert_bot</i>). Bạn sẽ nhận được <b>HTTP API Token</b> (dạng <code>7123456789:AAHq_...</code>).
                   </p>
                 </div>
 

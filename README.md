@@ -9,10 +9,10 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg?style=flat-square)](https://opensource.org/licenses/Apache-2.0)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://www.docker.com/)
 
-[Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [English Overview](#english-overview) • [Cài Đặt Nhanh](#-cài-đặt-nhanh-với-docker-30-giây) • [Tài Liệu Hướng Dẫn Word (.docx)](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)
+[Tổng Quan Tiếng Việt](#tổng-quan-tiếng-việt) • [English Overview](#english-overview) • [Cài Đặt Nhanh](#-cài-đặt-nhanh-với-docker-30-giây) • [Tài Liệu Hướng Dẫn Word (.docx)](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx)
 
 > 💡 **Bạn mới làm quen hoặc không rành về kỹ thuật?**  
-> 👉 Mở ngay tài liệu Microsoft Word chi tiết, trực quan tại: **[HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx)** *(Dành riêng cho người không chuyên: Cài đặt 1-Click bằng chuột và hướng dẫn chi tiết từng tính năng)*.
+> 👉 Mở ngay tài liệu Microsoft Word chi tiết, trực quan tại: **[HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx](./HUONG_DAN_SU_DUNG_VA_CAI_DAT_QLTBIT.docx)** *(Dành riêng cho người không chuyên: Cài đặt 1-Click bằng chuột và hướng dẫn chi tiết từng tính năng)*.
 
 ---
 

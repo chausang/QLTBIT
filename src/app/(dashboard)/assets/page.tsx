@@ -558,7 +558,7 @@ export default function AssetsPage() {
   // Initialize pageSize from localStorage if available
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('simply_it_assets_page_size');
+      const saved = localStorage.getItem('qltbit_assets_page_size');
       if (saved) {
         const n = parseInt(saved, 10);
         if ([15, 25, 50, 100].includes(n)) setPageSize(n);
@@ -569,7 +569,7 @@ export default function AssetsPage() {
   // Initialize column preferences from localStorage
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('simply_it_assets_visible_columns');
+      const saved = localStorage.getItem('qltbit_assets_visible_columns');
       if (saved) {
         const parsed = JSON.parse(saved);
         setVisibleColumns((prev) => ({ ...prev, ...parsed }));
@@ -592,7 +592,7 @@ export default function AssetsPage() {
     setVisibleColumns((prev) => {
       const updated = { ...prev, [key]: !prev[key] };
       try {
-        localStorage.setItem('simply_it_assets_visible_columns', JSON.stringify(updated));
+        localStorage.setItem('qltbit_assets_visible_columns', JSON.stringify(updated));
       } catch {}
       return updated;
     });
@@ -601,7 +601,7 @@ export default function AssetsPage() {
   const handleResetColumns = () => {
     setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
     try {
-      localStorage.removeItem('simply_it_assets_visible_columns');
+      localStorage.removeItem('qltbit_assets_visible_columns');
     } catch {}
   };
 
@@ -612,7 +612,7 @@ export default function AssetsPage() {
     }, {} as Record<AssetColumnKey, boolean>);
     setVisibleColumns(allVisible);
     try {
-      localStorage.setItem('simply_it_assets_visible_columns', JSON.stringify(allVisible));
+      localStorage.setItem('qltbit_assets_visible_columns', JSON.stringify(allVisible));
     } catch {}
   };
 
@@ -3932,7 +3932,7 @@ export default function AssetsPage() {
               pageSize={pageSize}
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
-              storageKey="simply_it_assets_page_size"
+              storageKey="qltbit_assets_page_size"
               itemName={language === 'en' ? 'devices' : 'thiết bị'}
             />
           </div>

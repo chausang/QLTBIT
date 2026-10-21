@@ -159,7 +159,7 @@ export default function KnowledgeBasePage() {
   // Pagination state with localStorage persistence
   const [pageSize, setPageSize] = useState<number>(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('simply_it_kb_page_size');
+      const saved = localStorage.getItem('qltbit_kb_page_size');
       if (saved) {
         const parsed = parseInt(saved, 10);
         if ([15, 25, 50, 100].includes(parsed)) return parsed;
@@ -756,7 +756,7 @@ export default function KnowledgeBasePage() {
                   pageSize={pageSize}
                   onPageChange={setCurrentPage}
                   onPageSizeChange={setPageSize}
-                  storageKey="simply_it_kb_page_size"
+                  storageKey="qltbit_kb_page_size"
                   itemName={isEn ? 'articles' : 'bài viết'}
                 />
               </>

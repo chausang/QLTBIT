@@ -1,7 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-export const PRIMARY_COOKIE_NAME = 'simply_ce_token';
-export const ALL_COOKIE_NAMES = ['simply_ce_token', 'simply_it_token', 'auth-token'];
+export const PRIMARY_COOKIE_NAME = 'qltbit_token';
+export const ALL_COOKIE_NAMES = ['qltbit_token', 'qltbit_token', 'auth-token'];
 
 // Known weak or sample defaults that must never be trusted in production
 const INSECURE_DEFAULT_SECRETS = new Set([
