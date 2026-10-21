@@ -682,6 +682,25 @@ export async function POST(request: NextRequest) {
 
     const durationMs = Date.now() - tStart;
 
+    // Persist discovered devices to system_settings for topology & reconciliation
+    try {
+      await prisma.systemSetting.upsert({
+        where: { key: 'network_discovered_devices' },
+        create: {
+          key: 'network_discovered_devices',
+          value: JSON.stringify(discoveredDevices),
+          group: 'network',
+          label: 'Danh Sách Thiết Bị Khám Phá Mạng Thực Tế',
+          type: 'JSON',
+        },
+        update: {
+          value: JSON.stringify(discoveredDevices),
+        },
+      });
+    } catch (saveErr) {
+      console.warn('Failed to cache discovered devices in SystemSetting:', saveErr);
+    }
+
     return NextResponse.json({
       success: true,
       count: discoveredDevices.length,

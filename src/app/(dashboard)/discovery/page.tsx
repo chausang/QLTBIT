@@ -223,7 +223,15 @@ export default function DiscoveryPage() {
   const [ipStart, setIpStart] = useState('192.168.1.1');
   const [ipEnd, setIpEnd] = useState('192.168.1.254');
   const [scanning, setScanning] = useState(false);
-  const [devices, setDevices] = useState<DiscoveredDevice[]>([]);
+  const [devices, setDevices] = useState<DiscoveredDevice[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('qltbit_discovered_devices');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
   const [searchDevice, setSearchDevice] = useState('');
   const [filterType, setFilterType] = useState('ALL');
   const [selectedVlanFilter, setSelectedVlanFilter] = useState('ALL');
@@ -521,7 +529,13 @@ export default function DiscoveryPage() {
       });
       const json = await res.json();
       if (json.success && json.data) {
-        setDevices(json.data.devices || []);
+        const found = json.data.devices || [];
+        setDevices(found);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('qltbit_discovered_devices', JSON.stringify(found));
+          } catch {}
+        }
         showToast(json.message || 'Quét mạng hoàn tất!');
       } else {
         showToast(json.error || 'Lỗi quét mạng');
@@ -1598,7 +1612,7 @@ export default function DiscoveryPage() {
       {/* TAB 2: NETWORK TOPOLOGY & SUZIEQ ENGINE */}
       {/* ======================================================== */}
       {activeTab === 'TOPOLOGY' && (
-        <NetworkTopologyTab />
+        <NetworkTopologyTab initialDevices={devices} onTriggerScan={handleScanSubnet} />
       )}
 
       {/* ======================================================== */}
