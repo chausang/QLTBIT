@@ -299,7 +299,7 @@ export default function DepartmentFixedAssetStatsModal({
   const handleExportExcel = async () => {
     try {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT Management';
+      workbook.creator = 'QLTBIT Management';
       workbook.created = new Date();
 
       // Sheet 1: Ma Trận Thống Kê Theo Khoa Phòng

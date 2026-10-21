@@ -1,11 +1,11 @@
 @echo off
-title SIMPLY IT - KIEM KE MAY TRAM TUC THI
+title QLTBIT - KIEM KE MAY TRAM TUC THI
 cd /d "%~dp0"
 
 :: 1. Kiem tra va xac dinh file script agent.ps1
 set "SCRIPT_PATH="
 if exist "%~dp0agent.ps1" set "SCRIPT_PATH=%~dp0agent.ps1"
-if not defined SCRIPT_PATH if exist "C:\ProgramData\SimplyIT\agent.ps1" set "SCRIPT_PATH=C:\ProgramData\SimplyIT\agent.ps1"
+if not defined SCRIPT_PATH if exist "C:\ProgramData\QLTBIT\agent.ps1" set "SCRIPT_PATH=C:\ProgramData\QLTBIT\agent.ps1"
 if not defined SCRIPT_PATH if exist "%~dp0..\..\public\scripts\get_system_info.ps1" set "SCRIPT_PATH=%~dp0..\..\public\scripts\get_system_info.ps1"
 
 if not defined SCRIPT_PATH (
@@ -18,14 +18,14 @@ if not defined SCRIPT_PATH (
 
 :: 2. Doc dia chi may chu da luu truoc do
 set "SERVER_URL="
-if exist "C:\ProgramData\SimplyIT\server_url.txt" (
-    for /f "usebackq delims=" %%i in ("C:\ProgramData\SimplyIT\server_url.txt") do set "SERVER_URL=%%i"
+if exist "C:\ProgramData\QLTBIT\server_url.txt" (
+    for /f "usebackq delims=" %%i in ("C:\ProgramData\QLTBIT\server_url.txt") do set "SERVER_URL=%%i"
 )
 
 if not defined SERVER_URL (
     set "DEFAULT_SERVER=http://192.168.1.100:3001"
     echo.
-    echo Nhap dia chi May Chu SIMPLY IT (Vi du: http://192.168.1.9:3001)
+    echo Nhap dia chi May Chu QLTBIT (Vi du: http://192.168.1.9:3001)
     set /p "SERVER_INPUT=Dia chi May Chu [Mac dinh: %DEFAULT_SERVER%]: "
     if not defined SERVER_INPUT set "SERVER_INPUT=http://192.168.1.100:3001"
     set "SERVER_URL=%SERVER_INPUT%"
@@ -35,7 +35,7 @@ set "SERVER_URL=%SERVER_URL: =%"
 
 echo.
 echo ==============================================================================
-echo       SIMPLY IT - KIEM KE THONG SO MAY TRAM VA GUI VE MAY CHU
+echo       QLTBIT - KIEM KE THONG SO MAY TRAM VA GUI VE MAY CHU
 echo ==============================================================================
 echo [*] Script  : %SCRIPT_PATH%
 echo [*] May chu : %SERVER_URL%

@@ -1,11 +1,11 @@
-# Simply IT - Project Context & AI Memory Handover (Bàn Giao Ngữ Cảnh)
+# QLTBIT - Project Context & AI Memory Handover (Bàn Giao Ngữ Cảnh)
 
 > 📌 **Mục đích tài liệu:** Lưu giữ toàn bộ ngữ cảnh, tư duy thiết kế, các quyết định nghiệp vụ đã thống nhất và hướng dẫn dành cho AI Assistant (Antigravity / Gemini) khi chuyển đổi sang máy tính mới hoặc bắt đầu phiên làm việc mới.
 
 ---
 
 ## 1. Thông Tin Tổng Quan & Triết Lý Phát Triển
-- **Dự án:** Simply IT - Hệ thống Quản trị Tài sản CNTT (ITAM) & Helpdesk Service Desk cho Doanh nghiệp / Tập đoàn.
+- **Dự án:** QLTBIT - Hệ thống Quản trị Tài sản CNTT (ITAM) & Helpdesk Service Desk cho Doanh nghiệp / Tập đoàn.
 - **Tech Stack:**
   - **Framework:** Next.js 15 (App Router), React 19, Tailwind CSS.
   - **Database & ORM:** PostgreSQL, Prisma ORM (`prisma/schema.prisma`).
@@ -42,13 +42,13 @@
 - Khi nhân viên nghỉ việc: Thu hồi toàn bộ máy tính về trạng thái `AVAILABLE`, thu hồi các bản quyền phần mềm (`revokedAt`), khóa tài khoản đăng nhập (`isActive = false`) và từ chối đăng nhập (HTTP 403).
 
 ### 📦 2.5. Trình Cài Đặt Trọn Gói 1-Click (Setup Wizard & PostgreSQL Portable)
-- **File thực thi:** `SimplyIT_Setup.exe` (và `Cai_Dat_SimplyIT.exe`).
+- **File thực thi:** `QLTBIT_Setup.exe` (và `Cai_Dat_QLTBIT.exe`).
 - **3 Chế độ cài đặt:**
   1. Cài đặt CẢ HAI: Server & Agent (Máy quản trị viên).
-  2. Chỉ cài đặt Máy Chủ (SIMPLY IT Central Server).
+  2. Chỉ cài đặt Máy Chủ (QLTBIT Central Server).
   3. Chỉ cài đặt Agent Giám Sát (Client Workstation).
 - **Zero-Setup Database:** Đi kèm PostgreSQL 17 Portable trong thư mục `pgsql`, tự động tạo dữ liệu và kết nối `127.0.0.1:5432` mà không cần cài đặt rườm rà.
-- **Tường lửa & Task Scheduler:** Tự động mở Inbound Port 3001 & 3443, tự động đăng ký tác vụ `SimplyIT_Audit` chạy ngầm định kỳ 15 phút.
+- **Tường lửa & Task Scheduler:** Tự động mở Inbound Port 3001 & 3443, tự động đăng ký tác vụ `QLTBIT_Audit` chạy ngầm định kỳ 15 phút.
 
 ### 🏢 2.7. Danh Mục Khoa Phòng Đa Khu Vực & Nghiệp Vụ Biên Bản Thiết Bị (v1.0.7)
 - **Danh Mục Khoa Phòng (`/categories`)**: Hỗ trợ quan hệ 1 khoa phòng có nhiều khu vực/tòa nhà/tầng trực thuộc. Thêm/sửa/xóa động các trường vị trí.

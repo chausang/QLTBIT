@@ -127,7 +127,7 @@
   "licenses.hub.import_single_sku": "Import SKU",
   "licenses.hub.metric_cloud_total": "Total Cloud Purchased",
   "licenses.hub.metric_cloud_consumed": "Assigned: {count} seats",
-  "licenses.hub.metric_local_title": "Simply IT Local Records",
+  "licenses.hub.metric_local_title": "QLTBIT Local Records",
   "licenses.hub.metric_local_diff": "Diff: {diff} seats",
   "licenses.hub.metric_dormant_title": "Dormant / Wasted Accounts",
   "licenses.hub.metric_dormant_desc": "Locked or >45 days inactive",

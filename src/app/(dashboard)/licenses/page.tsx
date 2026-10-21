@@ -2955,7 +2955,7 @@ export default function LicensesPage() {
               <div className="w-12 h-12 rounded-3xl bg-amber-400/20 text-amber-300 flex items-center justify-center mx-auto mb-2.5">
                 <Crown className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-lg">Nâng Cấp Simply IT PRO - Quản Lý Bản Quyền</h3>
+              <h3 className="font-black text-lg">Nâng Cấp QLTBIT PRO - Quản Lý Bản Quyền</h3>
               <p className="text-xs text-purple-200 mt-1">
                 Tự động kiểm tra tuân thủ bản quyền, phát hiện phần mềm lậu và nhắc hạn hợp đồng qua Zalo/Email
               </p>
@@ -3025,7 +3025,7 @@ export default function LicensesPage() {
                     alert('Vui lòng nhập Số điện thoại hoặc Zalo để kích hoạt bản thử!');
                     return;
                   }
-                  alert('Cảm ơn bạn! Đội ngũ Simply IT sẽ liên hệ kích hoạt bản quyền PRO trong 15 phút.');
+                  alert('Cảm ơn bạn! Đội ngũ QLTBIT sẽ liên hệ kích hoạt bản quyền PRO trong 15 phút.');
                   setIsPricingModalOpen(false);
                 }}
                 className="px-5 py-2 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 text-white rounded-xl font-bold shadow-md cursor-pointer flex items-center gap-1.5"

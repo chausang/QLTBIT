@@ -344,7 +344,7 @@ export function SsoSettingsTab({
             {isEn ? (
               <>
                 <li>Navigate to <strong>portal.azure.com</strong> ➔ <strong>Microsoft Entra ID</strong> ➔ <strong>App registrations</strong> ➔ Click <strong>New registration</strong>.</li>
-                <li>Enter name (e.g. <em>Simply IT Hub</em>), select <em>Accounts in any organizational directory</em>, and under <strong>Redirect URI</strong> choose platform <strong>Web</strong> and paste the link above.</li>
+                <li>Enter name (e.g. <em>QLTBIT Hub</em>), select <em>Accounts in any organizational directory</em>, and under <strong>Redirect URI</strong> choose platform <strong>Web</strong> and paste the link above.</li>
                 <li>Go to <strong>Certificates & secrets</strong> ➔ Click <strong>New client secret</strong> ➔ Copy <strong>Client ID</strong> and <strong>Secret Value</strong> into the form above and click <strong>Save Configuration</strong>.</li>
               </>
             ) : (

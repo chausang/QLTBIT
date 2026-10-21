@@ -215,7 +215,7 @@ export async function sendZaloWebhook(webhookUrl: string, payload: any): Promise
  */
 export function formatTelegramAlertMessage(scan: AlertScanResult, appUrl = ''): string {
   const dateStr = new Date().toLocaleString('vi-VN');
-  let msg = `🚨 <b>[SIMPLY IT] CẢNH BÁO HẠN GIA HẠN & BẢO HÀNH</b>\n`;
+  let msg = `🚨 <b>[QLTBIT] CẢNH BÁO HẠN GIA HẠN & BẢO HÀNH</b>\n`;
   msg += `⏱ <i>Thời điểm quét: ${dateStr}</i>\n`;
   msg += `📊 <b>Tổng số cần lưu ý:</b> ${scan.totalExpiring} mục (Khẩn cấp: ${scan.criticalCount}, Chú ý: ${scan.warningCount})\n\n`;
 
@@ -253,7 +253,7 @@ export function formatTelegramAlertMessage(scan: AlertScanResult, appUrl = ''): 
   }
 
   if (appUrl) {
-    msg += `🔗 <a href="${appUrl}">Mở hệ thống Simply IT để xử lý</a>`;
+    msg += `🔗 <a href="${appUrl}">Mở hệ thống QLTBIT để xử lý</a>`;
   }
 
   return msg;
@@ -311,7 +311,7 @@ export function formatHtmlEmailReport(scan: AlertScanResult, appUrl = ''): strin
   return `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 680px; margin: 0 auto; padding: 20px; background-color: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
       <div style="text-align: center; margin-bottom: 20px;">
-        <h2 style="color: #1e3a8a; margin: 0 0 4px 0;">🔔 SIMPLY IT - BÁO CÁO CẢNH BÁO ĐỊNH KỲ</h2>
+        <h2 style="color: #1e3a8a; margin: 0 0 4px 0;">🔔 QLTBIT - BÁO CÁO CẢNH BÁO ĐỊNH KỲ</h2>
         <p style="color: #64748b; font-size: 12px; margin: 0;">Thời điểm quét: ${dateStr}</p>
       </div>
 
@@ -338,7 +338,7 @@ export function formatHtmlEmailReport(scan: AlertScanResult, appUrl = ''): strin
         appUrl
           ? `<div style="text-align: center; margin-top: 24px;">
               <a href="${appUrl}" style="background-color: #2563eb; color: #ffffff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block;">
-                Mở hệ thống Simply IT để xử lý &rarr;
+                Mở hệ thống QLTBIT để xử lý &rarr;
               </a>
             </div>`
           : ''
@@ -421,7 +421,7 @@ export async function runDailyAlertJob(appUrl = ''): Promise<AlertScanResult> {
     // 5. Dispatch to Email
     if (emailEnabled && emailRecipients.length > 0) {
       const html = formatHtmlEmailReport(scanResult, targetAppUrl);
-      const emailSubject = `[SIMPLY IT] Cảnh báo hạn dùng (${scanResult.totalExpiring} mục cần lưu ý: ${scanResult.criticalCount} khẩn cấp)`;
+      const emailSubject = `[QLTBIT] Cảnh báo hạn dùng (${scanResult.totalExpiring} mục cần lưu ý: ${scanResult.criticalCount} khẩn cấp)`;
 
       const emailResults = await Promise.all(
         emailRecipients.map((recip) =>

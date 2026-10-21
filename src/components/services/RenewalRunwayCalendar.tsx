@@ -518,7 +518,7 @@ export function RenewalRunwayCalendar({
     try {
       const ExcelJS = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT Asset Management';
+      workbook.creator = 'QLTBIT Asset Management';
       workbook.created = new Date();
 
       // Sheet 1: Ma trận dòng tiền 12 tháng theo nhóm dịch vụ

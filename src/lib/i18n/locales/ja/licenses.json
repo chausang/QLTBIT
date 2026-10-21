@@ -127,7 +127,7 @@
   "licenses.hub.import_single_sku": "登録する",
   "licenses.hub.metric_cloud_total": "クラウド総購入数",
   "licenses.hub.metric_cloud_consumed": "割当済: {count} シート",
-  "licenses.hub.metric_local_title": "Simply IT 管理台帳",
+  "licenses.hub.metric_local_title": "QLTBIT 管理台帳",
   "licenses.hub.metric_local_diff": "差異: {diff} シート",
   "licenses.hub.metric_dormant_title": "休眠・浪費アカウント",
   "licenses.hub.metric_dormant_desc": "凍結中または45日以上未ログイン",

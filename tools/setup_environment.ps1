@@ -1,11 +1,11 @@
 # ==============================================================================
-# SIMPLY IT - CÔNG CỤ TỰ ĐỘNG KIỂM TRA & CÀI ĐẶT MÔI TRƯỜNG HỆ THỐNG
+# QLTBIT - CÔNG CỤ TỰ ĐỘNG KIỂM TRA & CÀI ĐẶT MÔI TRƯỜNG HỆ THỐNG
 # ==============================================================================
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
-Write-Host "       SIMPLY IT — KIỂM TRA VÀ THIẾT LẬP MÔI TRƯỜNG CHẠY PHẦN MỀM" -ForegroundColor Cyan
+Write-Host "       QLTBIT — KIỂM TRA VÀ THIẾT LẬP MÔI TRƯỜNG CHẠY PHẦN MỀM" -ForegroundColor Cyan
 Write-Host "==============================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -74,7 +74,7 @@ Write-Host ""
 Write-Host "[4/4] Kiểm tra thư mục dự án..."
 $pkgPath = Join-Path $PSScriptRoot "..\package.json"
 if (Test-Path $pkgPath) {
-    Write-Host " [OK] Mã nguồn SIMPLY IT đã có đầy đủ tại D:\QLTBIT" -ForegroundColor Green
+    Write-Host " [OK] Mã nguồn QLTBIT đã có đầy đủ tại D:\QLTBIT" -ForegroundColor Green
     
     $nodeModules = Join-Path $PSScriptRoot "..\node_modules"
     if (Test-Path $nodeModules) {

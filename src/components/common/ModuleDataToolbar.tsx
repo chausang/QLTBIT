@@ -112,7 +112,7 @@ export default function ModuleDataToolbar({
       const a = document.createElement('a');
       a.href = url;
       const dateStr = new Date().toISOString().slice(0, 10);
-      a.download = `SimplyIT_Backup_${moduleKey}_${dateStr}.json`;
+      a.download = `QLTBIT_Backup_${moduleKey}_${dateStr}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -133,7 +133,7 @@ export default function ModuleDataToolbar({
     setIsExportLoading(true);
     try {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT';
+      workbook.creator = 'QLTBIT';
       const sheet = workbook.addWorksheet(moduleName.slice(0, 31));
 
       // Columns config
@@ -198,7 +198,7 @@ export default function ModuleDataToolbar({
       const a = document.createElement('a');
       a.href = url;
       const dateStr = new Date().toISOString().slice(0, 10);
-      a.download = `SimplyIT_${moduleKey}_${dateStr}.xlsx`;
+      a.download = `QLTBIT_${moduleKey}_${dateStr}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -501,7 +501,7 @@ export default function ModuleDataToolbar({
                         {isEn ? 'Click to browse .json file' : 'Nhấp để chọn file sao lưu (.JSON)'}
                       </p>
                       <p className="text-slate-400 text-[11px] mt-0.5">
-                        {isEn ? 'Must be a valid Simply IT backup file' : 'Hỗ trợ các file sao lưu JSON được xuất từ hệ thống'}
+                        {isEn ? 'Must be a valid QLTBIT backup file' : 'Hỗ trợ các file sao lưu JSON được xuất từ hệ thống'}
                       </p>
                     </div>
                   )}
@@ -519,7 +519,7 @@ export default function ModuleDataToolbar({
                   </div>
                   {restoreParsedData.meta && (
                     <div className="text-[11px] text-slate-500 space-y-0.5 border-t border-slate-200 pt-1.5">
-                      <p>Hệ thống: {restoreParsedData.meta.system || 'Simply IT'}</p>
+                      <p>Hệ thống: {restoreParsedData.meta.system || 'QLTBIT'}</p>
                       <p>Ngày sao lưu: {restoreParsedData.meta.exportedAt ? new Date(restoreParsedData.meta.exportedAt).toLocaleString('vi-VN') : 'N/A'}</p>
                       {restoreParsedData.meta.module && (
                         <p>Module gốc: <span className="font-semibold text-slate-700">{restoreParsedData.meta.module}</span></p>

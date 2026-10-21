@@ -1,6 +1,6 @@
-# 📜 SIMPLY IT - NHẬT KÝ PHIÊN BẢN (VERSION LOG)
+# 📜 QLTBIT - NHẬT KÝ PHIÊN BẢN (VERSION LOG)
 
-Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nâng cấp tính năng, cải tiến kiến trúc và sửa lỗi của hệ thống **Simply IT (Quản lý Tài sản CNTT & Dịch vụ Doanh nghiệp)** qua từng phiên bản phát hành chính thức.
+Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nâng cấp tính năng, cải tiến kiến trúc và sửa lỗi của hệ thống **QLTBIT (Quản lý Tài sản CNTT & Dịch vụ Doanh nghiệp)** qua từng phiên bản phát hành chính thức.
 
 ---
 
@@ -20,7 +20,7 @@ Tài liệu này ghi lại chi tiết toàn bộ lịch sử phát triển, nân
 | **v1.0.3** | **12/09/2026** | **Vòng Đời Nhân Sự Nghỉ Việc (Offboarding) & Thùng Rác 0ms Hoạt Tác** | Ổn định |
 | **v1.0.2** | **05/09/2026** | **Khung Chat AI Kéo Thả, Menu Chuột Phải & Tự Động Nhận Diện Thiết Bị** | Ổn định |
 | **v1.0.1** | **28/08/2026** | **Chuẩn Hóa Cổng Kép Dual-Port HTTP 3001 / HTTPS 3443 & Đóng Gói Docker** | Ổn định |
-| **v1.0.0** | **15/08/2026** | **Khởi Tạo Hệ Thống Simply IT Community Edition** | Bản gốc |
+| **v1.0.0** | **15/08/2026** | **Khởi Tạo Hệ Thống QLTBIT Community Edition** | Bản gốc |
 
 ---
 
@@ -201,13 +201,13 @@ Bản cập nhật **v1.0.7** tái cấu trúc mô hình Khoa Phòng / Địa đ
 
 ### 🌟 [v1.0.5] - 02/10/2026: Bộ Cài Đặt Tự Động 1-Click (Setup Wizard & PostgreSQL Portable)
 
-- **Trình Cài Đặt Trọn Gói (`SimplyIT_Setup.exe` & `Cai_Dat_SimplyIT.exe`)**:
+- **Trình Cài Đặt Trọn Gói (`QLTBIT_Setup.exe` & `Cai_Dat_QLTBIT.exe`)**:
   - Wizard đồ họa trực quan 3 chế độ: Cài cả Server & Agent, Chỉ cài Server, Chỉ cài Agent máy trạm.
   - Tự động kiểm tra và cài đặt ngầm Node.js LTS nếu máy chưa có.
   - Đi kèm PostgreSQL 17 Portable trong thư mục `pgsql`, tự động nạp database và seed dữ liệu khởi tạo.
   - Mở cổng tường lửa Windows 3001 và 3443 qua lệnh tự động.
-  - Đăng ký Scheduled Task `SimplyIT_Audit` chạy Agent bằng quyền SYSTEM định kỳ 15 phút.
-- **Trình Điều Hành Máy Chủ (`SimplyIT_Server.exe`)**:
+  - Đăng ký Scheduled Task `QLTBIT_Audit` chạy Agent bằng quyền SYSTEM định kỳ 15 phút.
+- **Trình Điều Hành Máy Chủ (`QLTBIT_Server.exe`)**:
   - Khắc phục lỗi hiển thị nhật ký tiến trình (Logs) và tự động nhận diện Node.js.
   - Tự động khởi động PostgreSQL portable khi khởi chạy server.
 - **Tài Liệu Hướng Dẫn Word Dành Cho Người Không Rành Kỹ Thuật (`HUONG_DAN_SU_DUNG_VA_CAI_DAT_SIMPLY_IT.docx`)**:
@@ -261,7 +261,7 @@ Bản cập nhật **v1.0.7** tái cấu trúc mô hình Khoa Phòng / Địa đ
 
 ---
 
-### 🌟 [v1.0.0] - 15/08/2026: Khởi Tạo Hệ Thống Simply IT Community Edition
+### 🌟 [v1.0.0] - 15/08/2026: Khởi Tạo Hệ Thống QLTBIT Community Edition
 
 - Khởi tạo kiến trúc nền tảng: Next.js 15, React 19, Prisma ORM, PostgreSQL.
 - Quản lý vòng đời tài sản CNTT, Bản quyền phần mềm, Hợp đồng dịch vụ.
@@ -270,4 +270,4 @@ Bản cập nhật **v1.0.7** tái cấu trúc mô hình Khoa Phòng / Địa đ
 
 ---
 
-*Tài liệu được cập nhật tự động và đồng bộ với mã nguồn Simply IT.*
+*Tài liệu được cập nhật tự động và đồng bộ với mã nguồn QLTBIT.*

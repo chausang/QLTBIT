@@ -1,6 +1,6 @@
 # AGENTS.md - Chỉ Dẫn Tự Động Dành Cho AI Agent
 
-Chào AI Agent! Đây là repository của dự án **Simply IT** (Hệ thống Quản lý Tài sản CNTT & Dịch vụ Doanh nghiệp).
+Chào AI Agent! Đây là repository của dự án **QLTBIT** (Hệ thống Quản lý Tài sản CNTT & Dịch vụ Doanh nghiệp).
 Trước khi thực hiện bất kỳ thao tác nào, hãy tuân thủ các chỉ dẫn dưới đây:
 
 ---

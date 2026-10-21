@@ -346,7 +346,7 @@ export function WebhookSettingsTab() {
                     </button>
                   </div>
                   <p className="text-slate-400 text-[11px]">
-                    Đặt tên cho Bot (VD: <i>SimplyIT Alert Bot</i>) và Username (kết thúc bằng <i>_bot</i>, VD: <i>simply_it_alert_bot</i>). Bạn sẽ nhận được <b>HTTP API Token</b> (dạng <code>7123456789:AAHq_...</code>).
+                    Đặt tên cho Bot (VD: <i>QLTBIT Alert Bot</i>) và Username (kết thúc bằng <i>_bot</i>, VD: <i>simply_it_alert_bot</i>). Bạn sẽ nhận được <b>HTTP API Token</b> (dạng <code>7123456789:AAHq_...</code>).
                   </p>
                 </div>
 
@@ -372,7 +372,7 @@ export function WebhookSettingsTab() {
 
               <div className="bg-sky-950/40 border border-sky-800/60 p-3.5 rounded-xl flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                  <span className="font-bold text-sky-300">Định dạng URL chuẩn cho SIMPLY IT:</span>
+                  <span className="font-bold text-sky-300">Định dạng URL chuẩn cho QLTBIT:</span>
                   <div className="font-mono text-emerald-300 text-[11px] mt-0.5">
                     https://api.telegram.org/bot&lt;TOKEN&gt;/sendMessage?chat_id=&lt;CHAT_ID&gt;
                   </div>
@@ -423,7 +423,7 @@ export function WebhookSettingsTab() {
                     <span>Copy URL &amp; Lưu</span>
                   </div>
                   <p className="text-slate-300">
-                    Đặt tên cho Webhook (VD: <i>SIMPLY IT Alert</i>) &gt; Bấm Create &gt; Sao chép URL Webhook (dạng <code>https://*.webhook.office.com/...</code>).
+                    Đặt tên cho Webhook (VD: <i>QLTBIT Alert</i>) &gt; Bấm Create &gt; Sao chép URL Webhook (dạng <code>https://*.webhook.office.com/...</code>).
                   </p>
                 </div>
               </div>
@@ -476,7 +476,7 @@ export function WebhookSettingsTab() {
                   <span>Cấu trúc Payload JSON gửi tới Webhook Endpoint</span>
                 </div>
                 <p className="text-slate-300">
-                  Hệ thống SIMPLY IT sẽ gửi phương thức <code>POST</code> tới URL bạn cung cấp kèm Payload JSON tiêu chuẩn:
+                  Hệ thống QLTBIT sẽ gửi phương thức <code>POST</code> tới URL bạn cung cấp kèm Payload JSON tiêu chuẩn:
                 </p>
                 <div className="bg-slate-950 p-3 rounded-xl font-mono text-emerald-400 text-[11px] overflow-x-auto">
                   {`{

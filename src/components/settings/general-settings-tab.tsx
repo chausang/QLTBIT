@@ -608,7 +608,7 @@ export function GeneralSettingsTab({
             <label className="block text-xs font-bold text-slate-700 mb-1">{isEn ? 'Application Display Name' : 'Tên ứng dụng hiển thị'}</label>
             <input
               type="text"
-              placeholder={isEn ? 'e.g., IT Asset Hub, Simply IT...' : 'VD: Quản lý tài sản, IT Asset Hub...'}
+              placeholder={isEn ? 'e.g., IT Asset Hub, QLTBIT...' : 'VD: Quản lý tài sản, IT Asset Hub...'}
               value={getSettingValue('app.name')}
               onChange={(e) => handleChange('app.name', e.target.value)}
               className="w-full p-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-800"
@@ -765,7 +765,7 @@ export function GeneralSettingsTab({
                   </div>
                 )}
                 <div className="text-xs min-w-0 flex-1">
-                  <p className="font-extrabold text-white leading-tight truncate">{getSettingValue('app.name') || 'SIMPLY IT'}</p>
+                  <p className="font-extrabold text-white leading-tight truncate">{getSettingValue('app.name') || 'QLTBIT'}</p>
                   <p className="text-[10px] text-cyan-400 mt-0.5 truncate">{getSettingValue('app.company_name') || 'Do Less - Achieve More'}</p>
                   <span className="text-[9px] text-emerald-400 font-mono mt-0.5 block">{isEn ? '● Full Sidebar Mode' : '● Chế độ Mở rộng đầy đủ'}</span>
                 </div>

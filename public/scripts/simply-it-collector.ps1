@@ -1,14 +1,14 @@
 # ==============================================================================
-# SIMPLY IT - Enterprise Asset Agent v4.1.1
+# QLTBIT - Enterprise Asset Agent v4.1.1
 # Windows 10/11 + PowerShell 5.1 + GPO/SYSTEM compatible
 #
 # FEATURES:
-# - Keeps ORIGINAL SIMPLY IT payload field names for backend compatibility.
+# - Keeps ORIGINAL QLTBIT payload field names for backend compatibility.
 # - Fast WMI/CIM query filtering (avoids slow SoftwareLicensingProduct full scan).
 # - Safe logged-on user detection under SYSTEM/GPO context (avoids NT AUTHORITY\SYSTEM).
 # - WMI/CIM fallback wrapper for maximum OS compatibility (Win 7/8/10/11).
-# - Local logging to C:\ProgramData\SimplyIT\SimplyIT-Agent.log.
-# - Local payload backup to C:\ProgramData\SimplyIT\SimplyIT-last-payload.json.
+# - Local logging to C:\ProgramData\QLTBIT\QLTBIT-Agent.log.
+# - Local payload backup to C:\ProgramData\QLTBIT\QLTBIT-last-payload.json.
 # - Automatic TLS 1.2 support and robust HTTP status code inspection.
 # - GPO Startup safe: exits 0 even if network is temporarily unreachable.
 # ==============================================================================
@@ -43,9 +43,9 @@ if ($ServerUrl -eq "__AUTO__") {
 
 $ServerUrl = $ServerUrl.TrimEnd('/')
 
-$AgentRoot = Join-Path $env:ProgramData "SimplyIT"
-$LogFile   = Join-Path $AgentRoot "SimplyIT-Agent.log"
-$JsonFile  = Join-Path $AgentRoot "SimplyIT-last-payload.json"
+$AgentRoot = Join-Path $env:ProgramData "QLTBIT"
+$LogFile   = Join-Path $AgentRoot "QLTBIT-Agent.log"
+$JsonFile  = Join-Path $AgentRoot "QLTBIT-last-payload.json"
 
 New-Item -Path $AgentRoot -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
 
@@ -701,7 +701,7 @@ function Install-HealthTask {
         [int]$Minutes = 15
     )
 
-    $TaskName = "SIMPLY IT Agent Health"
+    $TaskName = "QLTBIT Agent Health"
     $InstallDir = $AgentRoot
     $TargetScript = Join-Path $InstallDir "simply-it-agent.ps1"
 
@@ -733,7 +733,7 @@ function Install-HealthTask {
             Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
 
             Write-Host "==========================================================" -ForegroundColor Green
-            Write-Host "   [SIMPLY IT] CAI DAT HEALTH TASK THANH CONG!            " -ForegroundColor Green
+            Write-Host "   [QLTBIT] CAI DAT HEALTH TASK THANH CONG!            " -ForegroundColor Green
             Write-Host "   Task Name: $TaskName" -ForegroundColor Yellow
             Write-Host "   Chu ky   : Moi $Minutes phut" -ForegroundColor Yellow
             Write-Host "   Quyen    : NT AUTHORITY\SYSTEM" -ForegroundColor Yellow
@@ -748,7 +748,7 @@ function Install-HealthTask {
             return $true
         }
     } catch {
-        Write-Host "   [SIMPLY IT] LOI CAI DAT TASK: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "   [QLTBIT] LOI CAI DAT TASK: $($_.Exception.Message)" -ForegroundColor Red
         Log "INSTALL FAILED: $($_.Exception.Message)"
         return $false
     }
@@ -820,9 +820,9 @@ if ($Mode -eq "Install") {
 
 if ($Mode -eq "Health") {
     Write-Host "==========================================================" -ForegroundColor Cyan
-    Write-Host "   SIMPLY IT - THU THAP CHI SO SINH TON (HEALTH REPORT)   " -ForegroundColor Yellow
+    Write-Host "   QLTBIT - THU THAP CHI SO SINH TON (HEALTH REPORT)   " -ForegroundColor Yellow
     Write-Host "==========================================================" -ForegroundColor Cyan
-    Log "===== SIMPLY IT HEALTH AGENT START ====="
+    Log "===== QLTBIT HEALTH AGENT START ====="
 
     try {
         $bios      = Get-CimCompat "Win32_BIOS"
@@ -874,7 +874,7 @@ if ($Mode -eq "Health") {
         $healthPayloadClean = Remove-NullCharacters $healthPayload
         $jsonHealth = $healthPayloadClean | ConvertTo-Json -Depth 8 -Compress
 
-        $HealthJsonFile = Join-Path $AgentRoot "SimplyIT-last-health.json"
+        $HealthJsonFile = Join-Path $AgentRoot "QLTBIT-last-health.json"
         try {
             $healthPayloadClean | ConvertTo-Json -Depth 8 | Set-Content -Path $HealthJsonFile -Encoding UTF8
             Log "Health payload saved to $HealthJsonFile"
@@ -895,7 +895,7 @@ if ($Mode -eq "Health") {
                 $webReq.Method = "POST"
                 $webReq.ContentType = "application/json; charset=utf-8"
                 $webReq.Timeout = 15000
-                $webReq.UserAgent = "SimplyIT-Agent-Health/4.1.1"
+                $webReq.UserAgent = "QLTBIT-Agent-Health/4.1.1"
 
                 $bytes = [System.Text.Encoding]::UTF8.GetBytes($jsonHealth)
                 $webReq.ContentLength = $bytes.Length
@@ -912,7 +912,7 @@ if ($Mode -eq "Health") {
                 $resp.Close()
 
                 $sentHealth = $true
-                Write-Host "   [SIMPLY IT] GUI BAO CAO HEALTH THANH CONG!" -ForegroundColor Green
+                Write-Host "   [QLTBIT] GUI BAO CAO HEALTH THANH CONG!" -ForegroundColor Green
                 Log "HEALTH SUCCESS: $hep"
             } catch {
                 Log "HEALTH FAILED $hep : $($_.Exception.Message)"
@@ -922,7 +922,7 @@ if ($Mode -eq "Health") {
         Log "HEALTH FATAL: $($_.Exception.Message)"
     }
 
-    Log "===== SIMPLY IT HEALTH AGENT END ====="
+    Log "===== QLTBIT HEALTH AGENT END ====="
     exit 0
 }
 
@@ -930,12 +930,12 @@ if ($Mode -eq "Health") {
 # MODE = "Inventory" (DEFAULT / ORIGINAL v4 EXECUTION)
 # ==============================================================================
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   SIMPLY IT - THU THAP PHAN CUNG, PHAN MEM & BAN QUYEN   " -ForegroundColor Yellow
+Write-Host "   QLTBIT - THU THAP PHAN CUNG, PHAN MEM & BAN QUYEN   " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "PowerShell: $($PSVersionTable.PSVersion)"
 Write-Host "Identity  : $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
 
-Log "===== SIMPLY IT AGENT v4.1.1 START ====="
+Log "===== QLTBIT AGENT v4.1.1 START ====="
 Log "PowerShell=$($PSVersionTable.PSVersion)"
 Log "Identity=$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
 Log "ServerUrl=$ServerUrl"
@@ -1177,9 +1177,9 @@ try {
     }
 
     # --------------------------------------------------------------------------
-    # SEND HTTP POST TO SIMPLY IT SERVER
+    # SEND HTTP POST TO QLTBIT SERVER
     # --------------------------------------------------------------------------
-    Write-Host "[4/4] Dang gui du lieu ve he thong Simply IT ($ServerUrl)..." -ForegroundColor Green
+    Write-Host "[4/4] Dang gui du lieu ve he thong QLTBIT ($ServerUrl)..." -ForegroundColor Green
 
     $endpoints = @(
         "$ServerUrl/api/v1/auto-scan/collect",
@@ -1232,7 +1232,7 @@ try {
                 }
 
                 Write-Host "==========================================================" -ForegroundColor Green
-                Write-Host "   [SIMPLY IT] GUI DU LIEU THANH CONG!" -ForegroundColor Green
+                Write-Host "   [QLTBIT] GUI DU LIEU THANH CONG!" -ForegroundColor Green
                 Write-Host "   May tinh    : $devName" -ForegroundColor White
                 Write-Host "   Ma thiet bi : $assetTag" -ForegroundColor White
                 Write-Host "   Server URL  : $ServerUrl" -ForegroundColor Gray
@@ -1273,7 +1273,7 @@ try {
 
     if (-not $sent) {
         Write-Host "==========================================================" -ForegroundColor Red
-        Write-Host "   [SIMPLY IT] KHONG GUI DUOC DU LIEU" -ForegroundColor Red
+        Write-Host "   [QLTBIT] KHONG GUI DUOC DU LIEU" -ForegroundColor Red
         Write-Host "   Server: $ServerUrl" -ForegroundColor Yellow
         Write-Host "   Loi cuoi: $lastError" -ForegroundColor Yellow
         Write-Host "   Payload da duoc luu tai: $JsonFile" -ForegroundColor Yellow
@@ -1283,12 +1283,12 @@ try {
 }
 catch {
     Write-Host "==========================================================" -ForegroundColor Red
-    Write-Host "   [SIMPLY IT] LOI THUC THI: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   [QLTBIT] LOI THUC THI: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host "==========================================================" -ForegroundColor Red
     Log "FATAL: $($_.Exception.Message)"
 }
 
-Log "===== SIMPLY IT AGENT v4.1.1 END ====="
+Log "===== QLTBIT AGENT v4.1.1 END ====="
 
 # GPO Startup safe: don't report failure if network is temporarily unreachable
 exit 0

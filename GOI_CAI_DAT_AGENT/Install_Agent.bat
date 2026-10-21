@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
-title SIMPLY IT - CAI DAT AGENT GIAM SAT MAY TRAM
+title QLTBIT - CAI DAT AGENT GIAM SAT MAY TRAM
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
 
@@ -37,7 +37,7 @@ exit /b 1
 :RUN_AS_ADMIN
 cls
 echo ==============================================================================
-echo    SIMPLY IT - CAI DAT AGENT GIAM SAT MAY TRAM (MULTI-VLAN)
+echo    QLTBIT - CAI DAT AGENT GIAM SAT MAY TRAM (MULTI-VLAN)
 echo ==============================================================================
 echo.
 echo Agent se tu dong chay ngam dinh ky 15 phut de:
@@ -49,17 +49,17 @@ echo.
 echo ==============================================================================
 
 :: ==============================================================================
-:: 2. XAC DINH DIA CHI MAY CHU SIMPLY IT
+:: 2. XAC DINH DIA CHI MAY CHU QLTBIT
 :: ==============================================================================
 set "DEFAULT_SERVER=http://192.168.1.100:3000"
-if exist "C:\ProgramData\SimplyIT\server_url.txt" (
-    for /f "usebackq delims=" %%i in ("C:\ProgramData\SimplyIT\server_url.txt") do (
+if exist "C:\ProgramData\QLTBIT\server_url.txt" (
+    for /f "usebackq delims=" %%i in ("C:\ProgramData\QLTBIT\server_url.txt") do (
         if not "%%i"=="" set "DEFAULT_SERVER=%%i"
     )
 )
 
 echo.
-echo Nhap dia chi IP va Cong cua May Chu SIMPLY IT.
+echo Nhap dia chi IP va Cong cua May Chu QLTBIT.
 echo Vi du:
 echo   - http://192.168.1.9:3000
 echo   - 192.168.1.9
@@ -90,7 +90,7 @@ echo [*] Dia chi May Chu duoc ket noi: !SERVER_URL!
 :: ==============================================================================
 :: 3. TAO THU MUC CAI DAT CHO AGENT
 :: ==============================================================================
-set "AGENT_DIR=C:\ProgramData\SimplyIT"
+set "AGENT_DIR=C:\ProgramData\QLTBIT"
 if not exist "!AGENT_DIR!" mkdir "!AGENT_DIR!" >nul 2>&1
 
 :: Luu dia chi May Chu de Run_Audit_Now.bat va Agent su dung
@@ -121,10 +121,10 @@ if not exist "!AGENT_DIR!\agent.ps1" goto :ERROR_NO_SCRIPT
 :: ==============================================================================
 :: 5. DANG KY SCHEDULED TASK CHAY NGAM DINH KY 15 PHUT/LAN
 :: ==============================================================================
-echo [*] Dang dang ky tac vu chay ngam: Task Scheduler SimplyIT_Audit...
-schtasks /delete /tn "SimplyIT_Audit" /f >nul 2>&1
+echo [*] Dang dang ky tac vu chay ngam: Task Scheduler QLTBIT_Audit...
+schtasks /delete /tn "QLTBIT_Audit" /f >nul 2>&1
 
-schtasks /create /tn "SimplyIT_Audit" ^
+schtasks /create /tn "QLTBIT_Audit" ^
     /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"!AGENT_DIR!\agent.ps1\" -ServerUrl \"!SERVER_URL!\" -Mode Inventory" ^
     /sc MINUTE /mo 15 ^
     /ru "SYSTEM" ^
@@ -134,7 +134,7 @@ if !errorlevel! equ 0 goto :SUCCESS_INSTALL
 
 :: Thu lai voi tai khoan nguoi dung hien tai neu quyen SYSTEM bi han che
 echo [!] Thu dang ky tac vu duoi quyen User Administrator...
-schtasks /create /tn "SimplyIT_Audit" ^
+schtasks /create /tn "QLTBIT_Audit" ^
     /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"!AGENT_DIR!\agent.ps1\" -ServerUrl \"!SERVER_URL!\" -Mode Inventory" ^
     /sc MINUTE /mo 15 ^
     /rl HIGHEST /f >nul 2>&1
@@ -148,13 +148,13 @@ echo.
 echo ==============================================================================
 echo [THANH CONG] DA CAI DAT AGENT GIAM SAT MAY TRAM HOAN TAT!
 echo ==============================================================================
-echo   - Ten tac vu : SimplyIT_Audit - Chay ngam tu dong, khong hien cua so
+echo   - Ten tac vu : QLTBIT_Audit - Chay ngam tu dong, khong hien cua so
 echo   - Dinh ky    : Tu dong quet va gui bao cao moi 15 phut
 echo   - May chu    : !SERVER_URL!
 echo   - Thu muc    : !AGENT_DIR!
 echo.
 echo [*] Dang kich hoat lan quet dau tien ve May Chu...
-schtasks /run /tn "SimplyIT_Audit" >nul 2>&1
+schtasks /run /tn "QLTBIT_Audit" >nul 2>&1
 echo [OK] Da kich hoat tien trinh quet ngam thanh cong!
 echo.
 echo ==============================================================================

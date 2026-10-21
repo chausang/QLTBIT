@@ -92,7 +92,7 @@ export async function POST(
             <p><strong>Dự toán:</strong> ${approval.estimatedCost ? Number(approval.estimatedCost).toLocaleString('vi-VN') + ' ' + approval.currency : 'Không có'}</p>
             <p><strong>Ghi chú điều phối IT:</strong> ${note || 'Yêu cầu kiểm tra & phê duyệt ngân sách phòng ban.'}</p>
           </div>
-          <p>Vui lòng đăng nhập vào hệ thống Simply IT để xem chi tiết và phê duyệt.</p>
+          <p>Vui lòng đăng nhập vào hệ thống QLTBIT để xem chi tiết và phê duyệt.</p>
         `,
       }).catch(() => {});
     }

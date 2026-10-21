@@ -315,7 +315,7 @@ async function runQaAudit() {
         fullName: 'Nguyễn Văn QA Tester',
         department: 'Kiểm thử Chất lượng',
         jobTitle: 'Senior QA Engineer',
-        companyName: 'Tập đoàn Simply IT',
+        companyName: 'Tập đoàn QLTBIT',
         password: 'Password@123',
       }),
     });

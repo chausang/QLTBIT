@@ -42,7 +42,7 @@ export const MaintenanceQrModal: React.FC<MaintenanceQrModalProps> = ({
 
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
-  const [displayCompanyName, setDisplayCompanyName] = useState<string>(propCompanyName || 'SIMPLY IT');
+  const [displayCompanyName, setDisplayCompanyName] = useState<string>(propCompanyName || 'QLTBIT');
   const [scanUrl, setScanUrl] = useState<string>('');
   const printStickerRef = useRef<HTMLDivElement>(null);
 

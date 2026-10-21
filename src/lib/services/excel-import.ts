@@ -90,7 +90,7 @@ export interface LicenseRowData {
 export async function generateAssetTemplate(lang: string = 'vi'): Promise<Buffer> {
   const isEn = lang === 'en';
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Simply IT';
+  workbook.creator = 'QLTBIT';
 
   // ==================== SHEET 1: MẪU TIÊU CHUẨN ====================
   const worksheet = workbook.addWorksheet(isEn ? 'Standard Asset Template' : 'Mẫu Tài Sản Tiêu Chuẩn');
@@ -993,7 +993,7 @@ export async function importAssetsFromExcel(
   if (failedItems.length > 0) {
     try {
       const errWorkbook = new ExcelJS.Workbook();
-      errWorkbook.creator = 'Simply IT';
+      errWorkbook.creator = 'QLTBIT';
       const errSheet = errWorkbook.addWorksheet('Thiet_Bi_Loi_Trung');
 
       // Title Row

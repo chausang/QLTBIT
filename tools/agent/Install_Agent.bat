@@ -1,5 +1,5 @@
 @echo off
-title SIMPLY IT - CAI DAT AGENT GIAM SAT MAY TRAM
+title QLTBIT - CAI DAT AGENT GIAM SAT MAY TRAM
 cd /d "%~dp0"
 
 :: 1. Tu dong xin quyen Quan tri vien (Auto-Elevate Administrator)
@@ -12,7 +12,7 @@ if %errorLevel% neq 0 (
 
 cls
 echo ==============================================================================
-echo    SIMPLY IT - CAI DAT AGENT GIAM SAT MAY TRAM (MULTI-VLAN)
+echo    QLTBIT - CAI DAT AGENT GIAM SAT MAY TRAM (MULTI-VLAN)
 echo ==============================================================================
 echo.
 echo Agent se chay ngam dinh ky 15 phut de:
@@ -24,12 +24,12 @@ echo ===========================================================================
 
 :: 2. Doc cau hinh cu neu co
 set "DEFAULT_SERVER=http://192.168.1.100:3001"
-if exist "C:\ProgramData\SimplyIT\server_url.txt" (
-    for /f "usebackq delims=" %%i in ("C:\ProgramData\SimplyIT\server_url.txt") do set "DEFAULT_SERVER=%%i"
+if exist "C:\ProgramData\QLTBIT\server_url.txt" (
+    for /f "usebackq delims=" %%i in ("C:\ProgramData\QLTBIT\server_url.txt") do set "DEFAULT_SERVER=%%i"
 )
 
 echo.
-echo Nhap dia chi IP va Cong cua May Chu SIMPLY IT.
+echo Nhap dia chi IP va Cong cua May Chu QLTBIT.
 echo Vi du: http://192.168.1.9:3001 hoac https://it.mycompany.com:3443
 echo (Neu chi nhap IP vi du 192.168.1.9, he thong se tu them http:// va :3001)
 echo.
@@ -55,7 +55,7 @@ echo.
 echo [*] May Chu duoc ket noi: %SERVER_URL%
 
 :: 3. Tao thu muc cai dat cho Agent
-set "AGENT_DIR=C:\ProgramData\SimplyIT"
+set "AGENT_DIR=C:\ProgramData\QLTBIT"
 if not exist "%AGENT_DIR%" mkdir "%AGENT_DIR%"
 
 :: Luu dia chi May Chu de Run_Audit_Now.bat va Agent su dung
@@ -88,10 +88,10 @@ if not exist "%AGENT_DIR%\agent.ps1" (
 )
 
 :: 5. Dang ky Scheduled Task chay ngam dinh ky 15 phut/lan
-echo [*] Dang dang ky tac vu chay ngam (Task Scheduler: SimplyIT_Audit)...
-schtasks /delete /tn "SimplyIT_Audit" /f >nul 2>&1
+echo [*] Dang dang ky tac vu chay ngam (Task Scheduler: QLTBIT_Audit)...
+schtasks /delete /tn "QLTBIT_Audit" /f >nul 2>&1
 
-schtasks /create /tn "SimplyIT_Audit" ^
+schtasks /create /tn "QLTBIT_Audit" ^
     /tr "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"%AGENT_DIR%\agent.ps1\" -ServerUrl \"%SERVER_URL%\" -Mode Inventory" ^
     /sc MINUTE /mo 15 ^
     /ru "SYSTEM" ^
@@ -102,12 +102,12 @@ if %errorLevel% equ 0 (
     echo ==============================================================================
     echo [THANH CONG] DA CAI DAT AGENT GIAM SAT MAY TRAM HOAN TAT!
     echo ==============================================================================
-    echo   - Ten tac vu : SimplyIT_Audit (Quyen SYSTEM chay ngam khong hien cua so)
+    echo   - Ten tac vu : QLTBIT_Audit (Quyen SYSTEM chay ngam khong hien cua so)
     echo   - Dinh ky    : Tu dong quet va cap nhat moi 15 phut
     echo   - May chu    : %SERVER_URL%
     echo.
     echo [*] Dang kich hoat lan quet dau tien ve May Chu...
-    schtasks /run /tn "SimplyIT_Audit" >nul 2>&1
+    schtasks /run /tn "QLTBIT_Audit" >nul 2>&1
     echo [OK] Da khoi dong lan quet dau tien thanh cong!
 ) else (
     echo.

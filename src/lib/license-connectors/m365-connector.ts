@@ -463,7 +463,7 @@ export async function syncAndReconcileM365(config: M365Config): Promise<Reconcil
     ];
   }
 
-  // 3. ĐỐI SOÁT VỚI CƠ SỞ DỮ LIỆU NỘI BỘ (SIMPLY IT DATABASE)
+  // 3. ĐỐI SOÁT VỚI CƠ SỞ DỮ LIỆU NỘI BỘ (QLTBIT DATABASE)
   const localLicenses: any[] = await prisma.license.findMany({
     where: {
       status: 'ACTIVE',
@@ -515,7 +515,7 @@ export async function syncAndReconcileM365(config: M365Config): Promise<Reconcil
   const totalCloudSeats = skus.reduce((sum, s) => sum + s.totalPrepaid, 0);
   const totalCloudConsumed = skus.reduce((sum, s) => sum + s.consumed, 0);
 
-  // Tìm các tài khoản trên Cloud nhưng chưa gán trong Simply IT
+  // Tìm các tài khoản trên Cloud nhưng chưa gán trong QLTBIT
   const unmatchedUsers = cloudUsers.filter((cu) => {
     return cu.email && !localAssignedEmails.has(cu.email.toLowerCase().trim());
   });

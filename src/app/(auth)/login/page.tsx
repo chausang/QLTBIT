@@ -116,10 +116,10 @@ function LoginForm() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center mx-auto shadow-xl border border-slate-100">
-            <img src="/logo-icon.png" alt="SIMPLY IT" className="w-full h-full object-contain" />
+            <img src="/logo-icon.png" alt="QLTBIT" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            {t('auth.system_title', 'SIMPLY IT')}
+            {t('auth.system_title', 'QLTBIT')}
           </h1>
           <p className="text-xs text-blue-600 font-bold">
             {t('auth.system_slogan', 'Do Less — Achieve More')}

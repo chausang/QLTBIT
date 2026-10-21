@@ -1,4 +1,4 @@
-// SIMPLY IT Service Worker v2
+// QLTBIT Service Worker v2
 const CACHE_NAME = 'simply-it-pwa-v2';
 
 self.addEventListener('install', (event) => {

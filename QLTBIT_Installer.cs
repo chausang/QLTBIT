@@ -8,7 +8,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text.RegularExpressions;
 
-namespace SimplyITInstaller
+namespace QLTBITInstaller
 {
     static class Program
     {
@@ -119,7 +119,7 @@ namespace SimplyITInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "SIMPLY IT — Bộ Cài Đặt Trọn Gói (Setup Wizard)";
+            this.Text = "QLTBIT — Bộ Cài Đặt Trọn Gói (Setup Wizard)";
             this.Size = new Size(680, 680);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -152,7 +152,7 @@ namespace SimplyITInstaller
             pnlHeader.Controls.Add(picIcon);
 
             lblHeaderTitle = new Label();
-            lblHeaderTitle.Text = "SIMPLY IT — TRÌNH CÀI ĐẶT TRỌN GÓI";
+            lblHeaderTitle.Text = "QLTBIT — TRÌNH CÀI ĐẶT TRỌN GÓI";
             lblHeaderTitle.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
             lblHeaderTitle.ForeColor = Color.FromArgb(0, 184, 212); // Cyan
             lblHeaderTitle.Location = new Point(80, 14);
@@ -197,7 +197,7 @@ namespace SimplyITInstaller
 
             // Option 2: Server Only
             radServerOnly = new RadioButton();
-            radServerOnly.Text = "🏢 Chỉ cài đặt MÁY CHỦ (SIMPLY IT Central Server)";
+            radServerOnly.Text = "🏢 Chỉ cài đặt MÁY CHỦ (QLTBIT Central Server)";
             radServerOnly.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             radServerOnly.ForeColor = Color.FromArgb(30, 41, 59);
             radServerOnly.Location = new Point(20, 72);
@@ -241,7 +241,7 @@ namespace SimplyITInstaller
             this.Controls.Add(grpConfig);
 
             lblServerUrl = new Label();
-            lblServerUrl.Text = "Địa chỉ Máy Chủ SIMPLY IT:";
+            lblServerUrl.Text = "Địa chỉ Máy Chủ QLTBIT:";
             lblServerUrl.Font = new Font("Segoe UI", 8.5F, FontStyle.Bold);
             lblServerUrl.ForeColor = Color.FromArgb(51, 65, 85);
             lblServerUrl.Location = new Point(18, 26);
@@ -326,7 +326,7 @@ namespace SimplyITInstaller
             this.Controls.Add(btnStartInstall);
 
             btnOpenApp = new Button();
-            btnOpenApp.Text = "🌐 Mở SIMPLY IT";
+            btnOpenApp.Text = "🌐 Mở QLTBIT";
             btnOpenApp.Location = new Point(370, 590);
             btnOpenApp.Size = new Size(150, 44);
             btnOpenApp.BackColor = Color.FromArgb(16, 185, 129); // Green
@@ -472,7 +472,7 @@ namespace SimplyITInstaller
                 try
                 {
                     AppendLog("=================================================");
-                    AppendLog("BẮT ĐẦU CÀI ĐẶT SIMPLY IT COMMUNITY EDITION");
+                    AppendLog("BẮT ĐẦU CÀI ĐẶT QLTBIT COMMUNITY EDITION");
                     AppendLog("=================================================");
 
                     if (installServer)
@@ -504,8 +504,8 @@ namespace SimplyITInstaller
 
                         if (autoLaunch && installServer)
                         {
-                            AppendLog("🚀 Đang khởi động SIMPLY IT Server...");
-                            string srvExe = Path.Combine(appDir, "SimplyIT_Server.exe");
+                            AppendLog("🚀 Đang khởi động QLTBIT Server...");
+                            string srvExe = Path.Combine(appDir, "QLTBIT_Server.exe");
                             if (File.Exists(srvExe))
                             {
                                 try { Process.Start(new ProcessStartInfo(srvExe) { WorkingDirectory = appDir, UseShellExecute = true }); } catch { }
@@ -585,10 +585,10 @@ namespace SimplyITInstaller
 
         private void InstallAgentComponent(string serverUrl, bool createShortcut)
         {
-            SetStatus("⏳ Đang cài đặt SIMPLY IT Agent trên máy trạm...", 90);
-            AppendLog("Đang thiết lập SIMPLY IT Agent giám sát máy trạm...");
+            SetStatus("⏳ Đang cài đặt QLTBIT Agent trên máy trạm...", 90);
+            AppendLog("Đang thiết lập QLTBIT Agent giám sát máy trạm...");
 
-            string agentDir = @"C:\ProgramData\SimplyIT";
+            string agentDir = @"C:\ProgramData\QLTBIT";
             if (!Directory.Exists(agentDir))
             {
                 Directory.CreateDirectory(agentDir);
@@ -612,29 +612,29 @@ namespace SimplyITInstaller
             string configJson = string.Format("{{\"serverUrl\": \"{0}\", \"intervalMinutes\": 15}}", serverUrl);
             File.WriteAllText(Path.Combine(agentDir, "config.json"), configJson);
 
-            // Register Windows Scheduled Task: SimplyIT_Audit
-            AppendLog("Đăng ký tác vụ ngầm Scheduled Task (SimplyIT_Audit)...");
-            string schArgs = string.Format("/delete /tn \"SimplyIT_Audit\" /f");
+            // Register Windows Scheduled Task: QLTBIT_Audit
+            AppendLog("Đăng ký tác vụ ngầm Scheduled Task (QLTBIT_Audit)...");
+            string schArgs = string.Format("/delete /tn \"QLTBIT_Audit\" /f");
             RunHiddenCommand("schtasks", schArgs);
 
             string taskArgs = string.Format(
-                "/create /tn \"SimplyIT_Audit\" /tr \"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \\\"{0}\\\" -ServerUrl \\\"{1}\\\" -Mode Inventory\" /sc MINUTE /mo 15 /ru \"SYSTEM\" /rl HIGHEST /f",
+                "/create /tn \"QLTBIT_Audit\" /tr \"powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \\\"{0}\\\" -ServerUrl \\\"{1}\\\" -Mode Inventory\" /sc MINUTE /mo 15 /ru \"SYSTEM\" /rl HIGHEST /f",
                 destAgent, serverUrl
             );
             RunHiddenCommand("schtasks", taskArgs);
 
             // Run first audit immediately
             AppendLog("Kích hoạt lần quét phần cứng & phần mềm đầu tiên...");
-            RunHiddenCommand("schtasks", "/run /tn \"SimplyIT_Audit\"");
+            RunHiddenCommand("schtasks", "/run /tn \"QLTBIT_Audit\"");
 
             // Create management batch files
             string runAuditBat = Path.Combine(agentDir, "Kiem_Ke_Ngay.bat");
             File.WriteAllText(runAuditBat, string.Format("@echo off\r\npowershell.exe -NoProfile -ExecutionPolicy Bypass -File \"{0}\" -ServerUrl \"{1}\" -Mode Inventory\r\npause\r\n", destAgent, serverUrl));
 
             string uninstallBat = Path.Combine(agentDir, "Go_Cai_Dat_Agent.bat");
-            File.WriteAllText(uninstallBat, "@echo off\r\nschtasks /delete /tn \"SimplyIT_Audit\" /f >nul 2>&1\r\necho Da huy bo tac vu SimplyIT_Audit.\r\npause\r\n");
+            File.WriteAllText(uninstallBat, "@echo off\r\nschtasks /delete /tn \"QLTBIT_Audit\" /f >nul 2>&1\r\necho Da huy bo tac vu QLTBIT_Audit.\r\npause\r\n");
 
-            AppendLog("✅ SIMPLY IT Agent đã được kích hoạt thành công!");
+            AppendLog("✅ QLTBIT Agent đã được kích hoạt thành công!");
             AppendLog("• Tự động thu thập: CPU, RAM, Ổ cứng, GPU, Màn hình, Phần mềm.");
             AppendLog("• Cảnh báo: Tự động phát hiện khi tháo/lắp RAM, đổi ổ cứng, cài phần mềm lạ.");
         }
@@ -808,8 +808,8 @@ namespace SimplyITInstaller
             try
             {
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                string shortcutFile = Path.Combine(desktopPath, "SIMPLY IT Server.lnk");
-                string targetExe = Path.Combine(appDir, "SimplyIT_Server.exe");
+                string shortcutFile = Path.Combine(desktopPath, "QLTBIT Server.lnk");
+                string targetExe = Path.Combine(appDir, "QLTBIT_Server.exe");
                 string iconPath = Path.Combine(appDir, "app.ico");
 
                 Type shellType = Type.GetTypeFromProgID("WScript.Shell");
@@ -819,7 +819,7 @@ namespace SimplyITInstaller
                     dynamic shortcut = shell.CreateShortcut(shortcutFile);
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = appDir;
-                    shortcut.Description = "SIMPLY IT - Trung Tâm Quản Trị Dịch Vụ & Tài Sản IT";
+                    shortcut.Description = "QLTBIT - Trung Tâm Quản Trị Dịch Vụ & Tài Sản IT";
                     if (File.Exists(iconPath))
                     {
                         shortcut.IconLocation = iconPath + ", 0";

@@ -65,7 +65,7 @@ export function ChatWidget() {
     {
       id: 'welcome',
       role: 'bot',
-      content: t('chatbot.welcome', '👋 Xin chào! Mình là **Trợ lý IT ảo SIMPLY IT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?'),
+      content: t('chatbot.welcome', '👋 Xin chào! Mình là **Trợ lý IT ảo QLTBIT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?'),
       timestamp: new Date().toLocaleTimeString(language === 'en' ? 'en-US' : language === 'ja' ? 'ja-JP' : 'vi-VN', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -78,7 +78,7 @@ export function ChatWidget() {
           {
             id: 'welcome',
             role: 'bot',
-            content: t('chatbot.welcome', '👋 Xin chào! Mình là **Trợ lý IT ảo SIMPLY IT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?'),
+            content: t('chatbot.welcome', '👋 Xin chào! Mình là **Trợ lý IT ảo QLTBIT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?'),
             timestamp: new Date().toLocaleTimeString(language === 'en' ? 'en-US' : language === 'ja' ? 'ja-JP' : 'vi-VN', { hour: '2-digit', minute: '2-digit' }),
           },
         ];

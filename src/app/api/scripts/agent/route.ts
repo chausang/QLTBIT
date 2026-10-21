@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     );
   } else {
     scriptContent = [
-      '# SIMPLY IT Auto-Scan Agent',
+      '# QLTBIT Auto-Scan Agent',
       'param([string]$ServerUrl = "' + serverUrl + '")',
       '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8',
       '$OutputEncoding = [System.Text.Encoding]::UTF8',

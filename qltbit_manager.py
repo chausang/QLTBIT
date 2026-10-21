@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ==============================================================================
-SIMPLY IT - TRUNG TÂM ĐIỀU HÀNH & QUẢN TRỊ TÀI SẢN CNTT (D:\QLTBIT)
+QLTBIT - TRUNG TÂM ĐIỀU HÀNH & QUẢN TRỊ TÀI SẢN CNTT (D:\QLTBIT)
 ==============================================================================
 """
 
@@ -27,24 +27,24 @@ def clear_screen():
 
 def print_banner():
     print("=" * 78)
-    print("      HỆ THỐNG QUẢN TRỊ TÀI SẢN CNTT (ITSM) — SIMPLY IT COMMUNITY")
+    print("      HỆ THỐNG QUẢN TRỊ TÀI SẢN CNTT (ITSM) — QLTBIT COMMUNITY")
     print(f"      Thư mục dự án: {PROJECT_DIR}")
     print("=" * 78)
     print()
 
 def start_server():
-    print("\n[*] Đang khởi động Máy chủ SIMPLY IT Server...")
-    exe_path = os.path.join(PROJECT_DIR, "SimplyIT_Server.exe")
+    print("\n[*] Đang khởi động Máy chủ QLTBIT Server...")
+    exe_path = os.path.join(PROJECT_DIR, "QLTBIT_Server.exe")
     if os.path.exists(exe_path):
         subprocess.Popen([exe_path], cwd=PROJECT_DIR, shell=True)
-        print("[OK] Đã bật SimplyIT_Server.exe ngầm dưới khay hệ thống (System Tray)!")
+        print("[OK] Đã bật QLTBIT_Server.exe ngầm dưới khay hệ thống (System Tray)!")
     else:
-        print("[!] Không tìm thấy SimplyIT_Server.exe, đang biên dịch từ mã nguồn C#...")
+        print("[!] Không tìm thấy QLTBIT_Server.exe, đang biên dịch từ mã nguồn C#...")
         ps_script = os.path.join(PROJECT_DIR, "build_exe.ps1")
         subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", ps_script], cwd=PROJECT_DIR)
         if os.path.exists(exe_path):
             subprocess.Popen([exe_path], cwd=PROJECT_DIR, shell=True)
-            print("[OK] Đã biên dịch và bật SimplyIT_Server.exe!")
+            print("[OK] Đã biên dịch và bật QLTBIT_Server.exe!")
     input("\nNhấn Enter để tiếp tục...")
 
 def launch_gui_scanner():
@@ -76,10 +76,10 @@ def build_agent_package():
     shutil.copy2(os.path.join(PROJECT_DIR, "tools", "agent", "Uninstall_Agent.bat"), os.path.join(out_dir, "Uninstall_Agent.bat"))
     shutil.copy2(os.path.join(PROJECT_DIR, "tools", "agent", "Run_Audit_Now.bat"), os.path.join(out_dir, "Run_Audit_Now.bat"))
 
-    readme_content = """HƯỚNG DẪN CÀI ĐẶT AGENT GIÁM SÁT MÁY TRẠM SIMPLY IT
+    readme_content = """HƯỚNG DẪN CÀI ĐẶT AGENT GIÁM SÁT MÁY TRẠM QLTBIT
 1. Copy toàn bộ thư mục 'GOI_CAI_DAT_AGENT' sang máy trạm hoặc đưa lên mạng nội bộ.
 2. Nhấp chuột phải vào file 'Install_Agent.bat' -> Chọn 'Run as administrator'.
-3. Nhập địa chỉ IP của máy chủ SIMPLY IT (ví dụ: http://192.168.1.100:3001).
+3. Nhập địa chỉ IP của máy chủ QLTBIT (ví dụ: http://192.168.1.100:3001).
 4. Hệ thống sẽ tự động đăng ký Scheduled Task chạy ngầm định kỳ 15 phút/lần.
 5. Khi có bất kỳ thay đổi nào (tháo RAM, đổi ổ cứng, cài thêm/gỡ bỏ phần mềm), máy chủ sẽ nhận được cảnh báo ngay!
 """
@@ -92,7 +92,7 @@ def build_agent_package():
     input("\nNhấn Enter để tiếp tục...")
 
 def open_dashboard():
-    print("\n[*] Đang mở trang quản trị SIMPLY IT trên trình duyệt...")
+    print("\n[*] Đang mở trang quản trị QLTBIT trên trình duyệt...")
     webbrowser.open("http://localhost:3001")
 
 def check_env():
@@ -102,11 +102,11 @@ def check_env():
     input("\nNhấn Enter để tiếp tục...")
 
 def launch_installer():
-    print("\n[*] Đang mở Trình Cài Đặt Trọn Gói SIMPLY IT (Setup Wizard)...")
-    installer_exe = os.path.join(PROJECT_DIR, "SimplyIT_Setup.exe")
+    print("\n[*] Đang mở Trình Cài Đặt Trọn Gói QLTBIT (Setup Wizard)...")
+    installer_exe = os.path.join(PROJECT_DIR, "QLTBIT_Setup.exe")
     if os.path.exists(installer_exe):
         subprocess.Popen([installer_exe], cwd=PROJECT_DIR, shell=True)
-        print("[OK] Đã mở giao diện Cài Đặt SIMPLY IT thành công!")
+        print("[OK] Đã mở giao diện Cài Đặt QLTBIT thành công!")
     else:
         check_env()
 
@@ -136,12 +136,12 @@ def main_menu():
     while True:
         clear_screen()
         print_banner()
-        print("  [1] 🚀 Khởi động Máy chủ SIMPLY IT (Chạy giao diện Server & Khay hệ thống)")
+        print("  [1] 🚀 Khởi động Máy chủ QLTBIT (Chạy giao diện Server & Khay hệ thống)")
         print("  [2] 📡 Bật Công cụ Quét mạng Đa VLAN (Giao diện đồ họa GUI trực quan)")
         print("  [3] ⚡ Quét mạng Đa VLAN bằng Dòng lệnh (CLI Scanner siêu tốc)")
         print("  [4] 📦 Tạo Gói cài đặt Agent cho Máy trạm (Đóng gói gửi qua GPO / USB)")
         print("  [5] 🌐 Mở Trang Quản trị trên Trình duyệt (http://localhost:3001)")
-        print("  [6] 🛠️  Mở Trình Cài Đặt Trọn Gói (SimplyIT_Setup.exe - Cài Server & Agent)")
+        print("  [6] 🛠️  Mở Trình Cài Đặt Trọn Gói (QLTBIT_Setup.exe - Cài Server & Agent)")
         print("  [7] 📖 Mở Tài Liệu Hướng Dẫn Chi Tiết (File Word: Cài đặt & Sử dụng)")
         print("  [8] 💾 Sao Lưu & Phục Hồi Dữ Liệu (Backup/Restore chuyển máy, lỗi Win)")
         print("  [9] 📂 Mở Thư mục dự án trong Windows Explorer")

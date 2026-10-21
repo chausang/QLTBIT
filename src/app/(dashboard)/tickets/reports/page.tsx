@@ -385,7 +385,7 @@ export default function TicketReportsPage() {
     try {
       const ExcelJS = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'SIMPLY IT Platform';
+      workbook.creator = 'QLTBIT Platform';
       workbook.created = new Date();
 
       // Sheet 1: Overview & KPIs

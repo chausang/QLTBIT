@@ -214,7 +214,7 @@ export function LicenseActivationModal({ isOpen, onClose, onSuccess }: LicenseAc
                 </div>
 
                 <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>SIMPLY IT {license?.isEnterprise ? 'Enterprise Edition' : 'Community Edition'}</span>
+                  <span>QLTBIT {license?.isEnterprise ? 'Enterprise Edition' : 'Community Edition'}</span>
                   <span className="text-xs font-normal text-slate-400 font-mono">v1.0.4</span>
                 </div>
 
@@ -378,7 +378,7 @@ export function LicenseActivationModal({ isOpen, onClose, onSuccess }: LicenseAc
                       rows={2}
                       value={licenseKey}
                       onChange={(e) => setLicenseKey(e.target.value)}
-                      placeholder="SIMPLY-ENT-eyJ... hoặc -----BEGIN SIMPLY IT ENTERPRISE..."
+                      placeholder="SIMPLY-ENT-eyJ... hoặc -----BEGIN QLTBIT ENTERPRISE..."
                       className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-mono outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 dark:text-slate-100"
                     />
                   </div>

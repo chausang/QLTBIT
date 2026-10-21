@@ -1,5 +1,5 @@
 /**
- * Simply IT - Common Normalization & Case-Insensitive Matching Engine
+ * QLTBIT - Common Normalization & Case-Insensitive Matching Engine
  * Cung cấp logic chuẩn hóa dữ liệu thống nhất trên toàn bộ hệ thống
  */
 

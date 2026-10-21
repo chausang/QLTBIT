@@ -216,7 +216,7 @@ export function LicenseSettingsTab() {
             <div className="p-5 rounded-2xl border border-amber-300 dark:border-amber-800/60 bg-gradient-to-br from-amber-50/70 to-orange-50/40 dark:from-amber-950/20 dark:to-slate-900 text-slate-800 dark:text-slate-200 space-y-4">
               <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-sm">
                 <Crown className="w-5 h-5 fill-current" />
-                <span>{isEn ? 'SIMPLY IT Enterprise Edition is Active' : 'Hệ thống đang hoạt động với Bản Quyền Enterprise'}</span>
+                <span>{isEn ? 'QLTBIT Enterprise Edition is Active' : 'Hệ thống đang hoạt động với Bản Quyền Enterprise'}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -321,7 +321,7 @@ export function LicenseSettingsTab() {
           <div className="space-y-5">
             <div className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-2">
               <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>SIMPLY IT Community Edition</span>
+                <span>QLTBIT Community Edition</span>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-semibold">v1.0.4</span>
               </h4>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -420,8 +420,8 @@ export function LicenseSettingsTab() {
                   onChange={(e) => setLicenseKey(e.target.value)}
                   placeholder={
                     isEn
-                      ? 'Paste SIMPLY-ENT-... or -----BEGIN SIMPLY IT ENTERPRISE LICENSE KEY-----'
-                      : 'Dán chuỗi SIMPLY-ENT-... hoặc khối chứng thư -----BEGIN SIMPLY IT ENTERPRISE LICENSE KEY-----'
+                      ? 'Paste SIMPLY-ENT-... or -----BEGIN QLTBIT ENTERPRISE LICENSE KEY-----'
+                      : 'Dán chuỗi SIMPLY-ENT-... hoặc khối chứng thư -----BEGIN QLTBIT ENTERPRISE LICENSE KEY-----'
                   }
                   className="w-full p-3 text-xs font-mono rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -467,7 +467,7 @@ export function LicenseSettingsTab() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                      {isEn ? 'Interested in SIMPLY IT Enterprise Edition?' : 'Liên Hệ Đăng Ký Mua Bản Quyền Enterprise'}
+                      {isEn ? 'Interested in QLTBIT Enterprise Edition?' : 'Liên Hệ Đăng Ký Mua Bản Quyền Enterprise'}
                     </h4>
                     <p className="text-xs text-slate-500">
                       {isEn ? 'Unlock full ITSM power, single sign-on, AI assistant, and unlimited assets' : 'Khai phóng toàn diện các tính năng cao cấp: SSO M365, LDAP, Webhook, SLA và Trợ lý AI'}

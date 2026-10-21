@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
-title SIMPLY IT - GO BO AGENT KHOI MAY TRAM
+title QLTBIT - GO BO AGENT KHOI MAY TRAM
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
 
@@ -25,7 +25,7 @@ exit /b 1
 :RUN_UNINSTALL
 cls
 echo ==============================================================================
-echo       SIMPLY IT - GO BO AGENT GIAM SAT KHOI MAY TRAM
+echo       QLTBIT - GO BO AGENT GIAM SAT KHOI MAY TRAM
 echo ==============================================================================
 echo.
 set "CONFIRM="
@@ -37,15 +37,15 @@ if /i not "!CONFIRM!"=="y" (
 )
 
 echo.
-echo [*] Dang xoa tac vu ngam Task Scheduler: SimplyIT_Audit...
-schtasks /delete /tn "SimplyIT_Audit" /f >nul 2>&1
+echo [*] Dang xoa tac vu ngam Task Scheduler: QLTBIT_Audit...
+schtasks /delete /tn "QLTBIT_Audit" /f >nul 2>&1
 
-echo [*] Dang xoa thu muc du lieu C:\ProgramData\SimplyIT...
-if exist "C:\ProgramData\SimplyIT" rmdir /S /Q "C:\ProgramData\SimplyIT" >nul 2>&1
+echo [*] Dang xoa thu muc du lieu C:\ProgramData\QLTBIT...
+if exist "C:\ProgramData\QLTBIT" rmdir /S /Q "C:\ProgramData\QLTBIT" >nul 2>&1
 
 echo.
 echo ==============================================================================
-echo [OK] DA GO BO HOAN TOAN AGENT GIAM SAT SIMPLY IT KHOI MAY NAY!
+echo [OK] DA GO BO HOAN TOAN AGENT GIAM SAT QLTBIT KHOI MAY NAY!
 echo ==============================================================================
 echo.
 pause

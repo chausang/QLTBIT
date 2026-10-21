@@ -337,7 +337,7 @@ export const COMPREHENSIVE_IT_KB: KBArticle[] = [
     summary: 'Các bước kiểm tra và thu hồi trang thiết bị khi nhân sự kết thúc hợp đồng lao động.',
     steps: `1. Thu hồi Laptop, Sạc Adapter chính hãng, Chuột, Balo công ty.
 2. Kiểm tra tình trạng vật lý (nứt vỡ, móp méo, màn hình điểm chết).
-3. Bàn giao dữ liệu công việc cho Quản lý trực tiếp > Ký Biên bản bàn giao thu hồi tài sản trên SIMPLY IT.
+3. Bàn giao dữ liệu công việc cho Quản lý trực tiếp > Ký Biên bản bàn giao thu hồi tài sản trên QLTBIT.
 4. IT tiến hành Reset Windows sạch (Sysprep / Clean Install) và nhập kho trạng thái Available để chuẩn bị cấp phát tiếp theo.`,
   },
   {

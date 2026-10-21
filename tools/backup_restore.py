@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 ==============================================================================
-SIMPLY IT — CÔNG CỤ SAO LƯU & PHỤC HỒI TOÀN DIỆN HỆ THỐNG (DISASTER RECOVERY)
+QLTBIT — CÔNG CỤ SAO LƯU & PHỤC HỒI TOÀN DIỆN HỆ THỐNG (DISASTER RECOVERY)
 ==============================================================================
 - Tự động sao lưu trọn gói: PostgreSQL Database + File Ảnh/Chứng từ/Hóa đơn + .env
 - Đóng gói file .ZIP tiêu chuẩn, an toàn, chống khóa file
@@ -166,7 +166,7 @@ def create_full_backup(output_dir=None):
     os.makedirs(target_dir, exist_ok=True)
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    zip_filename = f"SimplyIT_Full_Backup_{timestamp}.zip"
+    zip_filename = f"QLTBIT_Full_Backup_{timestamp}.zip"
     zip_filepath = os.path.join(target_dir, zip_filename)
 
     temp_dir = tempfile.mkdtemp(prefix="simply_bk_")
@@ -201,7 +201,7 @@ def create_full_backup(output_dir=None):
         # 2. Tạo manifest thông tin chi tiết
         print("\n[2/4] Đang tổng hợp metadata hệ thống...")
         manifest = {
-            "app_name": "SIMPLY IT - Quản Trị Tài Sản & Dịch Vụ CNTT",
+            "app_name": "QLTBIT - Quản Trị Tài Sản & Dịch Vụ CNTT",
             "version": "1.0.1",
             "backup_time": datetime.datetime.now().isoformat(),
             "database": {
@@ -427,7 +427,7 @@ def backup_to_usb():
 
     choice = input(f"\n👉 Chọn ổ đĩa USB [1-{len(usbs)}] (Mặc định: 1): ").strip()
     sel_idx = int(choice) - 1 if choice.isdigit() and 1 <= int(choice) <= len(usbs) else 0
-    usb_dest = os.path.join(usbs[sel_idx]['path'], "SimplyIT_Backups")
+    usb_dest = os.path.join(usbs[sel_idx]['path'], "QLTBIT_Backups")
     os.makedirs(usb_dest, exist_ok=True)
     return create_full_backup(usb_dest)
 
@@ -459,7 +459,7 @@ def interactive_restore():
 
 def print_menu():
     print("\n" + "=" * 78)
-    print("      SIMPLY IT — TRUNG TÂM SAO LƯU & PHỤC HỒI DỮ LIỆU TOÀN DIỆN")
+    print("      QLTBIT — TRUNG TÂM SAO LƯU & PHỤC HỒI DỮ LIỆU TOÀN DIỆN")
     print("=" * 78)
     print("  [1] 💾 Tạo Bản Sao Lưu Toàn Bộ (Database + File Ảnh/Chứng từ -> File ZIP)")
     print("  [2] 🔌 Sao Lưu Nhanh Toàn Bộ Trực Tiếp Vào Ổ Đĩa USB")

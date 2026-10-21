@@ -335,7 +335,7 @@ export const MaintenanceHandoverModal: React.FC<MaintenanceHandoverModalProps> =
                   <span>MÃ QR TRA CỨU HỒ SƠ BẢO TRÌ ĐIỆN TỬ</span>
                 </p>
                 <p className="text-[11px] text-slate-600 leading-snug">
-                  Quét mã QR bằng camera điện thoại để đối soát toàn bộ lịch sử thay thế linh kiện, thời hạn bảo hành và thông số kỹ thuật trực tuyến của thiết bị này trên hệ thống Simply IT.
+                  Quét mã QR bằng camera điện thoại để đối soát toàn bộ lịch sử thay thế linh kiện, thời hạn bảo hành và thông số kỹ thuật trực tuyến của thiết bị này trên hệ thống QLTBIT.
                 </p>
               </div>
 

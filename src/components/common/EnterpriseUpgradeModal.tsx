@@ -62,10 +62,10 @@ export function EnterpriseUpgradeModal({ isOpen, onClose, featureRequested }: En
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30 text-xs font-bold uppercase tracking-wider mb-3">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>SIMPLY IT — Enterprise Edition</span>
+              <span>QLTBIT — Enterprise Edition</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-              {isEn ? 'Upgrade to SIMPLY IT Enterprise' : 'Nâng Cấp Lên Bản SIMPLY IT Enterprise'}
+              {isEn ? 'Upgrade to QLTBIT Enterprise' : 'Nâng Cấp Lên Bản QLTBIT Enterprise'}
             </h2>
             <p className="mt-2 text-sm text-blue-200 max-w-2xl leading-relaxed">
               {isEn

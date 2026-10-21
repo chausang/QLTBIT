@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     });
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Simply IT Management';
+    workbook.creator = 'QLTBIT Management';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet('Danh Sách Tài Sản IT', {

@@ -1,14 +1,14 @@
 # ==============================================================================
-# SIMPLY IT - Enterprise Asset Agent v4
+# QLTBIT - Enterprise Asset Agent v4
 # Windows 10/11 + PowerShell 5.1 + GPO/SYSTEM compatible
 #
 # FEATURES:
-# - Keeps ORIGINAL SIMPLY IT payload field names for backend compatibility.
+# - Keeps ORIGINAL QLTBIT payload field names for backend compatibility.
 # - Fast WMI/CIM query filtering (avoids slow SoftwareLicensingProduct full scan).
 # - Safe logged-on user detection under SYSTEM/GPO context (avoids NT AUTHORITY\SYSTEM).
 # - WMI/CIM fallback wrapper for maximum OS compatibility (Win 7/8/10/11).
-# - Local logging to C:\ProgramData\SimplyIT\SimplyIT-Agent.log.
-# - Local payload backup to C:\ProgramData\SimplyIT\SimplyIT-last-payload.json.
+# - Local logging to C:\ProgramData\QLTBIT\QLTBIT-Agent.log.
+# - Local payload backup to C:\ProgramData\QLTBIT\QLTBIT-last-payload.json.
 # - Automatic TLS 1.2 support and robust HTTP status code inspection.
 # - GPO Startup safe: exits 0 even if network is temporarily unreachable.
 # ==============================================================================
@@ -40,9 +40,9 @@ if ($ServerUrl -eq "__AUTO__") {
 
 $ServerUrl = $ServerUrl.TrimEnd('/')
 
-$AgentRoot = Join-Path $env:ProgramData "SimplyIT"
-$LogFile   = Join-Path $AgentRoot "SimplyIT-Agent.log"
-$JsonFile  = Join-Path $AgentRoot "SimplyIT-last-payload.json"
+$AgentRoot = Join-Path $env:ProgramData "QLTBIT"
+$LogFile   = Join-Path $AgentRoot "QLTBIT-Agent.log"
+$JsonFile  = Join-Path $AgentRoot "QLTBIT-last-payload.json"
 
 New-Item -Path $AgentRoot -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
 
@@ -363,12 +363,12 @@ function Get-CrackDetectionSafe {
 }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   SIMPLY IT - THU THAP PHAN CUNG, PHAN MEM & BAN QUYEN   " -ForegroundColor Yellow
+Write-Host "   QLTBIT - THU THAP PHAN CUNG, PHAN MEM & BAN QUYEN   " -ForegroundColor Yellow
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "PowerShell: $($PSVersionTable.PSVersion)"
 Write-Host "Identity  : $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
 
-Log "===== SIMPLY IT AGENT v4 START ====="
+Log "===== QLTBIT AGENT v4 START ====="
 Log "PowerShell=$($PSVersionTable.PSVersion)"
 Log "Identity=$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"
 Log "ServerUrl=$ServerUrl"
@@ -615,9 +615,9 @@ try {
     }
 
     # --------------------------------------------------------------------------
-    # SEND HTTP POST TO SIMPLY IT SERVER
+    # SEND HTTP POST TO QLTBIT SERVER
     # --------------------------------------------------------------------------
-    Write-Host "[4/4] Dang gui du lieu ve he thong Simply IT ($ServerUrl)..." -ForegroundColor Green
+    Write-Host "[4/4] Dang gui du lieu ve he thong QLTBIT ($ServerUrl)..." -ForegroundColor Green
 
     $endpoints = @(
         "$ServerUrl/api/v1/auto-scan/collect",
@@ -670,7 +670,7 @@ try {
                 }
 
                 Write-Host "==========================================================" -ForegroundColor Green
-                Write-Host "   [SIMPLY IT] GUI DU LIEU THANH CONG!" -ForegroundColor Green
+                Write-Host "   [QLTBIT] GUI DU LIEU THANH CONG!" -ForegroundColor Green
                 Write-Host "   May tinh    : $devName" -ForegroundColor White
                 Write-Host "   Ma thiet bi : $assetTag" -ForegroundColor White
                 Write-Host "   Server URL  : $ServerUrl" -ForegroundColor Gray
@@ -711,7 +711,7 @@ try {
 
     if (-not $sent) {
         Write-Host "==========================================================" -ForegroundColor Red
-        Write-Host "   [SIMPLY IT] KHONG GUI DUOC DU LIEU" -ForegroundColor Red
+        Write-Host "   [QLTBIT] KHONG GUI DUOC DU LIEU" -ForegroundColor Red
         Write-Host "   Server: $ServerUrl" -ForegroundColor Yellow
         Write-Host "   Loi cuoi: $lastError" -ForegroundColor Yellow
         Write-Host "   Payload da duoc luu tai: $JsonFile" -ForegroundColor Yellow
@@ -721,12 +721,12 @@ try {
 }
 catch {
     Write-Host "==========================================================" -ForegroundColor Red
-    Write-Host "   [SIMPLY IT] LOI THUC THI: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "   [QLTBIT] LOI THUC THI: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host "==========================================================" -ForegroundColor Red
     Log "FATAL: $($_.Exception.Message)"
 }
 
-Log "===== SIMPLY IT AGENT v4 END ====="
+Log "===== QLTBIT AGENT v4 END ====="
 
 # GPO Startup safe: don't report failure if network is temporarily unreachable
 exit 0

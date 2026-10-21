@@ -1,12 +1,12 @@
 #!/bin/bash
 # ========================================================================
-#       🚀 SIMPLY IT COMMUNITY EDITION - SCRIPT TỰ ĐỘNG CẬP NHẬT (LINUX)
+#       🚀 QLTBIT COMMUNITY EDITION - SCRIPT TỰ ĐỘNG CẬP NHẬT (LINUX)
 # ========================================================================
 
 set -e
 
 echo "========================================================================"
-echo "        🚀 SIMPLY IT COMMUNITY EDITION - BẮT ĐẦU CẬP NHẬT MÃ NGUỒN"
+echo "        🚀 QLTBIT COMMUNITY EDITION - BẮT ĐẦU CẬP NHẬT MÃ NGUỒN"
 echo "========================================================================"
 echo ""
 

@@ -1,5 +1,5 @@
 // src/lib/crypto.ts
-// SIMPLY IT — AES-256-GCM Encryption at Rest for Password Vault
+// QLTBIT — AES-256-GCM Encryption at Rest for Password Vault
 // ponytail: Uses Node.js native crypto; zero external dependencies.
 
 import crypto from 'crypto';

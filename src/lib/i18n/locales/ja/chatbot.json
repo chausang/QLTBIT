@@ -1,7 +1,7 @@
 {
-  "chatbot.title": "SIMPLY IT 仮想アシスタント",
+  "chatbot.title": "QLTBIT 仮想アシスタント",
   "chatbot.subtitle": "24時間365日のスマートITサポート",
-  "chatbot.welcome": "👋 こんにちは！**SIMPLY IT 仮想アシスタント**です。パソコン、ネットワーク、Outlookの不具合やシステムの検索など、何かお困りですか？",
+  "chatbot.welcome": "👋 こんにちは！**QLTBIT 仮想アシスタント**です。パソコン、ネットワーク、Outlookの不具合やシステムの検索など、何かお困りですか？",
   "chatbot.input_placeholder": "質問や不具合を入力 (例: vpn, プリンター, outlook...)",
   "chatbot.input_placeholder_admin": "管理者: 質問、統計、在庫確認などを入力...",
   "chatbot.send": "送信",

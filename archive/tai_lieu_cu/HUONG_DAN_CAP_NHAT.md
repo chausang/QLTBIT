@@ -1,4 +1,4 @@
-# 🔄 HƯỚNG DẪN CẬP NHẬT MÃ NGUỒN (UPDATE CODE) SIMPLY IT
+# 🔄 HƯỚNG DẪN CẬP NHẬT MÃ NGUỒN (UPDATE CODE) QLTBIT
 > **Tài liệu hướng dẫn nâng cấp phiên bản mới nhất từ GitHub an toàn 100%, bảo toàn nguyên vẹn cơ sở dữ liệu và cấu hình hệ thống!**
 
 ---
@@ -48,7 +48,7 @@ npm run build
 
 # 5. Khởi động lại hệ thống
 npm start
-# Hoặc click đúp file SimplyIT_Server.exe nếu dùng bản Portable
+# Hoặc click đúp file QLTBIT_Server.exe nếu dùng bản Portable
 ```
 
 👉 Mở trình duyệt truy cập: **`http://localhost:3001`** (hoặc `http://localhost:3000`).
@@ -74,13 +74,13 @@ Nếu trước đây bạn tải mã nguồn bằng nút *Download ZIP* trên Gi
      npx prisma db push
      npm run build
      ```
-   * Khởi động lại phần mềm bằng file `SimplyIT_Server.exe` hoặc `npm start`.
+   * Khởi động lại phần mềm bằng file `QLTBIT_Server.exe` hoặc `npm start`.
 
 ---
 
 ## 🐳 CÁCH 3: CẬP NHẬT TRÊN WINDOWS / LINUX QUA DOCKER DESKTOP
 
-Nếu bạn đang chạy Simply IT qua Docker Desktop, việc cập nhật cực kỳ nhanh chóng và đơn giản chỉ với **2 lệnh**:
+Nếu bạn đang chạy QLTBIT qua Docker Desktop, việc cập nhật cực kỳ nhanh chóng và đơn giản chỉ với **2 lệnh**:
 
 1. Mở PowerShell hoặc Terminal tại thư mục chứa dự án:
 2. Chạy lệnh kéo code mới:
@@ -158,7 +158,7 @@ pm2 restart simply-it
 
 ### 2. Lỗi cổng đang chạy: *"Port 3000 or 3001 already in use"*
 * **Nguyên nhân**: Tiến trình server cũ chưa tắt hẳn khi biên dịch bản mới.
-* **Cách xử lý trên Windows**: Mở Task Manager > Tìm tiến trình `Node.js` hoặc `SimplyIT_Server.exe` > Nhấp **End Task**, sau đó khởi chạy lại.
+* **Cách xử lý trên Windows**: Mở Task Manager > Tìm tiến trình `Node.js` hoặc `QLTBIT_Server.exe` > Nhấp **End Task**, sau đó khởi chạy lại.
 * **Trên Linux**: Chạy `fuser -k 3000/tcp` hoặc `pm2 restart simply-it`.
 
 ### 3. Cần hỗ trợ cập nhật?

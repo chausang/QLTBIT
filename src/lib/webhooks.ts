@@ -36,7 +36,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
             let tgText = '';
             if (event === 'ticket.urgent') {
               tgText =
-                `🚨 <b>[SIMPLY IT] TICKET P1 KHẨN CẤP!</b>\n` +
+                `🚨 <b>[QLTBIT] TICKET P1 KHẨN CẤP!</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `🎫 <b>Mã ticket:</b> <code>${data?.ticketNumber || 'N/A'}</code>\n` +
                 `📌 <b>Tiêu đề:</b> ${data?.title || 'Sự cố'}\n` +
@@ -47,7 +47,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
                 `🔗 <a href="${data?.link || '#'}">👉 Bấm vào đây để mở và xử lý Ticket</a>`;
             } else if (event === 'ticket.created') {
               tgText =
-                `🎫 <b>[SIMPLY IT] CÓ TICKET MỚI</b>\n` +
+                `🎫 <b>[QLTBIT] CÓ TICKET MỚI</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `📌 <b>Mã:</b> <code>${data?.ticketNumber || 'N/A'}</code> | <b>Ưu tiên:</b> ${data?.priority || 'MEDIUM'}\n` +
                 `📋 <b>Tiêu đề:</b> ${data?.title || 'Yêu cầu hỗ trợ'}\n` +
@@ -56,7 +56,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
                 `🔗 <a href="${data?.link || '#'}">👉 Xem chi tiết Ticket</a>`;
             } else if (event === 'approval.pending') {
               tgText =
-                `📋 <b>[SIMPLY IT] YÊU CẦU PHÊ DUYỆT MỚI</b>\n` +
+                `📋 <b>[QLTBIT] YÊU CẦU PHÊ DUYỆT MỚI</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `🔖 <b>Mã yêu cầu:</b> <code>${data?.code || 'N/A'}</code>\n` +
                 `📑 <b>Tiêu đề:</b> ${data?.title || 'N/A'}\n` +
@@ -66,7 +66,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
                 `🔗 <a href="${data?.link || '#'}">👉 Bấm vào đây để Xem & Phê Duyệt</a>`;
             } else if (event === 'spare_part.low_stock') {
               tgText =
-                `⚠️ <b>[SIMPLY IT] CẢNH BÁO TỒN KHO LINH KIỆN NGUY CẤP!</b>\n` +
+                `⚠️ <b>[QLTBIT] CẢNH BÁO TỒN KHO LINH KIỆN NGUY CẤP!</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `📦 <b>Linh kiện:</b> ${data?.name || 'N/A'}\n` +
                 `🏷️ <b>Mã SKU:</b> <code>${data?.sku || 'N/A'}</code>\n` +
@@ -75,7 +75,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
                 `👉 <a href="${data?.link || '/spare-parts?lowStock=true'}">Bấm vào đây để kiểm tra & Đề xuất nhập kho</a>`;
             } else if (event === 'ticket.sla_escalation') {
               tgText =
-                `🚨 <b>[SIMPLY IT] CẢNH BÁO LEO THANG — NGUY CƠ VỠ SLA!</b>\n` +
+                `🚨 <b>[QLTBIT] CẢNH BÁO LEO THANG — NGUY CƠ VỠ SLA!</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `🎫 <b>Mã ticket:</b> <code>${data?.ticketNumber || 'N/A'}</code>\n` +
                 `📌 <b>Tiêu đề:</b> ${data?.title || 'Sự cố'}\n` +
@@ -91,7 +91,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
                 .join('\n');
 
               tgText =
-                `🔔 <b>[SIMPLY IT] SỰ KIỆN: ${event}</b>\n` +
+                `🔔 <b>[QLTBIT] SỰ KIỆN: ${event}</b>\n` +
                 `━━━━━━━━━━━━━━━━━━━━\n` +
                 `⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}\n` +
                 (details ? `${details}\n\n` : '\n') +
@@ -112,10 +112,10 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
               '@type': 'MessageCard',
               '@context': 'http://schema.org/extensions',
               themeColor: event.includes('urgent') ? 'DC2626' : '2563EB',
-              summary: `[SIMPLY IT] ${event}`,
+              summary: `[QLTBIT] ${event}`,
               sections: [
                 {
-                  activityTitle: `🔔 [SIMPLY IT] Sự kiện: ${event}`,
+                  activityTitle: `🔔 [QLTBIT] Sự kiện: ${event}`,
                   activitySubtitle: new Date().toLocaleString('vi-VN'),
                   facts: Object.entries(data || {})
                     .filter(([_, v]) => typeof v === 'string' || typeof v === 'number')
@@ -127,7 +127,7 @@ export async function dispatchWebhookEvent(event: string, data: any): Promise<vo
             };
           } else if (hook.provider === 'slack') {
             bodyPayload = {
-              text: `🔔 *[SIMPLY IT]* Sự kiện: \`${event}\`\n${JSON.stringify(data, null, 2)}`,
+              text: `🔔 *[QLTBIT]* Sự kiện: \`${event}\`\n${JSON.stringify(data, null, 2)}`,
             };
           } else {
             // Default & Zalo / Custom Webhook JSON format

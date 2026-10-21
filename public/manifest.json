@@ -1,6 +1,6 @@
 {
-  "name": "SIMPLY IT — Quản Trị Tài Sản & Ticket ITSM",
-  "short_name": "SIMPLY IT",
+  "name": "QLTBIT — Quản Trị Tài Sản & Ticket ITSM",
+  "short_name": "QLTBIT",
   "description": "Hệ thống Quản trị Tài sản, Bản quyền, Dịch vụ & Ticket ITSM Doanh nghiệp",
   "start_url": "/dashboard",
   "display": "standalone",

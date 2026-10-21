@@ -530,7 +530,7 @@ export default function MobileAuditScanPage() {
                 </span>
                 <span>Kiểm Kê QR Di Động</span>
               </h1>
-              <p className="text-[10.5px] text-slate-400 font-medium">SIMPLY IT Management Hub</p>
+              <p className="text-[10.5px] text-slate-400 font-medium">QLTBIT Management Hub</p>
             </div>
           </div>
 

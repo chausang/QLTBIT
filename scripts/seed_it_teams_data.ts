@@ -106,7 +106,7 @@ Hotline hỗ trợ kỹ thuật khẩn cấp Viettel IDC: 1800.8000 (Mã hợp �
       notes: `CHECKLIST THU HỒI TÀI SẢN KHI NGHỈ VIỆC:
 1. Thu hồi Laptop, Sạc Adapter chính hãng, Chuột, Balo công ty.
 2. Kiểm tra tình trạng vật lý (nứt vỡ, móp méo, màn hình điểm chết).
-3. Bàn giao dữ liệu công việc cho Quản lý trực tiếp > Ký Biên bản bàn giao thu hồi tài sản trên SIMPLY IT.
+3. Bàn giao dữ liệu công việc cho Quản lý trực tiếp > Ký Biên bản bàn giao thu hồi tài sản trên QLTBIT.
 4. Tiến hành Reset Windows sạch (Sysprep / Clean Install) và nhập kho tài sản Available để chuẩn bị cấp phát tiếp theo.`,
     },
 

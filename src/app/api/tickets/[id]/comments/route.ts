@@ -119,7 +119,7 @@ export async function POST(
             if (child.createdBy?.email) {
               sendEmail({
                 to: child.createdBy.email,
-                subject: `[Simply IT] Cập nhật tiến độ ticket #${child.ticketNumber} (qua Ticket gốc #${parentTicket.ticketNumber})`,
+                subject: `[QLTBIT] Cập nhật tiến độ ticket #${child.ticketNumber} (qua Ticket gốc #${parentTicket.ticketNumber})`,
                 html: `
                   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
                     <h3 style="color: #2563eb;">Cập nhật tiến độ hỗ trợ</h3>

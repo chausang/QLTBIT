@@ -44,7 +44,7 @@ export function verifyLicenseKey(keyString: string): { valid: boolean; payload?:
 
   let cleanKey = keyString.trim();
 
-  // Support certificate wrapper format (e.g. -----BEGIN SIMPLY IT ENTERPRISE LICENSE KEY-----)
+  // Support certificate wrapper format (e.g. -----BEGIN QLTBIT ENTERPRISE LICENSE KEY-----)
   // or .lic files with metadata headers / comments
   const tokenMatch = cleanKey.match(/SIMPLY-(?:ENT|PRO)-[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/);
   if (tokenMatch) {

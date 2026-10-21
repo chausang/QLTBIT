@@ -48,7 +48,7 @@ export interface ReconciliationReport {
     status: 'MATCH' | 'SURPLUS_ON_CLOUD' | 'OVER_ALLOCATED_LOCALLY';
   }[];
   dormantUsers: CloudAssignedUser[]; // Tài khoản lãng phí: disabled hoặc > 45 ngày không đăng nhập
-  unmatchedUsers: CloudAssignedUser[]; // Có trên Cloud nhưng chưa được ghi nhận trong Simply IT
+  unmatchedUsers: CloudAssignedUser[]; // Có trên Cloud nhưng chưa được ghi nhận trong QLTBIT
   cloudUsers?: CloudAssignedUser[]; // Toàn bộ người dùng trên Cloud có gán license
   estimatedPotentialSavings: number; // Ước tính số tiền tiết kiệm được nếu thu hồi các tài khoản lãng phí
   currency: string;

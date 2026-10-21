@@ -1,7 +1,7 @@
 {
-  "chatbot.title": "Trợ lý IT ảo SIMPLY IT",
+  "chatbot.title": "Trợ lý IT ảo QLTBIT",
   "chatbot.subtitle": "Hỗ trợ kỹ thuật thông minh 24/7",
-  "chatbot.welcome": "👋 Xin chào! Mình là **Trợ lý IT ảo SIMPLY IT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?",
+  "chatbot.welcome": "👋 Xin chào! Mình là **Trợ lý IT ảo QLTBIT**. Bạn đang gặp khó khăn gì về máy tính, mạng, Outlook hay cần tra cứu hệ thống?",
   "chatbot.input_placeholder": "Nhập câu hỏi, sự cố (VD: vpn, máy in, outlook...)",
   "chatbot.input_placeholder_admin": "Admin: Nhập câu hỏi, thống kê, kiểm tra kho...",
   "chatbot.send": "Gửi",

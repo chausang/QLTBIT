@@ -7,15 +7,15 @@ const inter = Inter({ subsets: ['latin', 'vietnamese'] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'SIMPLY IT — Do Less, Achieve More',
-    template: '%s | SIMPLY IT',
+    default: 'QLTBIT — Do Less, Achieve More',
+    template: '%s | QLTBIT',
   },
-  description: 'Hệ thống Quản trị Tài sản, Bản quyền, Dịch vụ & Ticket ITSM Doanh nghiệp (SIMPLY IT)',
+  description: 'Hệ thống Quản trị Tài sản, Bản quyền, Dịch vụ & Ticket ITSM Doanh nghiệp (QLTBIT)',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'SIMPLY IT',
+    title: 'QLTBIT',
   },
   icons: {
     icon: [
@@ -40,7 +40,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="SIMPLY IT" />
+        <meta name="apple-mobile-web-app-title" content="QLTBIT" />
         <link rel="apple-touch-icon" href="/logo-icon.png" />
       </head>
       <body className={inter.className}>

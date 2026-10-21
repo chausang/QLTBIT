@@ -229,7 +229,7 @@ export function LicenseIntegrationModal({
     if (!report) return;
     try {
       const wb = new ExcelJS.Workbook();
-      wb.creator = 'Simply IT Cloud Integration Hub';
+      wb.creator = 'QLTBIT Cloud Integration Hub';
 
       // Sheet 1: Đối soát SKU
       const ws1 = wb.addWorksheet(t('licenses.hub.excel_sheet_skus', 'Đối Soát Gói Cloud'));
@@ -240,7 +240,7 @@ export function LicenseIntegrationModal({
         { header: t('licenses.hub.col_sku_total', 'Tổng Mua Trên Cloud'), key: 'total', width: 22 },
         { header: t('licenses.hub.col_sku_assigned', 'Đã Gán Trên Cloud'), key: 'consumed', width: 20 },
         { header: t('licenses.hub.col_sku_avail', 'Còn Trống Trên Cloud'), key: 'available', width: 22 },
-        { header: t('licenses.hub.col_sku_local', 'Ghi Nhận Trong Simply IT'), key: 'local', width: 25 },
+        { header: t('licenses.hub.col_sku_local', 'Ghi Nhận Trong QLTBIT'), key: 'local', width: 25 },
         { header: t('licenses.hub.col_sku_match', 'Chênh Lệch'), key: 'diff', width: 15 },
         { header: t('licenses.hub.metric_savings_desc', 'Đơn Giá Ước Tính/Tháng'), key: 'price', width: 22 },
       ];
@@ -727,7 +727,7 @@ export function LicenseIntegrationModal({
 
                 <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                    {t('licenses.hub.metric_local_title', 'Sổ Sách Simply IT')}
+                    {t('licenses.hub.metric_local_title', 'Sổ Sách QLTBIT')}
                   </p>
                   <h4 className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
                     {report.totalLocalConsumed} <span className="text-xs font-normal text-slate-400">{t('licenses.matrix.seats_unit', 'license')}</span>

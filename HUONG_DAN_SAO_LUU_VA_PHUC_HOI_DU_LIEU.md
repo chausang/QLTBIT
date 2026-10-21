@@ -1,14 +1,14 @@
-# HƯỚNG DẪN SAO LƯU & PHỤC HỒI TOÀN DIỆN DỮ LIỆU SIMPLY IT
+# HƯỚNG DẪN SAO LƯU & PHỤC HỒI TOÀN DIỆN DỮ LIỆU QLTBIT
 ## (Chuyển Đổi Máy Chủ Mới & Khôi Phục Thảm Họa Sau Khi Cài Lại Hệ Điều Hành)
 
 ---
 
 ## 📌 1. TỔNG QUAN KIẾN TRÚC DỮ LIỆU CẦN SAO LƯU
 
-Hệ thống **Simply IT** lưu trữ toàn bộ dữ liệu nghiệp vụ của doanh nghiệp ở 3 thành phần chính:
+Hệ thống **QLTBIT** lưu trữ toàn bộ dữ liệu nghiệp vụ của doanh nghiệp ở 3 thành phần chính:
 
 ```
-📁 Thư mục dự án Simply IT (D:\QLTBIT hoặc D:\Antigravity\QLTBIT)
+📁 Thư mục dự án QLTBIT (D:\QLTBIT hoặc D:\Antigravity\QLTBIT)
  ├── 🗄️ Cơ sở dữ liệu PostgreSQL (pgsql/data): Chứa 35+ bảng dữ liệu (Tài sản, Nhân sự, Bản quyền, Lịch sử bảo trì, Phiếu Ticket, Thiết lập hệ thống...)
  ├── 🖼️ Kho tài liệu & hình ảnh (public/uploads): Chứa ảnh chụp hiện trạng thiết bị, biên bản bàn giao, hóa đơn mua hàng, hợp đồng dịch vụ...
  └── ⚙️ Cấu hình hệ thống (.env): Thông tin tài khoản quản trị, thiết lập email SMTP, khóa bảo mật JWT...
@@ -20,31 +20,31 @@ Hệ thống **Simply IT** lưu trữ toàn bộ dữ liệu nghiệp vụ của
 > 2. **Nguy cơ hỏng CSDL (Corrupt Data)**: Copy thư mục database sống khi máy chủ đang hoạt động sẽ khiến file dữ liệu trên USB bị lỗi phân mảnh và không thể khởi động ở máy khác.
 > 3. **Tắc nghẽn USB do `node_modules`**: Thư mục này chứa hàng chục nghìn file mã nguồn nhỏ, copy qua USB chuẩn FAT32/exFAT sẽ cực kỳ chậm (mất 30 - 60 phút) và rất dễ treo máy.
 > 
-> 👉 **Giải pháp chuẩn**: Sử dụng **Gói Sao Lưu Trọn Gói (.ZIP)** thông qua công cụ có sẵn của Simply IT (chỉ mất vài giây, bảo đảm an toàn dữ liệu 100%).
+> 👉 **Giải pháp chuẩn**: Sử dụng **Gói Sao Lưu Trọn Gói (.ZIP)** thông qua công cụ có sẵn của QLTBIT (chỉ mất vài giây, bảo đảm an toàn dữ liệu 100%).
 
 ---
 
 ## 🚀 2. PHƯƠNG PHÁP 1: SAO LƯU & PHỤC HỒI BẰNG 1-CLICK (KHUYÊN DÙNG KHI CÀI LẠI WIN HOẶC CHUYỂN MÁY)
 
-Simply IT đã tích hợp sẵn 2 công cụ tiện ích 1-Click độc lập ngay tại thư mục gốc:
+QLTBIT đã tích hợp sẵn 2 công cụ tiện ích 1-Click độc lập ngay tại thư mục gốc:
 
 ### A. Sao lưu nhanh toàn bộ dữ liệu ra File ZIP hoặc USB:
-1. Mở thư mục dự án Simply IT.
+1. Mở thư mục dự án QLTBIT.
 2. Nhấp đúp chuột vào file: **`Sao_Luu_Du_Lieu.bat`**.
 3. Màn hình sẽ hiện menu lựa chọn:
    - **Phím [1]**: Sao lưu toàn bộ vào thư mục `backups/` trên máy tính.
    - **Phím [2]**: Tự động nhận diện ổ đĩa USB đang cắm và sao lưu thẳng vào USB (rất tiện để mang sang máy khác).
-4. Hệ thống sẽ tự động xuất database chuẩn SQL (không bị khóa file) + gom toàn bộ file ảnh/chứng từ trong `public/uploads` + cấu hình vào 1 file ZIP duy nhất (ví dụ: `SimplyIT_Full_Backup_2026-10-03_11-43-49.zip`).
+4. Hệ thống sẽ tự động xuất database chuẩn SQL (không bị khóa file) + gom toàn bộ file ảnh/chứng từ trong `public/uploads` + cấu hình vào 1 file ZIP duy nhất (ví dụ: `QLTBIT_Full_Backup_2026-10-03_11-43-49.zip`).
 
 ---
 
 ### B. Phục hồi dữ liệu sau khi cài lại máy hoặc chuyển sang máy chủ mới:
-1. Cài đặt phần mềm Simply IT trên máy tính mới (bằng file `SimplyIT_Setup.exe` hoặc copy bộ cài).
+1. Cài đặt phần mềm QLTBIT trên máy tính mới (bằng file `QLTBIT_Setup.exe` hoặc copy bộ cài).
 2. Nhấp đúp chuột vào file: **`Phuc_Hoi_Du_Lieu.bat`**.
 3. Hệ thống sẽ hiển thị danh sách các bản sao lưu đã có:
    - Nhập số thứ tự (ví dụ: `1`, `2`...) để chọn bản sao lưu muốn phục hồi.
    - **HOẶC** kéo thả trực tiếp file `.zip` từ USB vào cửa sổ dòng lệnh rồi nhấn **Enter**.
-4. Quá trình nạp lại cơ sở dữ liệu và khôi phục toàn bộ kho ảnh/hóa đơn sẽ diễn ra tự động 100%. Khi hoàn tất, bạn chỉ cần mở Simply IT lên là toàn bộ dữ liệu xuất hiện đầy đủ!
+4. Quá trình nạp lại cơ sở dữ liệu và khôi phục toàn bộ kho ảnh/hóa đơn sẽ diễn ra tự động 100%. Khi hoàn tất, bạn chỉ cần mở QLTBIT lên là toàn bộ dữ liệu xuất hiện đầy đủ!
 
 ---
 
@@ -67,7 +67,7 @@ Nếu máy chủ vẫn đang bật và bạn muốn sao lưu/phục hồi trực
 ---
 
 ### B. Phục hồi dữ liệu từ file ZIP trên giao diện Web:
-1. Mở trang quản trị Simply IT trên máy mới hoặc sau khi cài lại.
+1. Mở trang quản trị QLTBIT trên máy mới hoặc sau khi cài lại.
 2. Vào **Cài đặt hệ thống (Settings)** ➔ **Sao lưu & Phục hồi**.
 3. Nhấn nút:
    👉 **`[ 📤 Phục hồi từ gói .ZIP ]`**
@@ -81,7 +81,7 @@ Nếu máy chủ vẫn đang bật và bạn muốn sao lưu/phục hồi trực
    - Bật công tắc: **Kích hoạt tự động sao lưu**.
    - Tần suất: **Hàng ngày (Daily)** hoặc **Hàng tuần (Weekly)**.
    - Giờ chạy: **02:00 sáng** (thời điểm ít người truy cập).
-   - Đường dẫn thư mục: Chọn ổ đĩa khác (Ví dụ: `D:\IT_Backups` hoặc ổ đĩa USB `E:\SimplyIT_Backups`).
+   - Đường dẫn thư mục: Chọn ổ đĩa khác (Ví dụ: `D:\IT_Backups` hoặc ổ đĩa USB `E:\QLTBIT_Backups`).
 2. Nhấn nút **Lưu cấu hình tự động**. Hệ thống sẽ tự động sao lưu theo đúng lịch đã hẹn mà không cần can thiệp thủ công.
 
 ---
@@ -94,7 +94,7 @@ Nếu máy chủ vẫn đang bật và bạn muốn sao lưu/phục hồi trực
 3. Menu chuyên biệt sẽ hiện ra với đầy đủ các tính năng:
    ```text
    ==============================================================================
-         SIMPLY IT — TRUNG TÂM SAO LƯU & PHỤC HỒI DỮ LIỆU TOÀN DIỆN
+         QLTBIT — TRUNG TÂM SAO LƯU & PHỤC HỒI DỮ LIỆU TOÀN DIỆN
    ==============================================================================
      [1] 💾 Tạo Bản Sao Lưu Toàn Bộ (Database + File Ảnh/Chứng từ -> File ZIP)
      [2] 🔌 Sao Lưu Nhanh Toàn Bộ Trực Tiếp Vào Ổ Đĩa USB
@@ -113,9 +113,9 @@ Khi gặp tình huống máy chủ bị lỗi hệ điều hành phải cài l�
 
 ```mermaid
 graph TD
-    A[MÁY CHỦ CŨ / TRƯỚC KHI CÀI LẠI] -->|Chạy Sao_Luu_Du_Lieu.bat| B(Gói sao lưu: SimplyIT_Full_Backup_*.zip)
+    A[MÁY CHỦ CŨ / TRƯỚC KHI CÀI LẠI] -->|Chạy Sao_Luu_Du_Lieu.bat| B(Gói sao lưu: QLTBIT_Full_Backup_*.zip)
     B -->|Lưu trữ an toàn| C[Ổ đĩa USB / Ổ cứng ngoài / Cloud]
-    D[MÁY MỚI / SAU KHI CÀI LẠI WIN] -->|Chạy SimplyIT_Setup.exe| E[Cài đặt Simply IT mới]
+    D[MÁY MỚI / SAU KHI CÀI LẠI WIN] -->|Chạy QLTBIT_Setup.exe| E[Cài đặt QLTBIT mới]
     C -->|Cắm USB vào máy mới| F[Chạy Phuc_Hoi_Du_Lieu.bat]
     E --> F
     F -->|Nạp CSDL & Đồng bộ Uploads| G[Hệ thống hoạt động đầy đủ 100% dữ liệu cũ]
@@ -124,16 +124,16 @@ graph TD
 ### Bước 1: Tại máy tính hiện tại (Trước khi cài lại máy)
 - Cắm USB vào máy tính.
 - Nhấp đúp file **`Sao_Luu_Du_Lieu.bat`** ➔ Chọn phím **`2`** (Sao lưu trực tiếp vào USB).
-- Kiểm tra trong USB đã có file dạng: `SimplyIT_Full_Backup_YYYY-MM-DD_HH-mm-ss.zip`.
+- Kiểm tra trong USB đã có file dạng: `QLTBIT_Full_Backup_YYYY-MM-DD_HH-mm-ss.zip`.
 - Rút USB ra an toàn.
 
 ### Bước 2: Cài lại hệ điều hành Windows hoặc chuẩn bị máy chủ mới
 - Cài đặt hệ điều hành Windows bình thường.
 - Cài đặt các gói cơ bản (Node.js LTS và Python nếu muốn dùng đầy đủ công cụ quản trị).
 
-### Bước 3: Cài đặt Simply IT trên máy mới
-- Tải hoặc copy bộ cài Simply IT sang máy mới (ví dụ đặt tại `D:\QLTBIT`).
-- Chạy file **`SimplyIT_Setup.exe`** (hoặc `Cai_Dat_SimplyIT.exe`) để thiết lập ban đầu.
+### Bước 3: Cài đặt QLTBIT trên máy mới
+- Tải hoặc copy bộ cài QLTBIT sang máy mới (ví dụ đặt tại `D:\QLTBIT`).
+- Chạy file **`QLTBIT_Setup.exe`** (hoặc `Cai_Dat_QLTBIT.exe`) để thiết lập ban đầu.
 
 ### Bước 4: Khôi phục toàn bộ dữ liệu từ USB
 - Cắm USB chứa file backup vào máy mới.
@@ -143,7 +143,7 @@ graph TD
 - Màn hình thông báo: `🎉 [HOÀN TẤT] PHỤC HỒI DỮ LIỆU THÀNH CÔNG RỰC RỠ!`
 
 ### Bước 5: Khởi động và kiểm tra
-- Chạy **`start_qltbit.bat`** hoặc mở biểu tượng Simply IT.
+- Chạy **`start_qltbit.bat`** hoặc mở biểu tượng QLTBIT.
 - Đăng nhập vào web (mặc định: `http://localhost:3001` hoặc IP mạng LAN).
 - Toàn bộ danh sách thiết bị máy tính, nhân sự phòng ban, lịch sử bảo trì, file hóa đơn và ảnh chụp hiện trạng đều đã sẵn sàng!
 

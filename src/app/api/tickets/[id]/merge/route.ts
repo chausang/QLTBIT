@@ -110,7 +110,7 @@ export async function POST(
       try {
         await sendEmail({
           to: sourceTicket.createdBy.email,
-          subject: `[Simply IT] Ticket #${sourceTicket.ticketNumber} đã được gộp vào #${targetTicket.ticketNumber}`,
+          subject: `[QLTBIT] Ticket #${sourceTicket.ticketNumber} đã được gộp vào #${targetTicket.ticketNumber}`,
           html: `
             <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
               <h3 style="color: #2563eb;">Thông báo gộp Ticket hỗ trợ</h3>
@@ -119,7 +119,7 @@ export async function POST(
               <p><strong>Lý do:</strong> ${mergeReason}</p>
               <p>Đội ngũ IT đang tiến hành xử lý tại ticket chính. Bạn sẽ nhận được các thông báo cập nhật tiến độ tự động.</p>
               <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
-              <p style="font-size: 12px; color: #64748b;">Simply IT Service Desk System</p>
+              <p style="font-size: 12px; color: #64748b;">QLTBIT Service Desk System</p>
             </div>
           `,
         });

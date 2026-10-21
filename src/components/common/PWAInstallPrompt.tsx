@@ -90,7 +90,7 @@ export function PWAInstallPrompt({ className = '' }: { className?: string }) {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-bold text-sm sm:text-base text-white">
-                {isEn ? 'Install SIMPLY IT Mobile App' : 'Cài Đặt Ứng Dụng SIMPLY IT'}
+                {isEn ? 'Install QLTBIT Mobile App' : 'Cài Đặt Ứng Dụng QLTBIT'}
               </h3>
               <span className="bg-blue-500/30 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-400/30">
                 {isEn ? 'Mobile App / PWA' : 'App Mobile'}
@@ -165,8 +165,8 @@ export function PWAInstallPrompt({ className = '' }: { className?: string }) {
           <Info className="w-4 h-4 shrink-0 text-blue-400 mt-0.5" />
           <span>
             {isEn
-              ? 'To install, click the Install icon in your browser address bar (top right) or open your browser menu (⋮) and select "Install SIMPLY IT".'
-              : 'Để cài đặt, bạn hãy nhấn vào biểu tượng Cài đặt trên thanh địa chỉ trình duyệt (góc trên bên phải) hoặc chọn Menu (⋮) > "Cài đặt SIMPLY IT".'}
+              ? 'To install, click the Install icon in your browser address bar (top right) or open your browser menu (⋮) and select "Install QLTBIT".'
+              : 'Để cài đặt, bạn hãy nhấn vào biểu tượng Cài đặt trên thanh địa chỉ trình duyệt (góc trên bên phải) hoặc chọn Menu (⋮) > "Cài đặt QLTBIT".'}
           </span>
         </div>
       )}

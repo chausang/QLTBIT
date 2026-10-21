@@ -1,14 +1,14 @@
 # 📘 TÀI LIỆU GIỚI THIỆU TỔNG QUAN & TÍNH NĂNG CHI TIẾT
-# SIMPLY IT — COMMUNITY EDITION (CE)
+# QLTBIT — COMMUNITY EDITION (CE)
 ### *Hệ Thống Quản Trị Dịch Vụ & Vòng Đời Tài Sản CNTT Doanh Nghiệp Toàn Diện*
 
 ---
 
 ## 🌟 1. GIỚI THIỆU TỔNG QUAN
 
-**SIMPLY IT (Community Edition)** là giải pháp phần mềm quản trị hạ tầng và dịch vụ CNTT toàn diện (ITSM & ITAM) được nghiên cứu và phát triển nhằm giải quyết triệt để bài toán thất thoát tài sản, quá tải sự cố hỗ trợ kỹ thuật và thiếu tính minh bạch trong vận hành IT tại các cơ quan, tổ chức và doanh nghiệp.
+**QLTBIT (Community Edition)** là giải pháp phần mềm quản trị hạ tầng và dịch vụ CNTT toàn diện (ITSM & ITAM) được nghiên cứu và phát triển nhằm giải quyết triệt để bài toán thất thoát tài sản, quá tải sự cố hỗ trợ kỹ thuật và thiếu tính minh bạch trong vận hành IT tại các cơ quan, tổ chức và doanh nghiệp.
 
-Với triết lý **"Do Less – Achieve More" (Làm ít hơn – Đạt hiệu quả cao hơn)**, SIMPLY IT tinh gọn tối đa các quy trình phức tạp, mang lại một giao diện trực quan, khoa học, giúp đội ngũ IT quản lý hàng nghìn thiết bị và yêu cầu hỗ trợ chỉ trên **một nền tảng duy nhất**.
+Với triết lý **"Do Less – Achieve More" (Làm ít hơn – Đạt hiệu quả cao hơn)**, QLTBIT tinh gọn tối đa các quy trình phức tạp, mang lại một giao diện trực quan, khoa học, giúp đội ngũ IT quản lý hàng nghìn thiết bị và yêu cầu hỗ trợ chỉ trên **một nền tảng duy nhất**.
 
 > 💡 **Đặc quyền phiên bản Community Edition (CE)**:
 > * **Hoàn toàn Miễn Phí Vĩnh Viễn** (Phát hành theo giấy phép mã nguồn mở Apache 2.0).
@@ -20,7 +20,7 @@ Với triết lý **"Do Less – Achieve More" (Làm ít hơn – Đạt hiệu 
 
 ## 🏗️ 2. NỀN TẢNG CÔNG NGHỆ HIỆN ĐẠI (TECH STACK)
 
-SIMPLY IT được xây dựng trên nền tảng công nghệ web hiện đại nhất hiện nay, đảm bảo tốc độ phản hồi cực nhanh, chịu tải lớn và dễ dàng mở rộng:
+QLTBIT được xây dựng trên nền tảng công nghệ web hiện đại nhất hiện nay, đảm bảo tốc độ phản hồi cực nhanh, chịu tải lớn và dễ dàng mở rộng:
 
 * ⚡ **Frontend & Backend**: **Next.js 14 (App Router)** kết hợp **React 18** và **TypeScript** – kiến trúc Server-Side Rendering (SSR) cho tốc độ tải trang dưới 0.3 giây.
 * 🗄️ **Cơ sở dữ liệu**: **PostgreSQL 15 / 16 / 18** – CSDL quan hệ chuẩn doanh nghiệp với độ ổn định, an toàn dữ liệu và khả năng truy vấn khối lượng lớn vượt trội.
@@ -38,7 +38,7 @@ SIMPLY IT được xây dựng trên nền tảng công nghệ web hiện đại
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                   HỆ THỐNG QUẢN TRỊ TOÀN DIỆN SIMPLY IT                │
+│                   HỆ THỐNG QUẢN TRỊ TOÀN DIỆN QLTBIT                │
 ├──────────────┬──────────────┬──────────────┬──────────────┬────────────┤
 │ 1. IT ASSET  │ 2. SOFTWARE  │ 3. IT SERVICE│ 4. NETWORK   │ 5. SMART   │
 │  MANAGEMENT  │   LICENSES   │     DESK     │INFRASTRUCTURE│   ALERTS   │
@@ -149,7 +149,7 @@ Tương thích tối đa với thói quen làm việc hàng ngày:
 * 📤 **Nhập dữ liệu hàng loạt từ Excel (Batch Import)**: Có sẵn file mẫu chuẩn. Cho phép nạp hàng nghìn tài sản, danh sách nhân viên chỉ trong 1 thao tác tải file lên.
 * 📥 **Xuất báo cáo Excel linh hoạt (Export to Excel)**: Trích xuất toàn bộ danh sách tài sản kèm thông số, cấu hình, phòng ban ra file Excel (.xlsx) đẹp mắt phục vụ kiểm toán tài chính.
 * 📄 **In Biên bản bàn giao tài sản chuẩn biểu mẫu**: Nhấp 1 nút để tạo ngay Biên bản bàn giao thiết bị có đầy đủ thông số máy, cam kết trách nhiệm và vị trí ký tên của Bên giao & Bên nhận.
-* 🚀 **Chạy Portable không cần cài đặt**: Khởi động tức thì qua file `SimplyIT_Server.exe`, tự quản lý CSDL, tự ẩn khay hệ thống, không cần cài đặt Node.js thủ công.
+* 🚀 **Chạy Portable không cần cài đặt**: Khởi động tức thì qua file `QLTBIT_Server.exe`, tự quản lý CSDL, tự ẩn khay hệ thống, không cần cài đặt Node.js thủ công.
 
 ---
 

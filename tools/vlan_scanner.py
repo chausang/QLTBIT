@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 ==============================================================================
-SIMPLY IT - Multi-VLAN Active Network Scanner (CLI & Daemon Engine)
+QLTBIT - Multi-VLAN Active Network Scanner (CLI & Daemon Engine)
 ==============================================================================
 Chương trình quét mạng tự động hỗ trợ môi trường mạng doanh nghiệp nhiều VLAN.
 - Sử dụng chuẩn thư viện Python (không cần cài thêm pip packages).
 - Quét đa luồng (Multi-threaded) siêu nhanh qua định tuyến Inter-VLAN.
 - Tự động nhận diện loại thiết bị: Máy in (Printer), Camera IP, Máy tính Windows/Linux, Switch/Router.
 - Tự động tra cứu Vendor qua MAC Address (OUI).
-- Tự động đẩy dữ liệu thiết bị vào máy chủ SIMPLY IT (/api/v1/auto-scan/collect).
+- Tự động đẩy dữ liệu thiết bị vào máy chủ QLTBIT (/api/v1/auto-scan/collect).
 ==============================================================================
 """
 
@@ -243,9 +243,9 @@ def scan_vlan_subnets(subnets, ports=None, max_threads=50, progress_callback=Non
 
     return results
 
-def push_to_simply_it(devices, server_url="http://localhost:3001"):
+def push_to_qltbit(devices, server_url="http://localhost:3001"):
     """
-    Sync discovered devices to SIMPLY IT central database via API.
+    Sync discovered devices to QLTBIT central database via API.
     """
     endpoint = f"{server_url.rstrip('/')}/api/v1/auto-scan/collect"
     success_count = 0
@@ -275,7 +275,7 @@ def push_to_simply_it(devices, server_url="http://localhost:3001"):
             req = urllib_request.Request(
                 endpoint,
                 data=data_bytes,
-                headers={"Content-Type": "application/json", "User-Agent": "SimplyIT-VLANScanner/1.0"},
+                headers={"Content-Type": "application/json", "User-Agent": "QLTBIT-VLANScanner/1.0"},
                 method="POST"
             )
             with urllib_request.urlopen(req, timeout=5) as resp:
@@ -290,11 +290,11 @@ def push_to_simply_it(devices, server_url="http://localhost:3001"):
     return success_count, failed_count
 
 def main():
-    parser = argparse.ArgumentParser(description="SIMPLY IT - Multi-VLAN Network Scanner")
+    parser = argparse.ArgumentParser(description="QLTBIT - Multi-VLAN Network Scanner")
     parser.add_argument("--subnets", "-s", type=str, default="192.168.1.0/24",
                         help="Danh sách VLAN subnets ngăn cách bởi dấu phẩy (vd: 192.168.10.0/24,192.168.20.0/24,192.168.50.0/24)")
     parser.add_argument("--threads", "-t", type=int, default=60, help="Số luồng quét đồng thời (mặc định 60)")
-    parser.add_argument("--server", "-u", type=str, default="http://localhost:3001", help="URL máy chủ Simply IT")
+    parser.add_argument("--server", "-u", type=str, default="http://localhost:3001", help="URL máy chủ QLTBIT")
     parser.add_argument("--sync", action="store_true", help="Tự động đồng bộ vào hệ thống sau khi quét")
     parser.add_argument("--export", "-o", type=str, default="", help="Đường dẫn file JSON/CSV xuất kết quả")
 
@@ -324,8 +324,8 @@ def main():
                 json.dump(devices, f, ensure_ascii=False, indent=2)
             print(f"[+] Đã xuất file JSON: {args.export}")
 
-    if args.sync or input("\nBạn có muốn đồng bộ thiết bị này lên SIMPLY IT ngay không? (y/n): ").strip().lower() == 'y':
-        push_to_simply_it(devices, server_url=args.server)
+    if args.sync or input("\nBạn có muốn đồng bộ thiết bị này lên QLTBIT ngay không? (y/n): ").strip().lower() == 'y':
+        push_to_qltbit(devices, server_url=args.server)
 
 if __name__ == "__main__":
     main()

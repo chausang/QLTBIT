@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const tempDir = os.tmpdir();
     const tempSqlFile = path.join(tempDir, `simply_db_${Date.now()}.sql`);
-    const tempZipFile = path.join(tempDir, `SimplyIT_Backup_${timestamp}.zip`);
+    const tempZipFile = path.join(tempDir, `QLTBIT_Backup_${timestamp}.zip`);
 
     // 1. Create SQL Database Dump
     let hasSqlDump = false;
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     });
 
     const manifest = {
-      appName: 'SIMPLY IT - Quản Trị Tài Sản & Dịch Vụ IT',
+      appName: 'QLTBIT - Quản Trị Tài Sản & Dịch Vụ IT',
       version: '2.1.0',
       backupTime: new Date().toISOString(),
       performedBy: {
@@ -244,7 +244,7 @@ export async function GET(request: NextRequest) {
     });
 
     const safeDate = new Date().toISOString().slice(0, 10);
-    const filename = `SimplyIT_Full_Backup_${safeDate}_${Date.now()}.zip`;
+    const filename = `QLTBIT_Full_Backup_${safeDate}_${Date.now()}.zip`;
 
     return new NextResponse(readableStream as any, {
       headers: {

@@ -252,7 +252,7 @@ async function autoCreateSupportTicket(
 - Nội dung: ${alert.message}
 - Thời điểm phát hiện: ${new Date().toLocaleString('vi-VN')}
 
-Ticket này được tạo tự động bởi SIMPLY IT Health Alert Engine. Vui lòng kiểm tra và xử lý theo quy trình.`,
+Ticket này được tạo tự động bởi QLTBIT Health Alert Engine. Vui lòng kiểm tra và xử lý theo quy trình.`,
         category: 'HARDWARE',
         priority: prioEnum,
         status: 'OPEN',

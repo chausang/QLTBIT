@@ -39,7 +39,7 @@ export async function getSmtpConfig(): Promise<SmtpConfig> {
   const port = parseInt(settingMap.get('email.smtp_port') || process.env.SMTP_PORT || '587');
   const user = settingMap.get('email.smtp_user') || process.env.SMTP_USER || '';
   const pass = settingMap.get('email.smtp_password') || process.env.SMTP_PASS || '';
-  const fromName = settingMap.get('email.from_name') || settingMap.get('email.smtp_from_name') || 'SIMPLY IT';
+  const fromName = settingMap.get('email.from_name') || settingMap.get('email.smtp_from_name') || 'QLTBIT';
   const fromEmail = settingMap.get('email.from_email') || settingMap.get('email.smtp_from_email') || user || 'noreply@company.com';
 
   const rawEnabled = settingMap.get('email.enabled') ?? settingMap.get('email.smtp_enabled');

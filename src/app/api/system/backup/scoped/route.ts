@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
 
     const payload = {
       meta: {
-        system: 'Simply IT',
+        system: 'QLTBIT',
         appVersion: '2.1.0',
         backupType: 'SCOPED_MODULE',
         module,
@@ -206,7 +206,7 @@ export async function GET(request: NextRequest) {
     };
 
     const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `SimplyIT_Backup_${module}_${dateStr}.json`;
+    const fileName = `QLTBIT_Backup_${module}_${dateStr}.json`;
 
     return new NextResponse(JSON.stringify(payload, null, 2), {
       status: 200,

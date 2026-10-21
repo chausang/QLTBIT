@@ -4183,7 +4183,7 @@ export default function AssetsPage() {
                     PowerShell Agent Auto-Discovery (.ps1)
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Tự động quét cấu hình phần cứng, serial, Windows, RAM, CPU và gửi lên Simply IT qua GPO
+                    Tự động quét cấu hình phần cứng, serial, Windows, RAM, CPU và gửi lên QLTBIT qua GPO
                   </p>
                 </div>
               </div>
@@ -4241,7 +4241,7 @@ export default function AssetsPage() {
                 const cleanServerUrl = (agentServerUrl || 'http://localhost:3000').replace(/\/+$/, '');
                 const fetchBase = typeof window !== 'undefined' ? window.location.origin : cleanServerUrl;
                 const handleDownloadDynamicBat = () => {
-                  const batContent = `@echo off\r\n:: SIMPLY IT Auto-Scan Runner\r\n:: Server: ${cleanServerUrl}\r\npowershell -ExecutionPolicy Bypass -WindowStyle Hidden -Command "iex (irm '${fetchBase}/api/scripts/agent?serverUrl=${encodeURIComponent(cleanServerUrl)}')"\r\n`;
+                  const batContent = `@echo off\r\n:: QLTBIT Auto-Scan Runner\r\n:: Server: ${cleanServerUrl}\r\npowershell -ExecutionPolicy Bypass -WindowStyle Hidden -Command "iex (irm '${fetchBase}/api/scripts/agent?serverUrl=${encodeURIComponent(cleanServerUrl)}')"\r\n`;
                   const blob = new Blob([batContent], { type: 'application/x-bat' });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a');
@@ -4306,7 +4306,7 @@ export default function AssetsPage() {
                 <span className="font-bold text-slate-900 dark:text-white">🚀 Hướng dẫn 3 bước triển khai qua Group Policy (GPO):</span>
                 <ol className="list-decimal list-inside space-y-1.5 text-[11.5px] text-slate-600 dark:text-slate-400 leading-relaxed">
                   <li>Mở <strong>Group Policy Management</strong> trên máy chủ Domain Controller.</li>
-                  <li>Tạo GPO mới: <code>Deploy-SimplyIT-Agent</code> liên kết vào OU phòng ban.</li>
+                  <li>Tạo GPO mới: <code>Deploy-QLTBIT-Agent</code> liên kết vào OU phòng ban.</li>
                   <li>Vào <strong>Computer Configuration &rarr; Windows Settings &rarr; Scripts (Startup/Shutdown)</strong> và cấu hình chạy script tự động khi nhân viên bật máy.</li>
                 </ol>
               </div>
@@ -4331,7 +4331,7 @@ export default function AssetsPage() {
               <div className="w-12 h-12 rounded-3xl bg-amber-400/20 text-amber-300 flex items-center justify-center mx-auto mb-2.5">
                 <Crown className="w-6 h-6" />
               </div>
-              <h3 className="font-black text-lg">Nâng Cấp Simply IT PRO</h3>
+              <h3 className="font-black text-lg">Nâng Cấp QLTBIT PRO</h3>
               <p className="text-xs text-purple-200 mt-1">
                 Bạn đang dùng bản Free (Tối đa 20 thiết bị Auto-Scan)
               </p>
@@ -4411,7 +4411,7 @@ export default function AssetsPage() {
                     alert('Vui lòng nhập Số điện thoại hoặc Zalo để chúng tôi kích hoạt dùng thử!');
                     return;
                   }
-                  alert('Cảm ơn bạn! Đội ngũ Simply IT đã ghi nhận yêu cầu kích hoạt bản PRO và sẽ liên hệ trong 15 phút.');
+                  alert('Cảm ơn bạn! Đội ngũ QLTBIT đã ghi nhận yêu cầu kích hoạt bản PRO và sẽ liên hệ trong 15 phút.');
                   setIsPricingModalOpen(false);
                 }}
                 className="px-5 py-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white rounded-xl font-bold shadow-md cursor-pointer flex items-center gap-1.5"

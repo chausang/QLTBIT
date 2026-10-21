@@ -1,5 +1,5 @@
 // src/lib/routing-engine.ts
-// SIMPLY IT — Advanced Ticket Routing & Assignment Engine
+// QLTBIT — Advanced Ticket Routing & Assignment Engine
 // Tự động phân tuyến Ticket theo Ngữ cảnh, Tổ chức IT, Rule Priority và Cân bằng kỹ năng
 
 import { prisma } from '@/lib/db';

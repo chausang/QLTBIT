@@ -19,8 +19,8 @@ export async function exportConglomerateExcel({
   selectedCurrency,
 }: ExportConglomerateOptions) {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Simply IT [Enterprise Edition]';
-  workbook.lastModifiedBy = 'Simply IT SAM Engine';
+  workbook.creator = 'QLTBIT [Enterprise Edition]';
+  workbook.lastModifiedBy = 'QLTBIT SAM Engine';
   workbook.created = new Date();
   workbook.modified = new Date();
 
@@ -531,8 +531,8 @@ export async function exportSingleLicenseExcel(
   selectedCurrency: string
 ) {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Simply IT [Enterprise Edition]';
-  workbook.lastModifiedBy = 'Simply IT SAM Engine';
+  workbook.creator = 'QLTBIT [Enterprise Edition]';
+  workbook.lastModifiedBy = 'QLTBIT SAM Engine';
   workbook.created = new Date();
   workbook.modified = new Date();
 

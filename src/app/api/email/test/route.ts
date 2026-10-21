@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const effectivePass = (pass !== undefined && pass !== '') ? pass : savedConfig.pass;
     const effectivePort = port ? Number(port) : (savedConfig.port || 587);
     const effectiveSecure = secure !== undefined ? Boolean(secure) : savedConfig.secure;
-    const effectiveFromName = fromName || savedConfig.fromName || 'SIMPLY IT';
+    const effectiveFromName = fromName || savedConfig.fromName || 'QLTBIT';
     const effectiveFromEmail = fromEmail || savedConfig.fromEmail || effectiveUser || 'noreply@company.com';
 
     if (!effectiveHost) {
@@ -63,10 +63,10 @@ export async function POST(request: NextRequest) {
     if (recipient) {
       const sendRes = await sendEmail({
         to: recipient,
-        subject: '🔔 [SIMPLY IT] Kiểm tra kết nối Email thành công',
+        subject: '🔔 [QLTBIT] Kiểm tra kết nối Email thành công',
         html: `
           <h3>Xin chúc mừng! 🎉</h3>
-          <p>Hệ thống SIMPLY IT đã kết nối thành công đến máy chủ Email SMTP của bạn.</p>
+          <p>Hệ thống QLTBIT đã kết nối thành công đến máy chủ Email SMTP của bạn.</p>
           <div style="background:#f1f5f9;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:13px;line-height:1.6;">
             <p style="margin:0 0 4px 0;"><strong>Máy chủ SMTP:</strong> ${config.host}:${config.port} (${config.secure ? 'SSL/TLS' : 'STARTTLS'})</p>
             <p style="margin:0 0 4px 0;"><strong>Tài khoản:</strong> ${config.user || 'Không xác thực'}</p>

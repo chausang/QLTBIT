@@ -1,6 +1,6 @@
-# 📘 HƯỚNG DẪN TRIỂN KHAI HỆ THỐNG QUẢN LÝ TÀI SẢN CNTT (SIMPLY IT) TRONG MẠNG ĐA VLAN
+# 📘 HƯỚNG DẪN TRIỂN KHAI HỆ THỐNG QUẢN LÝ TÀI SẢN CNTT (QLTBIT) TRONG MẠNG ĐA VLAN
 
-> **Dự án:** Quản lý Tài sản CNTT (ITSM) — SIMPLY IT Enterprise & Community  
+> **Dự án:** Quản lý Tài sản CNTT (ITSM) — QLTBIT Enterprise & Community  
 > **Thư mục lưu trữ:** `D:\QLTBIT`  
 > **Phiên bản mở khóa:** Đầy đủ phân hệ Sơ đồ 2D, Quét LAN tự động, Kiểm kê tài sản, Cảnh báo thay đổi phần cứng & phần mềm.
 
@@ -40,14 +40,14 @@ Tại thư mục `D:\QLTBIT`, bạn có các cách khởi chạy:
 ### Cách 1: Chạy Trung Tâm Điều Hành (Khuyên dùng)
 * Nhấp đúp chuột vào file: **`start_qltbit.bat`**
 * Màn hình điều khiển tương tác sẽ xuất hiện cho phép bạn:
-  * `[1]` Khởi động máy chủ SIMPLY IT (Server Web & khay hệ thống).
+  * `[1]` Khởi động máy chủ QLTBIT (Server Web & khay hệ thống).
   * `[2]` Mở công cụ Quét mạng Đa VLAN (giao diện đồ họa GUI).
   * `[3]` Quét mạng Đa VLAN bằng dòng lệnh siêu tốc (CLI).
   * `[4]` Đóng gói bộ cài đặt Agent cho máy trạm gửi qua GPO / USB.
   * `[5]` Mở trang web quản trị trên trình duyệt.
 
 ### Cách 2: Chạy Trực Tiếp File Thực Thi Máy Chủ
-* Nhấp đúp chuột vào file: **`SimplyIT_Server.exe`**
+* Nhấp đúp chuột vào file: **`QLTBIT_Server.exe`**
 * Phần mềm sẽ chạy ngầm dưới khay hệ thống (System Tray cạnh đồng hồ Windows) và tự động bật trình duyệt web tại `http://localhost:3001`.
 
 ---
@@ -75,7 +75,7 @@ Trong mạng doanh nghiệp phân chia nhiều VLAN (ví dụ: VLAN 10 Máy ch�
 │                     └─────────────────┬─────────────────┘              │
 │                                       ▼                                │
 │                     ┌───────────────────────────────────┐              │
-│                     │         MÁY CHỦ SIMPLY IT         │              │
+│                     │         MÁY CHỦ QLTBIT         │              │
 │                     │         (Đặt tại VLAN 10)         │              │
 │                     │ - Tiếp nhận Health & Inventory    │              │
 │                     │ - So sánh & Ghi Log thay đổi      │              │
@@ -88,7 +88,7 @@ Trong mạng doanh nghiệp phân chia nhiều VLAN (ví dụ: VLAN 10 Máy ch�
 ### Quy trình triển khai 3 bước tối ưu:
 
 ### Bước 1: Cấu hình Mạng & Tường lửa (Firewall)
-* Đặt máy chủ SIMPLY IT tại một IP tĩnh trong VLAN Server (ví dụ: `192.168.10.50`).
+* Đặt máy chủ QLTBIT tại một IP tĩnh trong VLAN Server (ví dụ: `192.168.10.50`).
 * Trên Router / Core Switch L3, tạo Access Control List (ACL) hoặc Firewall Rule:
   * Cho phép các dải VLAN máy trạm (`192.168.20.0/24`, `192.168.30.0/24`...) truy cập tới IP máy chủ `192.168.10.50` trên cổng **`3001`** (HTTP) hoặc **`3443`** (HTTPS).
 
@@ -97,7 +97,7 @@ Trong mạng doanh nghiệp phân chia nhiều VLAN (ví dụ: VLAN 10 Máy ch�
 * **Triển khai qua Active Directory GPO (Khuyên dùng cho mạng Domain):**
   * Đặt script vào thư mục GPO Startup Script (`\\domain\sysvol\...`).
   * Cấu hình tham số: `-ServerUrl "http://192.168.10.50:3001" -Mode Install`.
-  * Khi máy trạm khởi động, script sẽ tự động tạo một Windows Scheduled Task (`SimplyIT_Audit`) chạy ẩn dưới quyền `SYSTEM`, định kỳ gửi thông số về máy chủ mỗi 15 phút.
+  * Khi máy trạm khởi động, script sẽ tự động tạo một Windows Scheduled Task (`QLTBIT_Audit`) chạy ẩn dưới quyền `SYSTEM`, định kỳ gửi thông số về máy chủ mỗi 15 phút.
 * **Triển khai thủ công hoặc qua USB (Cho máy Workgroup):**
   * Copy thư mục `GOI_CAI_DAT_AGENT` sang máy trạm.
   * Nhấp chuột phải vào `Install_Agent.bat` -> Chọn **Run as administrator**.
@@ -116,11 +116,11 @@ Trong mạng doanh nghiệp phân chia nhiều VLAN (ví dụ: VLAN 10 Máy ch�
 
 ```text
 D:\QLTBIT\
-├── SimplyIT_Server.exe            # Ứng dụng khay hệ thống quản trị máy chủ SIMPLY IT
+├── QLTBIT_Server.exe            # Ứng dụng khay hệ thống quản trị máy chủ QLTBIT
 ├── start_qltbit.bat               # Menu điều hành All-in-One tiện lợi
 ├── qltbit_manager.py              # Bộ điều phối trung tâm bằng Python
-├── build_exe.ps1                  # Script biên dịch lại SimplyIT_Server.exe từ C#
-├── SimplyIT_Community_Launcher.cs # Mã nguồn C# launcher
+├── build_exe.ps1                  # Script biên dịch lại QLTBIT_Server.exe từ C#
+├── QLTBIT_Community_Launcher.cs # Mã nguồn C# launcher
 │
 ├── tools\
 │   ├── vlan_scanner_gui.py        # Giao diện đồ họa quét mạng tự động đa VLAN
@@ -137,7 +137,7 @@ D:\QLTBIT\
 │   ├── Uninstall_Agent.bat
 │   └── HUONG_DAN_SU_DUNG.txt
 │
-├── src\                           # Toàn bộ mã nguồn ứng dụng Web SIMPLY IT (Next.js)
+├── src\                           # Toàn bộ mã nguồn ứng dụng Web QLTBIT (Next.js)
 ├── prisma\                        # Schema cơ sở dữ liệu (PostgreSQL)
 ├── public\scripts\                # Script PowerShell thu thập thông tin chuyên sâu
 └── .env                           # Tệp cấu hình kết nối Database, Port, JWT Secret

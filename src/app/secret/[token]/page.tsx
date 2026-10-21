@@ -119,7 +119,7 @@ export default function SecretSharePage() {
             <Lock className="w-4 h-4 text-white" />
           </div>
           <span className="font-extrabold text-sm tracking-wide text-white">
-            SIMPLY IT <span className="text-rose-500 font-semibold">• Vault Send</span>
+            QLTBIT <span className="text-rose-500 font-semibold">• Vault Send</span>
           </span>
         </div>
         <div className="flex items-center gap-1 text-[11px] text-slate-400 font-mono bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full">
@@ -362,7 +362,7 @@ export default function SecretSharePage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-900 px-6 py-3 text-center text-[11px] text-slate-500">
-        SIMPLY IT Community • Tính năng chia sẻ bí mật mã hóa tự hủy dùng 1 lần
+        QLTBIT Community • Tính năng chia sẻ bí mật mã hóa tự hủy dùng 1 lần
       </footer>
     </div>
   );

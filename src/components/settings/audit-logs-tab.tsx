@@ -155,7 +155,7 @@ export const AuditLogsSettingsTab: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `Nhat_Ky_Hoat_Dong_SIMPLY_IT_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `Nhat_Ky_Hoat_Dong_QLTBIT_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
 

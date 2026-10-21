@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     if (action === 'template') {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT';
+      workbook.creator = 'QLTBIT';
       const sheet = workbook.addWorksheet('Mau_Nhap_Lieu');
 
       // Style header

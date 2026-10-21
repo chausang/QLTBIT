@@ -127,7 +127,7 @@
   "licenses.hub.import_single_sku": "Thêm gói này",
   "licenses.hub.metric_cloud_total": "Tổng Mua Trên Cloud",
   "licenses.hub.metric_cloud_consumed": "Đã gán: {count} license",
-  "licenses.hub.metric_local_title": "Sổ Sách Simply IT",
+  "licenses.hub.metric_local_title": "Sổ Sách QLTBIT",
   "licenses.hub.metric_local_diff": "Lệch: {diff} license",
   "licenses.hub.metric_dormant_title": "Tài Khoản Lãng Phí (Dormant)",
   "licenses.hub.metric_dormant_desc": "Đã khóa hoặc >45 ngày không đăng nhập",

@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     });
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Simply IT';
+    workbook.creator = 'QLTBIT';
     const worksheet = workbook.addWorksheet(isEn ? 'Assets Inventory' : 'Danh Sách Thiết Bị');
 
     // Header đa cột
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
 
     const buffer = await workbook.xlsx.writeBuffer();
     const dateStr = new Date().toISOString().slice(0, 10);
-    const fileName = `SimplyIT_Assets_${dateStr}.xlsx`;
+    const fileName = `QLTBIT_Assets_${dateStr}.xlsx`;
 
     const headers = new Headers();
     headers.set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

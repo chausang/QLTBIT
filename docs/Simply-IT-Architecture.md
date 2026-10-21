@@ -1,4 +1,4 @@
-# Simply IT Community Edition (CE) v1.0.4
+# QLTBIT Community Edition (CE) v1.0.4
 ## Tài Liệu Kiến Trúc Hệ Thống & Nền Tảng Công Nghệ
 
 **Phiên bản:** 1.0.4  
@@ -9,7 +9,7 @@
 
 ## 1. Tổng Quan Hệ Thống
 
-**Simply IT Community Edition** là hệ thống quản lý tài sản CNTT (IT Asset Management – ITAM) và Helpdesk mã nguồn mở, được xây dựng trên nền tảng web hiện đại. Hệ thống cung cấp giải pháp toàn diện cho việc:
+**QLTBIT Community Edition** là hệ thống quản lý tài sản CNTT (IT Asset Management – ITAM) và Helpdesk mã nguồn mở, được xây dựng trên nền tảng web hiện đại. Hệ thống cung cấp giải pháp toàn diện cho việc:
 
 - Quản lý tài sản CNTT (phần cứng, phần mềm, giấy phép)
 - Hệ thống Helpdesk & Ticket hỗ trợ kỹ thuật
@@ -28,7 +28,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Simply IT Community Edition                   │
+│                    QLTBIT Community Edition                   │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐  │
@@ -391,7 +391,7 @@ Hệ thống cung cấp **51 module API RESTful**, bao gồm:
 ## 10. Cấu Trúc Thư Mục Dự Án
 
 ```
-simply-it-community/
+qltbit/
 ├── prisma/                    # Schema CSDL & migrations
 │   ├── schema.prisma          # Định nghĩa 40+ models
 │   ├── seed.ts                # Dữ liệu mẫu ban đầu
@@ -441,7 +441,7 @@ npm run db:restore-dir  # Khôi phục từ backup
 
 ## 12. Tổng Kết
 
-Simply IT Community Edition là giải pháp **ITAM & Helpdesk mã nguồn mở** hiện đại, được xây dựng trên stack công nghệ tiên tiến nhất (Next.js 15 + React 19 + TypeScript + Prisma + PostgreSQL). Với thiết kế **all-in-one**, hệ thống tự động hóa cao, multi-platform, và tích hợp AI, Simply IT CE là lựa chọn lý tưởng cho các tổ chức muốn:
+QLTBIT Community Edition là giải pháp **ITAM & Helpdesk mã nguồn mở** hiện đại, được xây dựng trên stack công nghệ tiên tiến nhất (Next.js 15 + React 19 + TypeScript + Prisma + PostgreSQL). Với thiết kế **all-in-one**, hệ thống tự động hóa cao, multi-platform, và tích hợp AI, QLTBIT CE là lựa chọn lý tưởng cho các tổ chức muốn:
 
 - **Tiết kiệm chi phí:** Mã nguồn mở, không phí license
 - **Triển khai nhanh:** Docker Compose một lệnh
@@ -450,5 +450,5 @@ Simply IT Community Edition là giải pháp **ITAM & Helpdesk mã nguồn mở*
 
 ---
 
-*Tài liệu này được tạo tự động bởi Simply IT Team.*  
-*© 2026 Simply IT Community Edition - Apache-2.0 License*
+*Tài liệu này được tạo tự động bởi QLTBIT Team.*  
+*© 2026 QLTBIT Community Edition - Apache-2.0 License*

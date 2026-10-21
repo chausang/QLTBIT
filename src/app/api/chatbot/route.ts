@@ -558,10 +558,10 @@ export async function POST(request: NextRequest) {
       }
 
       const prompt = `
-Bạn là Trợ lý AI IT Support & Quản Trị Hệ Thống (SIMPLY IT Assistant) của công ty.
+Bạn là Trợ lý AI IT Support & Quản Trị Hệ Thống (QLTBIT Assistant) của công ty.
 Vai trò người dùng hiện tại: "${userRole}" (Admin: ${isAdmin ? 'Đúng' : 'Không'}).
 
-Dữ liệu thời gian thực của hệ thống SIMPLY IT:
+Dữ liệu thời gian thực của hệ thống QLTBIT:
 - Tổng số thiết bị quản lý: ${totalAssets}
 - Thiết bị sẵn sàng trong kho (AVAILABLE): ${inStockAssets}
 - Ticket sự cố đang mở: ${openTicketsCount}
@@ -614,7 +614,7 @@ Quy tắc trả lời:
     } else if (wantsTicket) {
       reply = `Mình đã hiểu sự cố của bạn. Để Kỹ thuật viên IT tiếp nhận và xử lý tận nơi, bạn có thể nhấn nút **"Tạo Ticket Ngay"** bên dưới để mở yêu cầu hỗ trợ nhé!`;
     } else {
-      reply = `Chào bạn! Mình là Trợ lý IT ảo SIMPLY IT.\n\nBạn có thể hỏi mình:\n- 👨‍💻 **Khối lượng công việc IT**: *"Nay IT nào có nhiều ticket nhất?"*, *"Tình hình phân công ticket"*...\n- 📦 **Kiểm tra tồn kho**: *"Trong kho hiện còn bao nhiêu laptop?"*, *"Tồn kho phụ tùng RAM/SSD"*...\n- 💻 **Tài sản cá nhân**: *"Tôi đang dùng những máy tính nào?"*\n- 🔑 **Sự cố thường gặp**: Đổi mật khẩu, VPN FortiClient, Outlook, máy in, WiFi...\n- 📊 **Thống kê quản trị**: Báo cáo tổng quan hệ thống hôm nay.\n\nHãy nhập câu hỏi vào ô chat để mình hỗ trợ ngay nhé!`;
+      reply = `Chào bạn! Mình là Trợ lý IT ảo QLTBIT.\n\nBạn có thể hỏi mình:\n- 👨‍💻 **Khối lượng công việc IT**: *"Nay IT nào có nhiều ticket nhất?"*, *"Tình hình phân công ticket"*...\n- 📦 **Kiểm tra tồn kho**: *"Trong kho hiện còn bao nhiêu laptop?"*, *"Tồn kho phụ tùng RAM/SSD"*...\n- 💻 **Tài sản cá nhân**: *"Tôi đang dùng những máy tính nào?"*\n- 🔑 **Sự cố thường gặp**: Đổi mật khẩu, VPN FortiClient, Outlook, máy in, WiFi...\n- 📊 **Thống kê quản trị**: Báo cáo tổng quan hệ thống hôm nay.\n\nHãy nhập câu hỏi vào ô chat để mình hỗ trợ ngay nhé!`;
     }
 
     return NextResponse.json({

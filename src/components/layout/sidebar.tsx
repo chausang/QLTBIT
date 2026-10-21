@@ -83,7 +83,7 @@ export function Sidebar({
     email: string;
     permissions?: string[];
   } | null>(null);
-  const [appName, setAppName] = useState('SIMPLY IT');
+  const [appName, setAppName] = useState('QLTBIT');
   const [companyName, setCompanyName] = useState('Do Less - Achieve More');
   const [appLogo, setAppLogo] = useState('/logo-icon.png');
   const [appLogoCollapsed, setAppLogoCollapsed] = useState<string>('');

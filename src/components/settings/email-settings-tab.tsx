@@ -139,7 +139,7 @@ export function EmailSettingsTab() {
     secure: false,
     user: '',
     password: '',
-    fromName: 'SIMPLY IT',
+    fromName: 'QLTBIT',
     fromEmail: '',
     enabled: true,
   });
@@ -205,7 +205,7 @@ export function EmailSettingsTab() {
           secure: map.get('email.smtp_secure') === 'true',
           user: (map.get('email.smtp_user') as string) || '',
           password: (map.get('email.smtp_password') as string) || '',
-          fromName: (map.get('email.from_name') as string) || (map.get('email.smtp_from_name') as string) || 'SIMPLY IT Support',
+          fromName: (map.get('email.from_name') as string) || (map.get('email.smtp_from_name') as string) || 'QLTBIT Support',
           fromEmail: (map.get('email.from_email') as string) || (map.get('email.smtp_from_email') as string) || '',
           enabled: rawEnabled !== undefined ? rawEnabled === 'true' : true,
         });
@@ -423,7 +423,7 @@ export function EmailSettingsTab() {
     if (!isEnterprise) {
       setToast({
         type: 'error',
-        message: 'Tính năng Quét hộp thư nhận Ticket qua Email chỉ khả dụng trên phiên bản Simply IT Enterprise Edition. Vui lòng kích hoạt bản quyền để sử dụng.',
+        message: 'Tính năng Quét hộp thư nhận Ticket qua Email chỉ khả dụng trên phiên bản QLTBIT Enterprise Edition. Vui lòng kích hoạt bản quyền để sử dụng.',
       });
       return;
     }
@@ -639,14 +639,14 @@ export function EmailSettingsTab() {
       <body>
         <div class="email-card">
           <div class="email-header">
-            <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">SIMPLY IT MANAGEMENT</h2>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px;">QLTBIT MANAGEMENT</h2>
             <p style="margin: 4px 0 0; font-size: 12px; opacity: 0.9;">Hệ Thống Quản Trị & Hỗ Trợ Kỹ Thuật CNTT</p>
           </div>
           <div class="email-body">
             ${rendered}
           </div>
           <div class="email-footer">
-            <p style="margin: 0;">Email này được gửi tự động từ hệ thống <strong>SIMPLY IT</strong>. Vui lòng không trả lời trực tiếp email này.</p>
+            <p style="margin: 0;">Email này được gửi tự động từ hệ thống <strong>QLTBIT</strong>. Vui lòng không trả lời trực tiếp email này.</p>
           </div>
         </div>
       </body>
@@ -849,7 +849,7 @@ export function EmailSettingsTab() {
                 </label>
                 <input
                   type="text"
-                  placeholder="VD: SIMPLY IT Support Team"
+                  placeholder="VD: QLTBIT Support Team"
                   value={smtpConfig.fromName}
                   onChange={(e) => setSmtpConfig({ ...smtpConfig, fromName: e.target.value })}
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:border-blue-500 outline-none"
@@ -947,7 +947,7 @@ export function EmailSettingsTab() {
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {isEn
-                      ? 'Inbound Email-to-Ticket via IMAP, auto-routing, and threading are available in Simply IT Enterprise Edition. Please activate your license to enable automated email processing.'
+                      ? 'Inbound Email-to-Ticket via IMAP, auto-routing, and threading are available in QLTBIT Enterprise Edition. Please activate your license to enable automated email processing.'
                       : 'Tự động quét hộp thư (IMAP), bóc tách nội dung, phân luồng IT tự động và chuỗi hội thoại là tính năng thuộc phiên bản Enterprise. Bạn có thể cấu hình và kiểm tra kết nối, nhưng cần mã bản quyền để kích hoạt.'}
                   </p>
                 </div>

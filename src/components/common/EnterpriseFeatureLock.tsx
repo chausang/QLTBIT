@@ -49,7 +49,7 @@ export function EnterpriseFeatureLock({
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-200 border border-blue-400/30 text-xs font-bold uppercase tracking-wider">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{tier === 'ENTERPRISE' ? 'SIMPLY IT Enterprise Feature' : 'SIMPLY IT Pro Feature'}</span>
+              <span>{tier === 'ENTERPRISE' ? 'QLTBIT Enterprise Feature' : 'QLTBIT Pro Feature'}</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -66,8 +66,8 @@ export function EnterpriseFeatureLock({
 
             <p className="text-xs text-slate-300 leading-relaxed pt-1">
               {isEn
-                ? 'This module is restricted in the Community Edition. Upgrade to SIMPLY IT Enterprise to enable production-ready corporate integrations and dedicated support.'
-                : 'Tính năng này được thiết kế và bảo vệ độc quyền trên bản SIMPLY IT Enterprise. Nâng cấp để mở khóa toàn bộ khả năng tích hợp doanh nghiệp và chính sách hỗ trợ kỹ thuật chuyên sâu.'}
+                ? 'This module is restricted in the Community Edition. Upgrade to QLTBIT Enterprise to enable production-ready corporate integrations and dedicated support.'
+                : 'Tính năng này được thiết kế và bảo vệ độc quyền trên bản QLTBIT Enterprise. Nâng cấp để mở khóa toàn bộ khả năng tích hợp doanh nghiệp và chính sách hỗ trợ kỹ thuật chuyên sâu.'}
             </p>
           </div>
 

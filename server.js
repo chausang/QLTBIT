@@ -215,7 +215,7 @@ async function initServer() {
   });
 
   httpServer.listen(HTTP_PORT, '0.0.0.0', () => {
-    console.log(`🚀 Simply IT [Community Edition] HTTP Server running on:`);
+    console.log(`🚀 QLTBIT [Community Edition] HTTP Server running on:`);
     console.log(`   - Local:   http://localhost:${HTTP_PORT}`);
   });
 
@@ -236,7 +236,7 @@ async function initServer() {
   });
 
   httpsServer.listen(HTTPS_PORT, '0.0.0.0', () => {
-    console.log(`🔒 Simply IT [Community Edition] HTTPS Server running on:`);
+    console.log(`🔒 QLTBIT [Community Edition] HTTPS Server running on:`);
     console.log(`   - Local:   https://localhost:${HTTPS_PORT}`);
   });
 

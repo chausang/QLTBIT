@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.trim() || '';
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = 'Simply IT Asset Management';
+    workbook.creator = 'QLTBIT Asset Management';
     workbook.created = new Date();
 
     const sheet = workbook.addWorksheet('Bang_Kiem_Ke_TSCD', {

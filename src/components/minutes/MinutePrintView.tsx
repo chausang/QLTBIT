@@ -585,7 +585,7 @@ export default function MinutePrintView({ minute: initialMinute, onClose, onEdit
 
         {/* Footer print note */}
         <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500 print:hidden rounded-b-2xl">
-          <span>SIMPLY IT Platform • Mẫu văn bản in A4 tiêu chuẩn theo quy định</span>
+          <span>QLTBIT Platform • Mẫu văn bản in A4 tiêu chuẩn theo quy định</span>
           <span>Hỗ trợ in trực tiếp hoặc xuất PDF qua hộp thoại in</span>
         </div>
       </div>

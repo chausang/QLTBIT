@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Script tạo file tài liệu Word (.docx) Hướng dẫn Cài đặt & Sử dụng SIMPLY IT
+Script tạo file tài liệu Word (.docx) Hướng dẫn Cài đặt & Sử dụng QLTBIT
 Dành riêng cho người không chuyên về công nghệ.
 """
 
@@ -226,7 +226,7 @@ def main():
     p_cover.paragraph_format.space_before = Pt(10)
     p_cover.paragraph_format.space_after = Pt(6)
 
-    r_sys = p_cover.add_run("SIMPLY IT — HỆ THỐNG QUẢN LÝ TÀI SẢN CNTT DOANH NGHIỆP\n")
+    r_sys = p_cover.add_run("QLTBIT — HỆ THỐNG QUẢN LÝ TÀI SẢN CNTT DOANH NGHIỆP\n")
     r_sys.font.name = "Segoe UI"
     r_sys.font.size = Pt(12)
     r_sys.font.bold = True
@@ -255,14 +255,14 @@ def main():
     # Lời mở đầu
     add_callout(
         doc,
-        "Chào bạn! Nếu bạn là nhân viên văn phòng, kế toán, quản lý tài sản hoặc nhân sự mà không hiểu biết sâu về kỹ thuật CNTT — Đừng lo lắng! Toàn bộ hệ thống SIMPLY IT đã được đóng gói thành phần mềm '1-Click' cực kỳ trực quan. Bạn chỉ cần nhấp chuột giống như cài đặt phần mềm Zalo hoặc Word thông thường.",
+        "Chào bạn! Nếu bạn là nhân viên văn phòng, kế toán, quản lý tài sản hoặc nhân sự mà không hiểu biết sâu về kỹ thuật CNTT — Đừng lo lắng! Toàn bộ hệ thống QLTBIT đã được đóng gói thành phần mềm '1-Click' cực kỳ trực quan. Bạn chỉ cần nhấp chuột giống như cài đặt phần mềm Zalo hoặc Word thông thường.",
         title="🌟 CAM KẾT: 100% NGƯỜI KHÔNG RÀNH CÔNG NGHỆ VẪN CÀI VÀ DÙNG ĐƯỢC!",
         box_type="info"
     )
 
     # ==================== PHẦN 1 ====================
-    add_heading_1(doc, "PHẦN 1: SIMPLY IT LÀ GÌ? VÌ SAO DOANH NGHIỆP NÊN DÙNG?")
-    add_body_p(doc, "SIMPLY IT giống như một 'Người Quản Lý Kho Kỹ Thuật Số Thông Minh' của cơ quan bạn. Thay vì phải dùng sổ tay hay file Excel để ghi chép thủ công từng chiếc máy tính, SIMPLY IT tự động làm mọi việc cho bạn:")
+    add_heading_1(doc, "PHẦN 1: QLTBIT LÀ GÌ? VÌ SAO DOANH NGHIỆP NÊN DÙNG?")
+    add_body_p(doc, "QLTBIT giống như một 'Người Quản Lý Kho Kỹ Thuật Số Thông Minh' của cơ quan bạn. Thay vì phải dùng sổ tay hay file Excel để ghi chép thủ công từng chiếc máy tính, QLTBIT tự động làm mọi việc cho bạn:")
 
     add_bullet_p(doc, "Bạn không cần đi từng phòng mở máy xem cấu hình. Phần mềm tự động biết máy đó dùng vi xử lý gì, có mấy thanh RAM, ổ cứng còn trống bao nhiêu.", "1. Tự động kiểm kê phần cứng: ")
     add_bullet_p(doc, "Nếu ai đó lén tháo bớt 1 thanh RAM hay tráo đổi ổ cứng của công ty mang về, hệ thống sẽ lập tức báo động đỏ trên màn hình quản lý.", "2. Báo động chống trộm/tráo linh kiện: ")
@@ -272,7 +272,7 @@ def main():
 
     # ==================== PHẦN 2 ====================
     add_heading_1(doc, "PHẦN 2: CHUẨN BỊ TRƯỚC KHI CÀI ĐẶT (RẤT ĐƠN GIẢN)")
-    add_body_p(doc, "Để cài đặt SIMPLY IT, bạn không cần phải mua máy chủ chuyên dụng đắt tiền hay thuê kỹ sư CNTT. Bạn chỉ cần:")
+    add_body_p(doc, "Để cài đặt QLTBIT, bạn không cần phải mua máy chủ chuyên dụng đắt tiền hay thuê kỹ sư CNTT. Bạn chỉ cần:")
 
     tbl_req = doc.add_table(rows=1, cols=3)
     format_table(
@@ -289,18 +289,18 @@ def main():
 
     add_callout(
         doc,
-        "Bạn KHÔNG CẦN phải cài đặt trước PostgreSQL hay phần mềm cơ sở dữ liệu rườm rà nào khác! SIMPLY IT đã tích hợp sẵn cơ sở dữ liệu Portable chạy ngầm gọn gàng trong thư mục pgsql/.",
+        "Bạn KHÔNG CẦN phải cài đặt trước PostgreSQL hay phần mềm cơ sở dữ liệu rườm rà nào khác! QLTBIT đã tích hợp sẵn cơ sở dữ liệu Portable chạy ngầm gọn gàng trong thư mục pgsql/.",
         title="💡 ĐIỂM ĐẶC BIỆT: TÍCH HỢP SẴN DATABASE PORTABLE",
         box_type="success"
     )
 
     # ==================== PHẦN 3 ====================
     add_heading_1(doc, "PHẦN 3: HƯỚNG DẪN CÀI ĐẶT MÁY CHỦ (SERVER) — CHỈ VỚI 3 CÚ NHẤP CHUỘT")
-    add_body_p(doc, "Đây là phần quan trọng nhất: Cài đặt Trung tâm Quản trị SIMPLY IT trên máy tính của Quản lý / Kỹ thuật viên:")
+    add_body_p(doc, "Đây là phần quan trọng nhất: Cài đặt Trung tâm Quản trị QLTBIT trên máy tính của Quản lý / Kỹ thuật viên:")
 
     add_heading_2(doc, "Bước 1: Mở Trình Cài Đặt 1-Click")
     add_body_p(doc, "Mở thư mục chương trình tại ổ đĩa (ví dụ: D:\\QLTBIT), tìm file có tên:")
-    add_bullet_p(doc, "(Hoặc file tiếng Anh: SimplyIT_Setup.exe). Nhấp đúp chuột để mở.", "Cai_Dat_SimplyIT.exe: ")
+    add_bullet_p(doc, "(Hoặc file tiếng Anh: QLTBIT_Setup.exe). Nhấp đúp chuột để mở.", "Cai_Dat_QLTBIT.exe: ")
 
     add_heading_2(doc, "Bước 2: Chọn Chế Độ Cài Đặt")
     add_body_p(doc, "Cửa sổ giao diện hiện đại sẽ hiện ra. Bạn sẽ thấy 3 lựa chọn:")
@@ -330,14 +330,14 @@ def main():
 
     add_callout(
         doc,
-        "Khi cài xong, chữ sẽ chuyển thành màu xanh lá cây: '🎉 CHÚC MỪNG BẠN! HỆ THỐNG ĐÃ CÀI ĐẶT THÀNH CÔNG 100%!'. Đồng thời trình duyệt web của bạn sẽ tự động bật lên trang chủ SIMPLY IT tại địa chỉ: http://localhost:3001.",
+        "Khi cài xong, chữ sẽ chuyển thành màu xanh lá cây: '🎉 CHÚC MỪNG BẠN! HỆ THỐNG ĐÃ CÀI ĐẶT THÀNH CÔNG 100%!'. Đồng thời trình duyệt web của bạn sẽ tự động bật lên trang chủ QLTBIT tại địa chỉ: http://localhost:3001.",
         title="✅ CÀI ĐẶT HOÀN TẤT TRONG 1 PHÚT!",
         box_type="success"
     )
 
     add_heading_2(doc, "Thông tin tài khoản đăng nhập mặc định:")
     add_bullet_p(doc, "http://localhost:3001 (hoặc địa chỉ IP máy chủ của bạn)", "Địa chỉ trang web: ")
-    add_bullet_p(doc, "admin@company.com (hoặc admin@simplyit.com)", "Tên đăng nhập (Email): ")
+    add_bullet_p(doc, "admin@company.com", "Tên đăng nhập (Email): ")
     add_bullet_p(doc, "Admin@123 (Chữ A viết hoa)", "Mật khẩu: ")
 
     # ==================== PHẦN 4 ====================
@@ -345,10 +345,10 @@ def main():
     add_body_p(doc, "Để máy chủ tự động thu thập cấu hình của các máy tính trong văn phòng, bạn chỉ cần cho máy đó chạy Agent một lần duy nhất.")
 
     add_heading_2(doc, "Cách 1: Cài bằng Trình Cài Đặt 1-Click (Dễ nhất)")
-    add_bullet_p(doc, "Chép file Cai_Dat_SimplyIT.exe vào USB mang sang máy tính của nhân viên (hoặc gửi qua mạng nội bộ / Zalo).")
-    add_bullet_p(doc, "Nhấp đúp chuột mở file Cai_Dat_SimplyIT.exe.")
+    add_bullet_p(doc, "Chép file Cai_Dat_QLTBIT.exe vào USB mang sang máy tính của nhân viên (hoặc gửi qua mạng nội bộ / Zalo).")
+    add_bullet_p(doc, "Nhấp đúp chuột mở file Cai_Dat_QLTBIT.exe.")
     add_bullet_p(doc, "Tích chọn vào mục thứ 3: '💻 Chỉ cài đặt AGENT (Client)'.")
-    add_bullet_p(doc, "Ở ô 'Địa chỉ Máy Chủ SIMPLY IT', nhập địa chỉ IP của máy chủ trong mạng (Ví dụ: http://192.168.1.50:3001).")
+    add_bullet_p(doc, "Ở ô 'Địa chỉ Máy Chủ QLTBIT', nhập địa chỉ IP của máy chủ trong mạng (Ví dụ: http://192.168.1.50:3001).")
     add_bullet_p(doc, "Nhấn nút '🚀 BẮT ĐẦU CÀI ĐẶT NGAY'. Hoàn tất trong đúng 3 giây!")
 
     add_heading_2(doc, "Cách 2: Cài bằng Gói cài đặt nhanh (Dành cho bộ phận IT)")
@@ -380,7 +380,7 @@ def main():
 
     add_heading_2(doc, "5.3. Xem Cảnh Báo 'Tháo Trộm Linh Kiện' & Phần Mềm Lạ")
     add_body_p(doc, "Cách mở trên giao diện Web: Vào menu 'Tài sản' (Assets) ➔ Nhấp chuột vào thiết bị cần kiểm tra ➔ Chuyển sang Tab: 'Cấu hình Phần cứng & Kiểm kê'.")
-    add_body_p(doc, "Đây là tính năng độc quyền cực kỳ thông minh của SIMPLY IT:")
+    add_body_p(doc, "Đây là tính năng độc quyền cực kỳ thông minh của QLTBIT:")
     add_bullet_p(doc, "Cảnh báo động thông minh: Khung cảnh báo chỉ hiện ra KHI THỰC SỰ CÓ BẤT THƯỜNG. Nếu máy tính hoạt động ổn định, hệ thống hiển thị bảng cấu hình sạch màu xanh.")
     add_bullet_p(doc, "Nếu có ai đó tháo bớt 1 thanh RAM hoặc tráo đổi ổ cứng sang máy khác, trên chi tiết thiết bị sẽ lập tức hiện một khung màu cam nổi bật: '⚠️ PHÁT HIỆN THAY ĐỔI CẤU HÌNH PHẦN CỨNG!'.")
     add_bullet_p(doc, "Mục 'Nhật ký thay đổi' bên dưới sẽ ghi rõ: Ngày 03/10/2026, RAM giảm từ 16GB xuống còn 8GB (hoặc ổ cứng bị hoán đổi). Nhờ đó bạn phát hiện ngay ai đã can thiệp vào máy.")
@@ -416,9 +416,9 @@ def main():
     add_body_p(doc, "Vào menu 'Sơ đồ mặt bằng' để xem bản vẽ các phòng ban trong cơ quan. Bạn có thể kéo thả biểu tượng máy tính vào đúng bàn làm việc thực tế của nhân viên. Khi cần tìm máy tính của ai đang ở tầng mấy, phòng nào, bạn chỉ cần liếc nhìn sơ đồ là biết ngay.")
 
     add_heading_2(doc, "5.9. Hướng Dẫn Cập Nhật Phần Mềm Khi Có Code Mới (Update Server & Agent)")
-    add_body_p(doc, "Khi hệ thống SIMPLY IT có phiên bản mới hoặc thay đổi về mã nguồn:")
+    add_body_p(doc, "Khi hệ thống QLTBIT có phiên bản mới hoặc thay đổi về mã nguồn:")
     add_bullet_p(doc, "CÓ CẦN CÀI LẠI KHÔNG? -> HOÀN TOÀN KHÔNG CẦN CÀI LẠI! Toàn bộ cơ sở dữ liệu PostgreSQL và hình ảnh/chứng từ của bạn được giữ nguyên vẹn 100%.")
-    add_bullet_p(doc, "CẬP NHẬT Ở MÁY CHỦ (SERVER): Chỉ cần 1-Click! Thoát ứng dụng Simply IT ➔ Nhấp đúp chuột vào file 'update.bat' tại thư mục dự án. Hệ thống sẽ tự động cập nhật code mới, nâng cấp CSDL và biên dịch hoàn toàn tự động. Xong bấm bật lại SimplyIT_Server.exe là xong.", "- Bước 1: ")
+    add_bullet_p(doc, "CẬP NHẬT Ở MÁY CHỦ (SERVER): Chỉ cần 1-Click! Thoát ứng dụng QLTBIT ➔ Nhấp đúp chuột vào file 'update.bat' tại thư mục dự án. Hệ thống sẽ tự động cập nhật code mới, nâng cấp CSDL và biên dịch hoàn toàn tự động. Xong bấm bật lại QLTBIT_Server.exe là xong.", "- Bước 1: ")
     add_bullet_p(doc, "CẬP NHẬT Ở MÁY TRẠM (AGENT): 99% trường hợp KHÔNG CẦN LÀM GÌ CẢ! Do Agent chỉ là tác vụ ngầm định kỳ gửi thông tin phần cứng về máy chủ, mọi logic so sánh tháo trộm linh kiện hay phát hiện phần mềm crack đều do Server xử lý. Khi Server có tính năng mới, tất cả máy trạm tự động hưởng lợi ngay mà IT không cần đến từng máy.", "- Bước 2: ")
     add_bullet_p(doc, "KHI NÀO MỚI CẦN CẬP NHẬT AGENT? Chỉ khi có bản cập nhật file script thu thập mới hoặc khi cơ quan thay đổi địa chỉ IP của máy chủ. Khi đó chỉ cần copy file 'agent.ps1' trong thư mục GOI_CAI_DAT_AGENT đè sang máy trạm hoặc chạy lại Install_Agent.bat.", "- Lưu ý: ")
 
@@ -432,10 +432,10 @@ def main():
         ["Câu hỏi thường gặp", "Giải đáp & Cách xử lý siêu dễ"],
         [
             ["Làm sao để máy khác trong văn phòng mở được trang web?", "Trên máy khác trong cùng mạng Wi-Fi/LAN, mở trình duyệt gõ: http://<Địa_Chỉ_IP_Máy_Chủ>:3001.\n(Ví dụ: http://192.168.1.50:3001)."],
-            ["Nếu tắt máy tính chủ thì hệ thống có chạy không?", "Khi máy tính cài SIMPLY IT Server bị tắt, trang web sẽ tạm ngưng. Khi bạn bật máy tính lên lại, chỉ cần nhấp đúp vào biểu tượng ngoài màn hình Desktop là hệ thống tự hoạt động trở lại bình thường."],
+            ["Nếu tắt máy tính chủ thì hệ thống có chạy không?", "Khi máy tính cài QLTBIT Server bị tắt, trang web sẽ tạm ngưng. Khi bạn bật máy tính lên lại, chỉ cần nhấp đúp vào biểu tượng ngoài màn hình Desktop là hệ thống tự hoạt động trở lại bình thường."],
             ["Điện thoại báo 'Kết nối không riêng tư' khi mở camera quét QR?", "Vì cổng 3443 sử dụng chứng chỉ bảo mật nội bộ tự cấp của công ty. Bạn chỉ cần bấm 'Nâng cao' (Advanced) ➔ bấm 'Tiếp tục truy cập' (Proceed to site) là camera sẽ mở ngay bình thường."],
             ["Dữ liệu lưu ở đâu? Có sợ bị lộ ra ngoài mạng không?", "Toàn bộ dữ liệu nằm 100% trong máy tính của bạn tại thư mục pgsql/data, không hề gửi lên bất kỳ đám mây công cộng nào, đảm bảo an toàn tuyệt đối cho cơ quan."],
-            ["Nếu muốn khởi động lại máy chủ thì làm thế nào?", "Tìm biểu tượng SIMPLY IT ở góc phải màn hình máy tính (khay đồng hồ Windows) ➔ Nhấp chuột phải ➔ Chọn 'Khởi động lại'."]
+            ["Nếu muốn khởi động lại máy chủ thì làm thế nào?", "Tìm biểu tượng QLTBIT ở góc phải màn hình máy tính (khay đồng hồ Windows) ➔ Nhấp chuột phải ➔ Chọn 'Khởi động lại'."]
         ]
     )
 
@@ -449,8 +449,8 @@ def main():
         [Inches(2.5), Inches(2.2), Inches(2.5)],
         ["Tên tập tin (File)", "Công dụng", "Cách sử dụng"],
         [
-            ["Cai_Dat_SimplyIT.exe\n(hoặc SimplyIT_Setup.exe)", "Trình Cài Đặt Trọn Gói 1-Click (Cài Server, Agent hoặc cả hai)", "Nhấp đúp chuột để cài đặt hệ thống mới."],
-            ["SimplyIT_Server.exe", "Bộ khởi chạy Máy chủ Quản trị ngầm dưới khay hệ thống", "Nhấp đúp để bật máy chủ và cơ sở dữ liệu."],
+            ["Cai_Dat_QLTBIT.exe\n(hoặc QLTBIT_Setup.exe)", "Trình Cài Đặt Trọn Gói 1-Click (Cài Server, Agent hoặc cả hai)", "Nhấp đúp chuột để cài đặt hệ thống mới."],
+            ["QLTBIT_Server.exe", "Bộ khởi chạy Máy chủ Quản trị ngầm dưới khay hệ thống", "Nhấp đúp để bật máy chủ và cơ sở dữ liệu."],
             ["start_qltbit.bat", "Bảng điều khiển quản trị trung tâm bằng menu số [1-7]", "Nhấp đúp để chọn quét mạng, cài đặt, v.v."],
             ["GOI_CAI_DAT_AGENT", "Thư mục chứa gói cài đặt Agent máy trạm", "Copy thư mục này sang máy nhân viên để cài đặt."],
             ["push_to_github.bat", "Công cụ đồng bộ mã nguồn lên GitHub", "Dành cho kỹ thuật viên khi cần sao lưu code."],
@@ -460,7 +460,7 @@ def main():
 
     add_callout(
         doc,
-        "🎉 Chúc mừng bạn đã nắm vững toàn bộ cách cài đặt và vận hành hệ thống SIMPLY IT! Hệ thống này là phiên bản Community Edition hoàn toàn MIỄN PHÍ VĨNH VIỄN dành tặng cho cộng đồng doanh nghiệp và cơ quan tại Việt Nam.",
+        "🎉 Chúc mừng bạn đã nắm vững toàn bộ cách cài đặt và vận hành hệ thống QLTBIT! Hệ thống này là phiên bản Community Edition hoàn toàn MIỄN PHÍ VĨNH VIỄN dành tặng cho cộng đồng doanh nghiệp và cơ quan tại Việt Nam.",
         title="🌟 CHÚC BẠN VẬN HÀNH HỆ THỐNG THÀNH CÔNG VÀ HIỆU QUẢ!",
         box_type="success"
     )

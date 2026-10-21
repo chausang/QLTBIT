@@ -7,7 +7,7 @@ using System.Threading;
 using System.Net.Sockets;
 using System.Text.RegularExpressions;
 
-namespace SimplyITCommunityLauncher
+namespace QLTBITCommunityLauncher
 {
     static class Program
     {
@@ -65,7 +65,7 @@ namespace SimplyITCommunityLauncher
 
         private void InitializeComponent()
         {
-            this.Text = "SIMPLY IT - Community Edition (Máy Chủ Tự Động)";
+            this.Text = "QLTBIT - Community Edition (Máy Chủ Tự Động)";
             this.Size = new Size(580, 560);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -97,7 +97,7 @@ namespace SimplyITCommunityLauncher
 
             // Header Titles
             lblTitle = new Label();
-            lblTitle.Text = "SIMPLY IT — COMMUNITY EDITION";
+            lblTitle.Text = "QLTBIT — COMMUNITY EDITION";
             lblTitle.Font = new Font("Segoe UI", 13.5F, FontStyle.Bold);
             lblTitle.ForeColor = Color.FromArgb(0, 184, 212); // Cyan
             lblTitle.Location = new Point(20, 14);
@@ -121,7 +121,7 @@ namespace SimplyITCommunityLauncher
             this.Controls.Add(pnlStatus);
 
             lblStatus = new Label();
-            lblStatus.Text = "⏳ Đang khởi động hệ thống SIMPLY IT...";
+            lblStatus.Text = "⏳ Đang khởi động hệ thống QLTBIT...";
             lblStatus.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
             lblStatus.ForeColor = Color.FromArgb(180, 83, 9);
             lblStatus.Location = new Point(14, 10);
@@ -157,7 +157,7 @@ namespace SimplyITCommunityLauncher
 
             // Action Buttons
             btnLaunchBrowser = new Button();
-            btnLaunchBrowser.Text = "🌐 Mở Giao Diện SIMPLY IT (http://localhost:3001)";
+            btnLaunchBrowser.Text = "🌐 Mở Giao Diện QLTBIT (http://localhost:3001)";
             btnLaunchBrowser.Location = new Point(20, 398);
             btnLaunchBrowser.Size = new Size(525, 42);
             btnLaunchBrowser.BackColor = Color.FromArgb(25, 118, 210);
@@ -226,14 +226,14 @@ namespace SimplyITCommunityLauncher
 
             // System Tray Icon
             trayIcon = new NotifyIcon();
-            trayIcon.Text = "SIMPLY IT Community Edition";
+            trayIcon.Text = "QLTBIT Community Edition";
             if (this.Icon != null) trayIcon.Icon = this.Icon;
             else trayIcon.Icon = SystemIcons.Shield;
             trayIcon.Visible = true;
             trayIcon.DoubleClick += (s, e) => RestoreFromTray();
 
             ContextMenu trayMenu = new ContextMenu();
-            trayMenu.MenuItems.Add("🌐 Mở Giao Diện SIMPLY IT", (s, e) => {
+            trayMenu.MenuItems.Add("🌐 Mở Giao Diện QLTBIT", (s, e) => {
                 try { Process.Start(new ProcessStartInfo(targetUrl) { UseShellExecute = true }); } catch {}
             });
             trayMenu.MenuItems.Add("🖥️ Bảng Điều Khiển Máy Chủ", (s, e) => RestoreFromTray());
@@ -277,7 +277,7 @@ namespace SimplyITCommunityLauncher
         {
             this.ShowInTaskbar = false;
             this.WindowState = FormWindowState.Minimized;
-            trayIcon.ShowBalloonTip(2000, "SIMPLY IT", "Máy chủ đang chạy ngầm dưới khay hệ thống. Double-click icon để mở lại bất kỳ lúc nào.", ToolTipIcon.Info);
+            trayIcon.ShowBalloonTip(2000, "QLTBIT", "Máy chủ đang chạy ngầm dưới khay hệ thống. Double-click icon để mở lại bất kỳ lúc nào.", ToolTipIcon.Info);
         }
 
         private void RestoreFromTray()
@@ -402,7 +402,7 @@ namespace SimplyITCommunityLauncher
             Thread t = new Thread(() => {
                 try
                 {
-                    AppendLog("Bắt đầu kiểm tra hệ thống SIMPLY IT Community...");
+                    AppendLog("Bắt đầu kiểm tra hệ thống QLTBIT Community...");
 
                     // 1. Clean conflicting port 3001 if any
                     AppendLog("1/3 Kiểm tra và giải phóng cổng " + targetPort + "...");
@@ -502,7 +502,7 @@ namespace SimplyITCommunityLauncher
         {
             try
             {
-                UpdateStatusText("⏳ [2/3] Đang khởi động Web Server SIMPLY IT (Chế độ Production)...");
+                UpdateStatusText("⏳ [2/3] Đang khởi động Web Server QLTBIT (Chế độ Production)...");
                 AppendLog("🚀 [2/3] Bắt đầu chạy Web Server Production...");
 
                 ProcessStartInfo psi = new ProcessStartInfo();
@@ -550,7 +550,7 @@ namespace SimplyITCommunityLauncher
                 {
                     UpdateStatusText("❌ [Thiếu Node.js] Chưa phát hiện Node.js trên máy tính!");
                     AppendLog("❌ LỖI: Không tìm thấy node.exe trên máy tính!");
-                    AppendLog("👉 Vui lòng chạy SimplyIT_Setup.exe để hệ thống tự động cài đặt Node.js LTS.");
+                    AppendLog("👉 Vui lòng chạy QLTBIT_Setup.exe để hệ thống tự động cài đặt Node.js LTS.");
                     return;
                 }
 
@@ -645,7 +645,7 @@ namespace SimplyITCommunityLauncher
 
             pnlStatus.BackColor = Color.FromArgb(227, 242, 253); // Light Blue
             pnlStatus.BorderStyle = BorderStyle.FixedSingle;
-            lblStatus.Text = "✅ [3/3] SIMPLY IT đã sẵn sàng hoạt động (" + targetUrl + ")!";
+            lblStatus.Text = "✅ [3/3] QLTBIT đã sẵn sàng hoạt động (" + targetUrl + ")!";
             lblStatus.ForeColor = Color.FromArgb(13, 71, 161);
             progressBar.Style = ProgressBarStyle.Blocks;
             progressBar.Value = 100;
@@ -653,14 +653,14 @@ namespace SimplyITCommunityLauncher
             btnLaunchBrowser.Enabled = true;
             btnLaunchBrowser.BackColor = Color.FromArgb(0, 184, 212);
             btnLaunchBrowser.ForeColor = Color.FromArgb(10, 26, 47);
-            btnLaunchBrowser.Text = "🚀 MỞ GIAO DIỆN SIMPLY IT (" + targetUrl + ")";
+            btnLaunchBrowser.Text = "🚀 MỞ GIAO DIỆN QLTBIT (" + targetUrl + ")";
 
-            AppendLog("🎉 [3/3] SIMPLY IT ĐÃ SẴN SÀNG! Đang tự động mở trình duyệt...");
+            AppendLog("🎉 [3/3] QLTBIT ĐÃ SẴN SÀNG! Đang tự động mở trình duyệt...");
             try
             {
                 if (trayIcon != null && trayIcon.Visible)
                 {
-                    trayIcon.ShowBalloonTip(3000, "SIMPLY IT Sẵn Sàng", "Hệ thống đã hoạt động tại " + targetUrl + ".", ToolTipIcon.Info);
+                    trayIcon.ShowBalloonTip(3000, "QLTBIT Sẵn Sàng", "Hệ thống đã hoạt động tại " + targetUrl + ".", ToolTipIcon.Info);
                 }
             }
             catch {}

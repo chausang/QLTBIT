@@ -1,10 +1,10 @@
 ﻿@echo off
 chcp 65001 > nul
 color 0B
-title SIMPLY IT - Tự Động Cập Nhật Phiên Bản Mới
+title QLTBIT - Tự Động Cập Nhật Phiên Bản Mới
 
 echo ========================================================================
-echo         🚀 SIMPLY IT COMMUNITY EDITION - CÔNG CỤ TỰ ĐỘNG CẬP NHẬT
+echo         🚀 QLTBIT COMMUNITY EDITION - CÔNG CỤ TỰ ĐỘNG CẬP NHẬT
 echo ========================================================================
 echo.
 echo [!] Lưu ý quan trọng:
@@ -79,12 +79,12 @@ echo       🎉 CHÚC MỪNG! HỆ THỐNG ĐÃ CẬP NHẬT THÀNH CÔNG LÊN B
 echo ========================================================================
 echo.
 echo Bạn có thể khởi động lại phần mềm bằng cách:
-echo   - Click đúp vào file SimplyIT_Server.exe (nếu dùng bản Portable)
+echo   - Click đúp vào file QLTBIT_Server.exe (nếu dùng bản Portable)
 echo   - Hoặc gõ lệnh: npm start
 echo.
 set /p START_NOW="Bạn có muốn khởi động server ngay bây giờ không? (Y/N): "
 if /i "%START_NOW%"=="Y" (
-    echo Đang khởi động Simply IT Server...
+    echo Đang khởi động QLTBIT Server...
     start "" http://localhost:3001
     call npm start
 )

@@ -213,27 +213,27 @@ Bản cập nhật **v1.0.6** bổ sung toàn diện hệ sinh thái **Sao Lưu 
 
 ## [v1.0.5] - 02/10/2026
 
-Bản cập nhật **v1.0.5** giải quyết triệt để vấn đề cài đặt và triển khai hệ thống SIMPLY IT: Đóng gói thành công Trình cài đặt tự động 1-Click (`SimplyIT_Setup.exe` / `Cai_Dat_SimplyIT.exe`), tích hợp trọn gói Cơ sở dữ liệu PostgreSQL Portable, khắc phục lỗi khởi động Web Server, cho phép tùy chọn cài Máy Chủ, Agent hoặc cả hai trên cùng một máy tính.
+Bản cập nhật **v1.0.5** giải quyết triệt để vấn đề cài đặt và triển khai hệ thống QLTBIT: Đóng gói thành công Trình cài đặt tự động 1-Click (`QLTBIT_Setup.exe` / `Cai_Dat_QLTBIT.exe`), tích hợp trọn gói Cơ sở dữ liệu PostgreSQL Portable, khắc phục lỗi khởi động Web Server, cho phép tùy chọn cài Máy Chủ, Agent hoặc cả hai trên cùng một máy tính.
 
 ---
 
 ### 🌟 1. Tính Năng Mới & Nâng Cấp Triển Khai (Deployment & Installer)
 
-#### A. Trình Cài Đặt Trọn Gói 1-Click (`SimplyIT_Setup.exe` & `Cai_Dat_SimplyIT.exe`)
+#### A. Trình Cài Đặt Trọn Gói 1-Click (`QLTBIT_Setup.exe` & `Cai_Dat_QLTBIT.exe`)
 - **Giao diện đồ họa Wizard trực quan, chuyên nghiệp**:
   - Tích hợp 3 chế độ cài đặt linh hoạt:
     1. 🌟 **Cài đặt CẢ HAI: Server & Agent (Khuyên dùng)**: Vừa cài máy chủ quản trị trung tâm, vừa cài Agent tự giám sát chính máy tính này.
-    2. 🏢 **Chỉ cài đặt MÁY CHỦ (SIMPLY IT Server)**: Dành cho máy chủ trung tâm hoặc phòng máy chủ IT.
+    2. 🏢 **Chỉ cài đặt MÁY CHỦ (QLTBIT Server)**: Dành cho máy chủ trung tâm hoặc phòng máy chủ IT.
     3. 💻 **Chỉ cài đặt AGENT (Giám Sát Máy Trạm)**: Dành cho máy tính nhân viên, máy trạm các phòng ban trong mạng LAN / đa VLAN.
 - **Tự động hóa hoàn toàn 100% từ A-Z**:
   - **Kiểm tra & Tự động cài đặt Node.js LTS**: Nếu máy tính chưa có Node.js, bộ cài sẽ tự động tải và cài đặt ngầm.
   - **Tích hợp sẵn PostgreSQL Portable**: Đi kèm bộ binary PostgreSQL chuẩn, tự động tạo cấu trúc và khởi chạy cơ sở dữ liệu `it_asset_db` mà không cần cài đặt rườm rà.
   - **Tự động đồng bộ lược đồ bảng & nạp tài khoản mẫu**: Chạy Prisma Sync và Seed dữ liệu ban đầu (`admin@company.com / Admin@123`).
   - **Tự động cấu hình tường lửa Windows**: Mở cổng 3001 (HTTP) và 3443 (HTTPS QR Scanner) qua `netsh advfirewall`.
-  - **Tạo Shortcut màn hình Desktop**: Tạo biểu tượng SIMPLY IT Server với icon chuyên nghiệp.
-  - **Cài đặt Agent chạy ngầm vô hình**: Tự động đăng ký Windows Task Scheduler `SimplyIT_Audit` chạy bằng quyền `SYSTEM` định kỳ 15 phút/lần.
+  - **Tạo Shortcut màn hình Desktop**: Tạo biểu tượng QLTBIT Server với icon chuyên nghiệp.
+  - **Cài đặt Agent chạy ngầm vô hình**: Tự động đăng ký Windows Task Scheduler `QLTBIT_Audit` chạy bằng quyền `SYSTEM` định kỳ 15 phút/lần.
 
-#### B. Nâng Cấp Trình Điều Hành Máy Chủ (`SimplyIT_Server.exe`)
+#### B. Nâng Cấp Trình Điều Hành Máy Chủ (`QLTBIT_Server.exe`)
 - **Khắc phục lỗi đứng hình ở bước [2/3]**:
   - Sửa lỗi race condition khi khởi tạo cửa sổ WinForms khiến nhật ký tiến trình (Logs) bị rỗng.
   - Nhận diện linh hoạt đường dẫn `node.exe` trên toàn hệ thống (kể cả khi vừa cài đặt mà chưa khởi động lại máy).
@@ -397,7 +397,7 @@ Bản cập nhật **v1.0.1** tập trung nâng cấp trải nghiệm người d
 
 #### B. Đồng Bộ Thư Mục Tự Động (Directory Sync)
 - **API `POST /api/users/sync-directory`**: Tự động kết nối với Microsoft Graph (M365) và máy chủ LDAP/AD để quét danh sách nhân viên.
-- **Tự động xử lý**: Nếu tài khoản bị vô hiệu hóa hoặc đã xóa khỏi thư mục công ty, Simply IT sẽ tự động chuyển tài khoản sang Nghỉ việc và ghi nhận Audit Log.
+- **Tự động xử lý**: Nếu tài khoản bị vô hiệu hóa hoặc đã xóa khỏi thư mục công ty, QLTBIT sẽ tự động chuyển tài khoản sang Nghỉ việc và ghi nhận Audit Log.
 - **Nút bấm trực quan**: Bổ sung nút `🔄 Đồng Bộ Thư Mục` trực tiếp trên thanh công cụ trang Người Dùng.
 
 #### C. Menu Chuột Phải Thao Tác Nhanh (Right-Click Context Menu)
@@ -494,4 +494,4 @@ Bản cập nhật **v1.0.1** tập trung nâng cấp trải nghiệm người d
    npm run build
    npm start
    ```
-   *(Hoặc khởi động lại qua ứng dụng Launcher `SimplyIT_Server.exe`)*
+   *(Hoặc khởi động lại qua ứng dụng Launcher `QLTBIT_Server.exe`)*

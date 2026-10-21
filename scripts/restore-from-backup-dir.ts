@@ -6,7 +6,7 @@ import { restoreDatabaseFromJson } from '@/lib/backup-engine';
 
 async function main() {
   console.log('====================================================');
-  console.log('🔄 Simply IT - Khôi Phục Hệ Thống Trực Tiếp Từ Thư Mục');
+  console.log('🔄 QLTBIT - Khôi Phục Hệ Thống Trực Tiếp Từ Thư Mục');
   console.log('====================================================\n');
 
   // 1. Determine target directory

@@ -453,9 +453,9 @@ export async function POST(request: NextRequest) {
                   importedUsers.push({ email: uEmail, fullName: lu.fullName, provider: 'LDAP / Active Directory' });
                 }
               } else {
-                // If account exists in Simply IT
+                // If account exists in QLTBIT
                 if (lu.isDisabled && existingUser.isActive) {
-                  // User disabled in Active Directory -> deactivate in Simply IT
+                  // User disabled in Active Directory -> deactivate in QLTBIT
                   await prisma.user.update({
                     where: { id: existingUser.id },
                     data: { isActive: false },

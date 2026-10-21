@@ -1,4 +1,4 @@
-# 📖 HƯỚNG DẪN CÀI ĐẶT SIMPLY IT COMMUNITY EDITION TỪ A ĐẾN Z
+# 📖 HƯỚNG DẪN CÀI ĐẶT QLTBIT COMMUNITY EDITION TỪ A ĐẾN Z
 > **Dành cho mọi người dùng — Dễ hiểu, chi tiết từng bước, không cần am hiểu sâu về IT vẫn làm theo thành công 100%!**
 
 ---
@@ -81,7 +81,7 @@ cd QLTBIT
 Bây giờ mọi thứ đã sẵn sàng 100%, bạn có thể chọn 1 trong 2 cách mở:
 
 * **Cách nhanh nhất (Khuyên dùng)**:
-  * Trong thư mục, chỉ cần **click đúp vào file `SimplyIT_Server.exe`**.
+  * Trong thư mục, chỉ cần **click đúp vào file `QLTBIT_Server.exe`**.
   * Phần mềm sẽ tự động khởi động dịch vụ cơ sở dữ liệu, chạy ngầm dưới khay hệ thống (System Tray - cạnh đồng hồ Windows) và tự động bật trình duyệt web lên!
 * **Cách bằng dòng lệnh**:
   * Chạy: `npm run build` (chỉ cần chạy lần đầu).
@@ -109,7 +109,7 @@ Nếu bạn không muốn cài PostgreSQL và cấu hình từng bước rườm
    ```
 4. **Hệ thống sẽ tự động**:
    * Tải và cấu hình máy chủ cơ sở dữ liệu PostgreSQL chuẩn 16.
-   * Biên dịch ứng dụng SIMPLY IT.
+   * Biên dịch ứng dụng QLTBIT.
    * Tự động kết nối và nạp sẵn dữ liệu ban đầu.
    * Chạy ngầm toàn bộ dịch vụ 24/7.
 
@@ -215,7 +215,7 @@ Khi mở phần mềm lên lần đầu tiên, hãy sử dụng tài khoản Qu�
 
 ## 🤖 HƯỚNG DẪN CẤU HÌNH & THÊM KHÓA API AI (GOOGLE GEMINI & OPENAI)
 
-Hệ thống SIMPLY IT Community Edition tích hợp sẵn **Trí tuệ nhân tạo (AI Copilot & OCR Hóa đơn)** hoàn toàn **MIỄN PHÍ** và **KHÔNG CẦN BẢN QUYỀN ENTERPRISE**. Bạn chỉ cần sử dụng API Key cá nhân của mình để kích hoạt sức mạnh AI!
+Hệ thống QLTBIT Community Edition tích hợp sẵn **Trí tuệ nhân tạo (AI Copilot & OCR Hóa đơn)** hoàn toàn **MIỄN PHÍ** và **KHÔNG CẦN BẢN QUYỀN ENTERPRISE**. Bạn chỉ cần sử dụng API Key cá nhân của mình để kích hoạt sức mạnh AI!
 
 ### 🌟 Tính năng AI sẽ được kích hoạt ngay khi bạn nhập Key:
 * 💬 **Trợ lý ảo AI Copilot Chatbot**: Trả lời tự động câu hỏi hỗ trợ kỹ thuật (mạng, máy tính, máy in, email), hướng dẫn người dùng tự khắc phục sự cố.
@@ -245,9 +245,9 @@ Nếu bạn muốn sử dụng mô hình GPT-4o hoặc GPT-4o-mini của OpenAI:
 
 ---
 
-### 📌 Các bước nhập Key vào hệ thống SIMPLY IT:
+### 📌 Các bước nhập Key vào hệ thống QLTBIT:
 
-1. **Bước 1**: Mở trình duyệt, đăng nhập vào **SIMPLY IT** bằng tài khoản Admin (`admin@company.com`).
+1. **Bước 1**: Mở trình duyệt, đăng nhập vào **QLTBIT** bằng tài khoản Admin (`admin@company.com`).
 2. **Bước 2**: Trên thanh Menu bên trái, nhấp vào biểu tượng **Cài đặt hệ thống (Settings)** (icon ⚙️ ở góc dưới cùng).
 3. **Bước 3**: Trong danh sách cài đặt, nhấp chọn mục **"Trí Tuệ Nhân Tạo (AI)"** (icon 🤖).
 4. **Bước 4**: Chọn Nhà cung cấp AI muốn dùng:
@@ -317,13 +317,13 @@ docker compose up -d --build
 ## ❓ XỬ LÝ SỰ CỐ THƯỜNG GẶP (TROUBLESHOOTING)
 
 ### 1. Báo lỗi: "Port 3000 hoặc 3001 already in use" (Cổng mạng bị trùng)
-* **Nguyên nhân**: Đang có một phần mềm khác (hoặc một bản Simply IT cũ) chạy ngầm chiếm cổng.
+* **Nguyên nhân**: Đang có một phần mềm khác (hoặc một bản QLTBIT cũ) chạy ngầm chiếm cổng.
 * **Cách khắc phục trên Windows**:
   * Mở PowerShell với quyền Admin và gõ:
     ```powershell
     Get-Process -Id (Get-NetTCPConnection -LocalPort 3001).OwningProcess | Stop-Process -Force
     ```
-  * Hoặc mở Task Manager > tìm tiến trình `Node.js JavaScript Runtime` hoặc `SimplyIT_Server.exe` rồi chọn **End Task**.
+  * Hoặc mở Task Manager > tìm tiến trình `Node.js JavaScript Runtime` hoặc `QLTBIT_Server.exe` rồi chọn **End Task**.
 
 ### 2. Báo lỗi: "Can't reach database server at localhost:5432"
 * **Nguyên nhân**: Dịch vụ PostgreSQL chưa được bật hoặc sai mật khẩu trong file `.env`.

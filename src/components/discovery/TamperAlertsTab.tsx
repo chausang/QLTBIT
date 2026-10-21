@@ -250,7 +250,7 @@ export function TamperAlertsTab() {
     setIsExporting(true);
     try {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT Asset Management';
+      workbook.creator = 'QLTBIT Asset Management';
       workbook.created = new Date();
 
       // Sheet 1: Active Alerts

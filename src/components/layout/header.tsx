@@ -167,7 +167,7 @@ export function Header({
   // Update browser tab document.title dynamically
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.title = `${currentTitle} | SIMPLY IT`;
+      document.title = `${currentTitle} | QLTBIT`;
     }
   }, [currentTitle]);
 
@@ -448,7 +448,7 @@ export function Header({
               }}
             />
             <span className="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight hidden sm:inline">
-              SIMPLY IT
+              QLTBIT
             </span>
           </Link>
 
@@ -715,7 +715,7 @@ export function Header({
                     <img src="/logo-icon.png" alt="Logo" className="w-full h-full object-contain" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-extrabold text-white tracking-wide">SIMPLY IT</h4>
+                    <h4 className="text-sm font-extrabold text-white tracking-wide">QLTBIT</h4>
                     <p className="text-[10.5px] text-cyan-400 font-medium">Do Less — Achieve More</p>
                   </div>
                 </div>
@@ -781,7 +781,7 @@ export function Header({
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-2.5 border-b border-slate-700/60">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-base font-extrabold text-white">SIMPLY IT PLATFORM</h3>
+                            <h3 className="text-base font-extrabold text-white">QLTBIT PLATFORM</h3>
                             <span className="px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-400/30">
                               {language === 'en' ? 'ITSM & Enterprise Operations' : 'Hệ Thống Vận Hành CNTT'}
                             </span>
@@ -839,7 +839,7 @@ export function Header({
                               {language === 'en' ? 'Edition & License Status' : 'Phiên Bản Đang Dùng & Bản Quyền'}
                             </h4>
                             <p className="text-[10px] text-slate-500">
-                              SIMPLY IT v1.0.4
+                              QLTBIT v1.0.4
                             </p>
                           </div>
                         </div>
@@ -988,7 +988,7 @@ export function Header({
                               {language === 'en' ? 'System License & Edition' : 'Thông Tin Giấy Phép & Bản Quyền'}
                             </h4>
                             <p className="text-[10px] text-slate-400">
-                              SIMPLY IT ITSM Platform v1.0.4
+                              QLTBIT ITSM Platform v1.0.4
                             </p>
                           </div>
                         </div>
@@ -1193,7 +1193,7 @@ export function Header({
 
               {/* Footer */}
               <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">© 2026 SIMPLY IT Platform</span>
+                <span className="text-slate-400">© 2026 QLTBIT Platform</span>
                 <button
                   type="button"
                   onClick={() => setIsSystemHealthOpen(false)}

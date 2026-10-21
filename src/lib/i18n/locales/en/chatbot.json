@@ -1,7 +1,7 @@
 {
-  "chatbot.title": "SIMPLY IT Virtual Assistant",
+  "chatbot.title": "QLTBIT Virtual Assistant",
   "chatbot.subtitle": "Intelligent IT Support 24/7",
-  "chatbot.welcome": "👋 Hello! I am the **SIMPLY IT Virtual Assistant**. Are you experiencing issues with your computer, network, Outlook, or need system lookups?",
+  "chatbot.welcome": "👋 Hello! I am the **QLTBIT Virtual Assistant**. Are you experiencing issues with your computer, network, Outlook, or need system lookups?",
   "chatbot.input_placeholder": "Type a question, issue (e.g. vpn, printer, outlook...)",
   "chatbot.input_placeholder_admin": "Admin: Ask questions, check stats, inventory...",
   "chatbot.send": "Send",

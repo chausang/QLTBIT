@@ -652,7 +652,7 @@ export default function SparePartsPage() {
     try {
       const ExcelJS = await import('exceljs');
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT [Community Edition]';
+      workbook.creator = 'QLTBIT [Community Edition]';
       const sheet = workbook.addWorksheet(isEn ? 'Spare Parts Inventory' : 'Kho Linh Kiện IT', {
         views: [{ showGridLines: true }],
       });

@@ -283,14 +283,14 @@ export function HealthAlertPoliciesTab() {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-semibold">
               <Sliders className="w-3.5 h-3.5" />
-              <span>{isEn ? 'SIMPLY IT Health Alert Engine' : 'Quy Chuẩn Giám Sát IT Health v4'}</span>
+              <span>{isEn ? 'QLTBIT Health Alert Engine' : 'Quy Chuẩn Giám Sát IT Health v4'}</span>
             </div>
             <h2 className="text-xl font-bold tracking-tight text-white">
               {isEn ? 'Device Health & Metric Alert Policies' : 'Chính Sách Cảnh Báo Sức Khỏe Thiết Bị'}
             </h2>
             <p className="text-xs text-blue-200/80 max-w-2xl leading-relaxed">
               {isEn
-                ? 'Server-side evaluation engine. Thresholds, hysteresis auto-resolve, and automated ITSM ticket creation for Windows devices running SIMPLY IT Agent.'
+                ? 'Server-side evaluation engine. Thresholds, hysteresis auto-resolve, and automated ITSM ticket creation for Windows devices running QLTBIT Agent.'
                 : 'Động cơ đánh giá ngưỡng tập trung trên Máy Chủ. Tự động kiểm tra duy trì (Sustained Check), cơ chế hồi trễ (Hysteresis Auto-Resolve) và tự tạo Ticket ITSM cho kỹ thuật viên.'}
             </p>
           </div>

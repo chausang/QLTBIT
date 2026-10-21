@@ -1,5 +1,5 @@
 // src/lib/email-inbound.ts
-// SIMPLY IT — Inbound Email-to-Ticket & Auto-Routing Service
+// QLTBIT — Inbound Email-to-Ticket & Auto-Routing Service
 // Tự động tiếp nhận Email qua IMAP -> Bóc tách -> Tạo Ticket / Phản hồi Ticket -> Phân tuyến thông minh
 
 import { ImapFlow } from 'imapflow';

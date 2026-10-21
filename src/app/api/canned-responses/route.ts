@@ -9,7 +9,7 @@ const DEFAULT_TEMPLATES = [
     title: 'Đặt lại mật khẩu tạm thời',
     shortcut: '/pass',
     category: 'ACCOUNT',
-    content: 'Chào anh/chị,\nBộ phận IT đã hỗ trợ đặt lại mật khẩu tài khoản của anh/chị. Mật khẩu tạm thời là: SimplyIT@2026.\nAnh/chị vui lòng đăng nhập và đổi sang mật khẩu cá nhân mới ngay nhé.',
+    content: 'Chào anh/chị,\nBộ phận IT đã hỗ trợ đặt lại mật khẩu tài khoản của anh/chị. Mật khẩu tạm thời là: QLTBIT@2026.\nAnh/chị vui lòng đăng nhập và đổi sang mật khẩu cá nhân mới ngay nhé.',
   },
   {
     title: 'Hẹn lịch hỗ trợ trực tiếp',

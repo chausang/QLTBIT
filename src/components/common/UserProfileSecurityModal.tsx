@@ -431,8 +431,8 @@ export function UserProfileSecurityModal() {
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {txt(
                         'Chọn ngôn ngữ giao diện sử dụng trên hệ thống',
-                        'Select your preferred interface language across Simply IT',
-                        'Simply IT全体で使用する表示言語を選択してください'
+                        'Select your preferred interface language across QLTBIT',
+                        'QLTBIT全体で使用する表示言語を選択してください'
                       )}
                     </p>
                   </div>
@@ -706,9 +706,9 @@ export function UserProfileSecurityModal() {
                       </h4>
                       <p className="text-xs text-blue-800 dark:text-blue-300/90 mt-1 leading-relaxed">
                         {txt(
-                          'Tài khoản của bạn đăng nhập qua Single Sign-On (SSO). Mật khẩu được quản lý và bảo vệ bởi dịch vụ Microsoft 365 của cơ quan/doanh nghiệp. Simply IT không trực tiếp lưu trữ hay thay đổi mật khẩu này.',
-                          'Your account is authenticated via your organization Microsoft 365 Single Sign-On. Simply IT does not store your login password.',
-                          'あなたのアカウントは組織のMicrosoft 365シングルサインオンで認証されています。Simply ITはログインパスワードを直接保持していません。'
+                          'Tài khoản của bạn đăng nhập qua Single Sign-On (SSO). Mật khẩu được quản lý và bảo vệ bởi dịch vụ Microsoft 365 của cơ quan/doanh nghiệp. QLTBIT không trực tiếp lưu trữ hay thay đổi mật khẩu này.',
+                          'Your account is authenticated via your organization Microsoft 365 Single Sign-On. QLTBIT does not store your login password.',
+                          'あなたのアカウントは組織のMicrosoft 365シングルサインオンで認証されています。QLTBITはログインパスワードを直接保持していません。'
                         )}
                       </p>
                     </div>
@@ -736,9 +736,9 @@ export function UserProfileSecurityModal() {
                       </li>
                       <li>
                         {txt(
-                          'Mật khẩu mới sẽ tự động có hiệu lực ngay ở lần đăng nhập Simply IT kế tiếp.',
+                          'Mật khẩu mới sẽ tự động có hiệu lực ngay ở lần đăng nhập QLTBIT kế tiếp.',
                           'Your new password will take effect immediately upon next login.',
-                          '次回Simply ITへのログイン時より新しいパスワードが有効になります。'
+                          '次回QLTBITへのログイン時より新しいパスワードが有効になります。'
                         )}
                       </li>
                     </ol>
@@ -821,9 +821,9 @@ export function UserProfileSecurityModal() {
                         <span className="w-5 h-5 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 font-bold flex items-center justify-center text-[10px] shrink-0">3</span>
                         <span>
                           {txt(
-                            'Sau khi Windows xác nhận thành công, mật khẩu mới sẽ tự động đồng bộ ngay lập tức cho Simply IT.',
-                            'Once confirmed by Windows, your new password will automatically sync with Simply IT.',
-                            'Windowsで更新が完了すると、Simply ITにも即時に自動同期されます。'
+                            'Sau khi Windows xác nhận thành công, mật khẩu mới sẽ tự động đồng bộ ngay lập tức cho QLTBIT.',
+                            'Once confirmed by Windows, your new password will automatically sync with QLTBIT.',
+                            'Windowsで更新が完了すると、QLTBITにも即時に自動同期されます。'
                           )}
                         </span>
                       </div>

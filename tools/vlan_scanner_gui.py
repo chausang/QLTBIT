@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 ==============================================================================
-SIMPLY IT - Giao Diện Quét Mạng Tự Động Đa VLAN (GUI)
+QLTBIT - Giao Diện Quét Mạng Tự Động Đa VLAN (GUI)
 ==============================================================================
 Giao diện trực quan đồ họa (Tkinter) giúp Quản trị viên IT quét toàn bộ các dải
 VLAN trong doanh nghiệp (VLAN Văn Phòng, Máy Chủ, Máy In, Camera IP, Nhà Máy...)
-và đồng bộ trực tiếp lên hệ thống SIMPLY IT chỉ với 1 click!
+và đồng bộ trực tiếp lên hệ thống QLTBIT chỉ với 1 click!
 ==============================================================================
 """
 
@@ -20,12 +20,12 @@ from tkinter import ttk, messagebox, filedialog
 
 # Add current tools folder to sys.path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from vlan_scanner import scan_vlan_subnets, push_to_simply_it
+from vlan_scanner import scan_vlan_subnets, push_to_qltbit
 
 class VlanScannerApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("SIMPLY IT — Quét Mạng Tự Động Đa VLAN (Multi-VLAN Scanner)")
+        self.root.title("QLTBIT — Quét Mạng Tự Động Đa VLAN (Multi-VLAN Scanner)")
         self.root.geometry("980x640")
         self.root.minsize(850, 500)
 
@@ -51,7 +51,7 @@ class VlanScannerApp:
 
         title_lbl = tk.Label(
             header_frame,
-            text="📡 SIMPLY IT — CÔNG CỤ QUÉT MẠNG ĐA VLAN & PHÁT HIỆN THIẾT BỊ",
+            text="📡 QLTBIT — CÔNG CỤ QUÉT MẠNG ĐA VLAN & PHÁT HIỆN THIẾT BỊ",
             font=("Segoe UI", 12, "bold"),
             fg="#38bdf8",
             bg="#1e293b"
@@ -89,7 +89,7 @@ class VlanScannerApp:
         hint_lbl.grid(row=0, column=2, sticky="w", padx=4)
 
         # Server URL input
-        tk.Label(cfg_frame, text="Địa chỉ Máy chủ SIMPLY IT:", font=("Segoe UI", 9, "bold"), bg=self.bg_color).grid(row=1, column=0, sticky="w", pady=4)
+        tk.Label(cfg_frame, text="Địa chỉ Máy chủ QLTBIT:", font=("Segoe UI", 9, "bold"), bg=self.bg_color).grid(row=1, column=0, sticky="w", pady=4)
         self.entry_server = ttk.Entry(cfg_frame, width=35, font=("Consolas", 10))
         self.entry_server.grid(row=1, column=1, sticky="w", padx=8, pady=4)
         self.entry_server.insert(0, "http://localhost:3001")
@@ -251,21 +251,21 @@ class VlanScannerApp:
         self.btn_sync.configure(state="disabled", text="⏳ Đang Đồng Bộ...")
 
         def _do_sync():
-            succ, fail = push_to_simply_it(self.discovered_devices, server_url)
+            succ, fail = push_to_qltbit(self.discovered_devices, server_url)
             def on_sync_done():
                 self.btn_sync.configure(state="normal", text="☁️ Đồng Bộ Vào Hệ Thống")
                 if succ > 0:
                     messagebox.showinfo(
                         "Đồng Bộ Thành Công",
-                        f"✅ Đã đồng bộ thành công {succ} thiết bị vào hệ thống SIMPLY IT!\n"
+                        f"✅ Đã đồng bộ thành công {succ} thiết bị vào hệ thống QLTBIT!\n"
                         f"(Thất bại/Bỏ qua: {fail})\n\n"
                         f"Bạn có thể mở Dashboard tại {server_url} để xem ngay."
                     )
                 else:
                     messagebox.showwarning(
                         "Chưa Thể Đồng Bộ",
-                        f"⚠️ Không thể kết nối tới máy chủ SIMPLY IT tại {server_url}.\n\n"
-                        f"Vui lòng đảm bảo Web Server SIMPLY IT đang được bật (qua file SimplyIT_Server.exe) rồi thử lại!"
+                        f"⚠️ Không thể kết nối tới máy chủ QLTBIT tại {server_url}.\n\n"
+                        f"Vui lòng đảm bảo Web Server QLTBIT đang được bật (qua file QLTBIT_Server.exe) rồi thử lại!"
                     )
             self.root.after(0, on_sync_done)
 

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       } catch {}
 
       payload = {
-        text: `🔔 <b>[SIMPLY IT] Kiểm tra kết nối Telegram Bot thành công! 🎉</b>\n⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}\n🤖 <b>Trạng thái:</b> Bot đã sẵn sàng nhận cảnh báo sự cố IT & Đơn duyệt!`,
+        text: `🔔 <b>[QLTBIT] Kiểm tra kết nối Telegram Bot thành công! 🎉</b>\n⏰ <b>Thời gian:</b> ${new Date().toLocaleString('vi-VN')}\n🤖 <b>Trạng thái:</b> Bot đã sẵn sàng nhận cảnh báo sự cố IT & Đơn duyệt!`,
         parse_mode: 'HTML',
         disable_web_page_preview: false,
       };
@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
         '@type': 'MessageCard',
         '@context': 'http://schema.org/extensions',
         themeColor: '2563EB',
-        summary: 'Kiểm tra kết nối Webhook SIMPLY IT',
+        summary: 'Kiểm tra kết nối Webhook QLTBIT',
         sections: [
           {
-            activityTitle: '🔔 Kiểm tra kết nối Webhook SIMPLY IT thành công! 🎉',
+            activityTitle: '🔔 Kiểm tra kết nối Webhook QLTBIT thành công! 🎉',
             activitySubtitle: new Date().toLocaleString('vi-VN'),
             facts: [
-              { name: 'Hệ thống', value: 'SIMPLY IT' },
+              { name: 'Hệ thống', value: 'QLTBIT' },
               { name: 'Trạng thái', value: 'Hoạt động tốt' },
             ],
             markdown: true,
@@ -68,13 +68,13 @@ export async function POST(request: NextRequest) {
       };
     } else if (provider === 'slack') {
       payload = {
-        text: `🔔 *[SIMPLY IT]* Kiểm tra kết nối Webhook thành công! 🎉 (${new Date().toLocaleString('vi-VN')})`,
+        text: `🔔 *[QLTBIT]* Kiểm tra kết nối Webhook thành công! 🎉 (${new Date().toLocaleString('vi-VN')})`,
       };
     } else {
       payload = {
         event: 'test.ping',
         timestamp: new Date().toISOString(),
-        message: 'Kết nối Webhook thành công từ SIMPLY IT!',
+        message: 'Kết nối Webhook thành công từ QLTBIT!',
       };
     }
 

@@ -262,7 +262,7 @@ export function CrossCompanyMatrix({
   const handleExportExcel = async () => {
     try {
       const wb = new ExcelJS.Workbook();
-      wb.creator = 'Simply IT SAM Engine';
+      wb.creator = 'QLTBIT SAM Engine';
 
       // Sheet 1: Bảng Cân Đối Bù Trừ
       const ws1 = wb.addWorksheet(t('licenses.matrix.excel_sheet_settlement', 'Quyết Toán Bù Trừ'));

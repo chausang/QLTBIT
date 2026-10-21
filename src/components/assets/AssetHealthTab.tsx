@@ -85,8 +85,8 @@ export function AssetHealthTab({ assetId, assetName }: AssetHealthTabProps) {
           </h4>
           <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
             {isEn
-              ? 'This device has not yet reported health data via SIMPLY IT Agent v4 (-Mode Health). Ensure the scheduled task is running.'
-              : 'Thiết bị này chưa gửi báo cáo sức khỏe qua SIMPLY IT Agent v4 (-Mode Health). Hãy đảm bảo Scheduled Task trên máy trạm đang hoạt động.'}
+              ? 'This device has not yet reported health data via QLTBIT Agent v4 (-Mode Health). Ensure the scheduled task is running.'
+              : 'Thiết bị này chưa gửi báo cáo sức khỏe qua QLTBIT Agent v4 (-Mode Health). Hãy đảm bảo Scheduled Task trên máy trạm đang hoạt động.'}
           </p>
         </div>
         <button
@@ -108,8 +108,8 @@ export function AssetHealthTab({ assetId, assetName }: AssetHealthTabProps) {
         <Activity className="w-8 h-8 text-slate-400 mx-auto" />
         <p className="text-xs text-slate-500">
           {isEn
-            ? 'No health record found for this asset. Deploy SIMPLY IT Agent to begin monitoring.'
-            : 'Chưa có bản ghi sức khỏe cho thiết bị này. Hãy cài đặt SIMPLY IT Agent để bắt đầu giám sát tự động.'}
+            ? 'No health record found for this asset. Deploy QLTBIT Agent to begin monitoring.'
+            : 'Chưa có bản ghi sức khỏe cho thiết bị này. Hãy cài đặt QLTBIT Agent để bắt đầu giám sát tự động.'}
         </p>
       </div>
     );

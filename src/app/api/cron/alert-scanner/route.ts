@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: 'Thiếu Telegram Bot Token hoặc Chat ID' }, { status: 400 });
       }
 
-      const testMsg = `🧪 <b>[SIMPLY IT] Kiểm tra kết nối Telegram Bot thành công!</b>\n⏱ Thời gian: ${new Date().toLocaleString('vi-VN')}\n\nHệ thống đã sẵn sàng gửi các cảnh báo tự động về hạn bản quyền, dịch vụ IT và bảo hành thiết bị.`;
+      const testMsg = `🧪 <b>[QLTBIT] Kiểm tra kết nối Telegram Bot thành công!</b>\n⏱ Thời gian: ${new Date().toLocaleString('vi-VN')}\n\nHệ thống đã sẵn sàng gửi các cảnh báo tự động về hạn bản quyền, dịch vụ IT và bảo hành thiết bị.`;
       const res = await sendTelegramMessage(botToken, chatId, testMsg);
       if (res.success) {
         return NextResponse.json({ success: true, message: 'Đã gửi tin nhắn thử nghiệm tới Telegram thành công!' });
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       const testPayload = {
         event: 'alert.test_connection',
         timestamp: new Date().toISOString(),
-        message: 'Kiểm tra kết nối Webhook từ Simply IT thành công!',
+        message: 'Kiểm tra kết nối Webhook từ QLTBIT thành công!',
       };
       const res = await sendZaloWebhook(webhookUrl, testPayload);
       if (res.success) {
@@ -94,14 +94,14 @@ export async function POST(req: NextRequest) {
 
       const testHtml = `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #2563eb;">🧪 Kiểm tra cấu hình Email cảnh báo - Simply IT</h2>
+          <h2 style="color: #2563eb;">🧪 Kiểm tra cấu hình Email cảnh báo - QLTBIT</h2>
           <p>Email này được gửi để xác nhận tính năng gửi email cảnh báo tự động hoạt động bình thường.</p>
           <p>Thời gian: <b>${new Date().toLocaleString('vi-VN')}</b></p>
         </div>
       `;
       const res = await sendEmail({
         to: email,
-        subject: '[SIMPLY IT] Thử nghiệm gửi email cảnh báo',
+        subject: '[QLTBIT] Thử nghiệm gửi email cảnh báo',
         html: testHtml,
       });
 

@@ -1,13 +1,13 @@
 @echo off
 setlocal EnableDelayedExpansion
-title SIMPLY IT - KIEM KE MAY TRAM TUC THI
+title QLTBIT - KIEM KE MAY TRAM TUC THI
 chcp 65001 >nul 2>&1
 cd /d "%~dp0"
 
 :: 1. Kiem tra va xac dinh file script agent.ps1
 set "SCRIPT_PATH="
 if exist "%~dp0agent.ps1" set "SCRIPT_PATH=%~dp0agent.ps1"
-if not defined SCRIPT_PATH if exist "C:\ProgramData\SimplyIT\agent.ps1" set "SCRIPT_PATH=C:\ProgramData\SimplyIT\agent.ps1"
+if not defined SCRIPT_PATH if exist "C:\ProgramData\QLTBIT\agent.ps1" set "SCRIPT_PATH=C:\ProgramData\QLTBIT\agent.ps1"
 if not defined SCRIPT_PATH if exist "%~dp0..\..\public\scripts\get_system_info.ps1" set "SCRIPT_PATH=%~dp0..\..\public\scripts\get_system_info.ps1"
 
 if defined SCRIPT_PATH goto :HAVE_SCRIPT
@@ -24,8 +24,8 @@ exit /b 1
 :HAVE_SCRIPT
 :: 2. Doc dia chi may chu da luu truoc do
 set "SERVER_URL="
-if exist "C:\ProgramData\SimplyIT\server_url.txt" (
-    for /f "usebackq delims=" %%i in ("C:\ProgramData\SimplyIT\server_url.txt") do (
+if exist "C:\ProgramData\QLTBIT\server_url.txt" (
+    for /f "usebackq delims=" %%i in ("C:\ProgramData\QLTBIT\server_url.txt") do (
         if not "%%i"=="" set "SERVER_URL=%%i"
     )
 )
@@ -34,7 +34,7 @@ if defined SERVER_URL goto :READY_SCAN
 
 set "DEFAULT_SERVER=http://192.168.1.100:3000"
 echo.
-echo Nhap dia chi May Chu SIMPLY IT.
+echo Nhap dia chi May Chu QLTBIT.
 echo Vi du: http://192.168.1.9:3000 hoac https://it.mycompany.com:3443
 set "SERVER_INPUT="
 set /p "SERVER_INPUT=Dia chi May Chu [Mac dinh: !DEFAULT_SERVER!]: "
@@ -57,7 +57,7 @@ if !errorlevel! neq 0 (
 
 echo.
 echo ==============================================================================
-echo       SIMPLY IT - KIEM KE THONG SO MAY TRAM VA GUI VE MAY CHU
+echo       QLTBIT - KIEM KE THONG SO MAY TRAM VA GUI VE MAY CHU
 echo ==============================================================================
 echo [*] Script  : !SCRIPT_PATH!
 echo [*] May chu : !SERVER_URL!

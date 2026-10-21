@@ -1,4 +1,4 @@
-# 📚 TÀI LIỆU TOÀN DIỆN: HƯỚNG DẪN CÀI ĐẶT & SỬ DỤNG HỆ THỐNG SIMPLY IT (SERVER & AGENT)
+# 📚 TÀI LIỆU TOÀN DIỆN: HƯỚNG DẪN CÀI ĐẶT & SỬ DỤNG HỆ THỐNG QLTBIT (SERVER & AGENT)
 
 > **Dự án:** Quản lý Tài sản CNTT (ITSM) & Giám sát Phần cứng / Phần mềm Đa VLAN  
 > **Thư mục triển khai:** `D:\QLTBIT`  
@@ -61,7 +61,7 @@
 │                      └─────────────────┬─────────────────┘                      │
 │                                        ▼                                        │
 │                      ┌───────────────────────────────────┐                      │
-│                      │       MÁY CHỦ SIMPLY IT (VLAN 10) │                      │
+│                      │       MÁY CHỦ QLTBIT (VLAN 10) │                      │
 │                      │   IP: 192.168.10.50 (Ví dụ)       │                      │
 │                      │                                   │                      │
 │                      │  • Cổng 3001: Web Dashboard       │                      │
@@ -101,7 +101,7 @@
 Đây là phương thức đơn giản và nhanh chóng nhất. Bạn không cần phải gõ lệnh hay am hiểu kỹ thuật:
 
 1. **Chạy Trình Cài Đặt**:
-   * Nhấp đúp chuột vào file **`SimplyIT_Setup.exe`** (hoặc **`Cai_Dat_SimplyIT.exe`**).
+   * Nhấp đúp chuột vào file **`QLTBIT_Setup.exe`** (hoặc **`Cai_Dat_QLTBIT.exe`**).
 2. **Chọn Chế Độ Cài Đặt**:
    * 🌟 **Cài đặt CẢ HAI: Máy Chủ & Agent (Khuyên dùng)**: Máy tính này vừa làm Server quản trị trung tâm, vừa tự giám sát chính phần cứng của nó.
    * 🏢 **Chỉ cài đặt MÁY CHỦ (Server)**: Chỉ chạy Web Dashboard, Database và mở cổng mạng.
@@ -131,7 +131,7 @@ Nếu bạn không muốn cài PostgreSQL thủ công, Docker sẽ tự động 
    ```
 3. Docker sẽ tự động:
    * Tải ảnh PostgreSQL và cấu hình database.
-   * Chạy container máy chủ SIMPLY IT trên cổng `3001` (HTTP) và `3443` (HTTPS).
+   * Chạy container máy chủ QLTBIT trên cổng `3001` (HTTP) và `3443` (HTTPS).
    * Khởi tạo bảng dữ liệu tự động.
 4. Mở trình duyệt tại: `http://localhost:3001`.
 
@@ -163,12 +163,12 @@ GEMINI_API_KEY="your-gemini-api-key"
 #### Trên Windows Server / Windows 10/11:
 Mở PowerShell bằng quyền **Administrator** và chạy:
 ```powershell
-New-NetFirewallRule -DisplayName "SIMPLY IT HTTP Port 3001" -Direction Inbound -LocalPort 3001 -Protocol TCP -Action Allow
-New-NetFirewallRule -DisplayName "SIMPLY IT HTTPS Port 3443" -Direction Inbound -LocalPort 3443 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "QLTBIT HTTP Port 3001" -Direction Inbound -LocalPort 3001 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "QLTBIT HTTPS Port 3443" -Direction Inbound -LocalPort 3443 -Protocol TCP -Action Allow
 ```
 
 #### Trên Router / Firewall doanh nghiệp (Fortinet, MikroTik, Cisco, pfSense):
-* Tạo quy tắc cho phép luồng dữ liệu từ các mạng con nội bộ (`192.168.0.0/16` hoặc từng VLAN cụ thể) đi đến địa chỉ IP máy chủ SIMPLY IT (ví dụ: `192.168.10.50`) trên cổng **`3001`** và **`3443`**.
+* Tạo quy tắc cho phép luồng dữ liệu từ các mạng con nội bộ (`192.168.0.0/16` hoặc từng VLAN cụ thể) đi đến địa chỉ IP máy chủ QLTBIT (ví dụ: `192.168.10.50`) trên cổng **`3001`** và **`3443`**.
 
 ---
 
@@ -178,11 +178,11 @@ New-NetFirewallRule -DisplayName "SIMPLY IT HTTPS Port 3443" -Direction Inbound 
 Nhấp đúp vào file **[`start_qltbit.bat`](file:///D:/QLTBIT/start_qltbit.bat)**. Màn hình tương tác hiển thị:
 ```text
 ==============================================================================
-      HỆ THỐNG QUẢN TRỊ TÀI SẢN CNTT (ITSM) — SIMPLY IT COMMUNITY
+      HỆ THỐNG QUẢN TRỊ TÀI SẢN CNTT (ITSM) — QLTBIT COMMUNITY
       Thư mục dự án: D:\QLTBIT
 ==============================================================================
 
-  [1] 🚀 Khởi động Máy chủ SIMPLY IT (Chạy giao diện Server & Khay hệ thống)
+  [1] 🚀 Khởi động Máy chủ QLTBIT (Chạy giao diện Server & Khay hệ thống)
   [2] 📡 Bật Công cụ Quét mạng Đa VLAN (Giao diện đồ họa GUI trực quan)
   [3] ⚡ Quét mạng Đa VLAN bằng Dòng lệnh (CLI Scanner siêu tốc)
   [4] 📦 Tạo Gói cài đặt Agent cho Máy trạm (Đóng gói gửi qua GPO / USB)
@@ -200,7 +200,7 @@ Nhấp đúp vào file **[`start_qltbit.bat`](file:///D:/QLTBIT/start_qltbit.bat
 ### 3.2 Đăng nhập & Bàn làm việc chính
 * **Địa chỉ truy cập:** `http://localhost:3001` (hoặc `http://<IP_MAY_CHU>:3001` từ máy khác trong mạng).
 * **Tài khoản mặc định:**
-  * **Email:** `admin@simplyit.com` (hoặc tài khoản khởi tạo khi chạy seed).
+  * **Email:** `admin@company.com` (hoặc tài khoản khởi tạo khi chạy seed).
   * **Mật khẩu:** `Admin@123`
 * Sau khi đăng nhập, bạn sẽ thấy Dashboard tổng quan: số lượng thiết bị, trạng thái bảo hành, cảnh báo phần cứng, số lượng ticket hỗ trợ.
 
@@ -330,7 +330,7 @@ Dành cho các thiết bị mạng không thể cài Agent (như Máy in văn ph
 3. **Bấm "🚀 Bắt Đầu Quét Mạng":**
    * Chương trình sẽ quét đa luồng 60 luồng song song, tự động nhận diện thiết bị qua cổng kết nối và tra cứu hãng sản xuất qua địa chỉ MAC OUI (Dell, HP, Hikvision, Dahua, Canon, Ricoh, Cisco...).
 4. **Bấm "☁️ Đồng Bộ Vào Hệ Thống":**
-   * Toàn bộ danh sách thiết bị vừa tìm thấy sẽ được tự động nạp vào cơ sở dữ liệu SIMPLY IT mà bạn không cần phải nhập tay từng máy!
+   * Toàn bộ danh sách thiết bị vừa tìm thấy sẽ được tự động nạp vào cơ sở dữ liệu QLTBIT mà bạn không cần phải nhập tay từng máy!
 
 ---
 
@@ -365,14 +365,14 @@ Tại thư mục `D:\QLTBIT`, khi bạn chọn phím `[4]` trong menu `start_qlt
 2. Nhấp chuột phải vào file **`Install_Agent.bat`** ➔ Chọn **Run as administrator** (Bắt buộc chạy quyền quản trị viên).
 3. Cửa sổ hiển thị nhắc bạn nhập địa chỉ máy chủ:
    ```text
-   Nhập địa chỉ máy chủ SIMPLY IT [Mặc định: http://192.168.1.100:3001]:
+   Nhập địa chỉ máy chủ QLTBIT [Mặc định: http://192.168.1.100:3001]:
    ```
-   👉 *Nhập địa chỉ IP thực tế của máy chủ SIMPLY IT trong mạng (ví dụ: `http://192.168.10.50:3001`).*
+   👉 *Nhập địa chỉ IP thực tế của máy chủ QLTBIT trong mạng (ví dụ: `http://192.168.10.50:3001`).*
 4. File cài đặt sẽ tự động:
-   * Tạo thư mục hệ thống tại: `C:\ProgramData\SimplyIT\`.
-   * Đăng ký tác vụ ngầm **Scheduled Task** (`SimplyIT_Audit`) chạy dưới quyền tối cao `SYSTEM`.
+   * Tạo thư mục hệ thống tại: `C:\ProgramData\QLTBIT\`.
+   * Đăng ký tác vụ ngầm **Scheduled Task** (`QLTBIT_Audit`) chạy dưới quyền tối cao `SYSTEM`.
    * Kích hoạt lần quét đầu tiên gửi về máy chủ.
-5. **Kết quả:** Trên web SIMPLY IT, máy tính vừa cài đặt sẽ xuất hiện ngay lập tức trong danh sách tài sản với đầy đủ CPU, RAM, Ổ cứng và danh sách phần mềm!
+5. **Kết quả:** Trên web QLTBIT, máy tính vừa cài đặt sẽ xuất hiện ngay lập tức trong danh sách tài sản với đầy đủ CPU, RAM, Ổ cứng và danh sách phần mềm!
 
 ---
 
@@ -382,7 +382,7 @@ Tại thư mục `D:\QLTBIT`, khi bạn chọn phím `[4]` trong menu `start_qlt
 
 1. **Đưa script lên thư mục chia sẻ SYSVOL:**
    * Copy file `agent.ps1` vào thư mục chia sẻ mạng:
-     `\\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1`
+     `\\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1`
 2. **Tạo Group Policy Object (GPO):**
    * Mở **Group Policy Management Console** (`gpmc.msc`).
    * Tạo GPO mới đặt tên: `SIMPLY_IT_Agent_Deployment`.
@@ -390,7 +390,7 @@ Tại thư mục `D:\QLTBIT`, khi bạn chọn phím `[4]` trong menu `start_qlt
      `Computer Configuration` ➔ `Policies` ➔ `Windows Settings` ➔ `Scripts (Startup/Shutdown)` ➔ Nhấp đúp **Startup**.
 3. **Thêm Script chạy:**
    * Chọn tab **PowerShell Scripts** ➔ Bấm **Add**.
-   * Script Name: `\\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1`
+   * Script Name: `\\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1`
    * Script Parameters: `-ServerUrl "http://192.168.10.50:3001" -Mode Install`
 4. **Áp dụng GPO:**
    * Gán GPO vào Organizational Unit (OU) chứa các máy tính cần cài đặt.
@@ -412,7 +412,7 @@ powershell.exe -ExecutionPolicy Bypass -Command "Invoke-WebRequest -Uri 'http://
 
 ### 5.1 Cơ chế chạy ngầm Scheduled Task
 * Agent hoạt động hoàn toàn tự động thông qua Windows Task Scheduler.
-* Tên tác vụ: **`SimplyIT_Audit`**
+* Tên tác vụ: **`QLTBIT_Audit`**
 * Tài khoản thực thi: **`NT AUTHORITY\SYSTEM`** (quyền cao nhất của Windows).
 * Chu kỳ thực hiện: Mặc định **15 phút/lần** (hoặc mỗi khi khởi động máy / mở khóa màn hình).
 * **Đặc tính an toàn:** Hoàn toàn vô hình (`-WindowStyle Hidden`), không hiện bất kỳ cửa sổ CMD hay PowerShell nào, mức tiêu hao CPU dưới 1% và thời gian thu thập thông tin chỉ mất khoảng 2 - 4 giây.
@@ -429,7 +429,7 @@ Nếu bạn vừa nâng cấp RAM hoặc cài phần mềm mới cho người d�
 
 ### 5.3 Kiểm tra File Log trên máy trạm
 Trên bất kỳ máy trạm nào đã cài Agent, toàn bộ nhật ký hoạt động đều được ghi tại:
-📁 **`C:\ProgramData\SimplyIT\SimplyIT-Agent.log`**
+📁 **`C:\ProgramData\QLTBIT\QLTBIT-Agent.log`**
 
 Mở file này bằng Notepad, bạn sẽ thấy lịch sử gửi dữ liệu:
 ```text
@@ -460,7 +460,7 @@ Mở file này bằng Notepad, bạn sẽ thấy lịch sử gửi dữ liệu:
 Khi thu hồi máy hoặc không muốn giám sát nữa:
 1. Vào thư mục `GOI_CAI_DAT_AGENT`.
 2. Nhấp chuột phải vào file **`Uninstall_Agent.bat`** ➔ Chọn **Run as administrator**.
-3. File sẽ tự động hủy Scheduled Task `SimplyIT_Audit` và xóa sạch thư mục `C:\ProgramData\SimplyIT`.
+3. File sẽ tự động hủy Scheduled Task `QLTBIT_Audit` và xóa sạch thư mục `C:\ProgramData\QLTBIT`.
 
 ---
 
@@ -472,17 +472,17 @@ Toàn bộ cơ sở dữ liệu PostgreSQL (35+ bảng), kho tài liệu ảnh c
 
 ### 🏢 A. Quy trình cập nhật ở Máy Chủ (Server)
 Khi có phiên bản mới trên GitHub hoặc có code mới từ nhà phát triển:
-1. **Bước 1**: Tắt máy chủ Simply IT (Nhấp chuột phải vào icon ở khay Taskbar ➔ Chọn **Thoát / Exit**).
+1. **Bước 1**: Tắt máy chủ QLTBIT (Nhấp chuột phải vào icon ở khay Taskbar ➔ Chọn **Thoát / Exit**).
 2. **Bước 2**: Nhấp đúp vào file **`update.bat`** tại thư mục dự án `D:\QLTBIT`.
    - File script sẽ tự động kéo code mới nhất (`git pull`), cài thêm thư viện (`npm install`), nâng cấp cấu trúc cơ sở dữ liệu (`npx prisma db push`), và biên dịch bản chạy tối ưu (`npm run build`).
-3. **Bước 3**: Khởi động lại máy chủ bằng `SimplyIT_Server.exe` hoặc file `start_qltbit.bat` ➔ Hoàn tất 100%!
+3. **Bước 3**: Khởi động lại máy chủ bằng `QLTBIT_Server.exe` hoặc file `start_qltbit.bat` ➔ Hoàn tất 100%!
 
 ### 💻 B. Quy trình cập nhật ở Máy Trạm (Agent)
 👉 **99% trường hợp: BẠN KHÔNG CẦN LÀM BẤT KỲ ĐIỀU GÌ Ở MÁY TRẠM!**
 * **Lý do**: Agent trên máy trạm chỉ là một tác vụ ngầm định kỳ 15 phút đẩy thông số cấu hình về máy chủ.
 * Toàn bộ logic phát hiện tháo trộm linh kiện, phân tích RAM bị giảm, đối chiếu bẻ khóa KMS lậu... đều chạy tập trung trên **Máy Chủ (Server)**. Do đó, khi Server cập nhật tính năng mới, tất cả các máy trạm tự động được áp dụng tính năng đó ngay lập tức mà Quản trị viên không cần đến từng máy khách.
 * **Trường hợp duy nhất cần cập nhật Agent**: Khi có bản cập nhật script thu thập mới (`agent.ps1`) hoặc khi cơ quan thay đổi địa chỉ IP của máy chủ. Khi đó bạn chỉ cần:
-  - Copy file `agent.ps1` trong thư mục `GOI_CAI_DAT_AGENT` đè vào `C:\ProgramData\SimplyIT\agent.ps1` trên máy trạm (hoặc chạy lại `Install_Agent.bat`).
+  - Copy file `agent.ps1` trong thư mục `GOI_CAI_DAT_AGENT` đè vào `C:\ProgramData\QLTBIT\agent.ps1` trên máy trạm (hoặc chạy lại `Install_Agent.bat`).
   - Hoặc triển khai cập nhật hàng loạt qua Group Policy (GPO) trong mạng Active Directory.
 
 ---
@@ -494,7 +494,7 @@ Khi có phiên bản mới trên GitHub hoặc có code mới từ nhà phát tr
 | **Không thấy nút Lưu trong phần Cấu hình Server IP / Quét QR** | Nút lưu trước đây nằm ở thanh nổi cuối trang khiến khó nhìn. | Hiện đã có nút **`[ 💾 Lưu cấu hình Server IP ]`** màu xanh nổi bật nằm ngay bên phải ô nhập URL. Bấm là lưu ngay! |
 | **Không thấy khung Cảnh Báo Tháo Trộm Linh Kiện** | Máy tính đang xem không có sự cố hoặc đang ở tab Thông tin chung. | Vào chi tiết máy tính ➔ Chuyển sang Tab **"Cấu hình Phần cứng & Kiểm kê"**. Khung cảnh báo chỉ hiện ra KHI CÓ BẤT THƯỜNG (RAM bị tháo, ổ cứng bị đổi, hoặc cài phần mềm crack). |
 | **Máy trạm báo lỗi "Chưa chạy quyền Administrator" khi cài đặt** | Người dùng nhấp đúp trực tiếp vào file thay vì chạy quyền Admin. | Nhấp **chuột phải** vào `Install_Agent.bat` ➔ chọn **Run as administrator**. |
-| **Agent gửi dữ liệu nhưng báo lỗi HTTP 404 hoặc Connection Refused** | Địa chỉ IP máy chủ bị sai hoặc Web Server SIMPLY IT chưa được bật. | Kiểm tra máy chủ SIMPLY IT đã bật `SimplyIT_Server.exe` chưa. Đảm bảo IP máy chủ cấu hình trong Agent là đúng (ví dụ: `http://192.168.10.50:3001`). |
+| **Agent gửi dữ liệu nhưng báo lỗi HTTP 404 hoặc Connection Refused** | Địa chỉ IP máy chủ bị sai hoặc Web Server QLTBIT chưa được bật. | Kiểm tra máy chủ QLTBIT đã bật `QLTBIT_Server.exe` chưa. Đảm bảo IP máy chủ cấu hình trong Agent là đúng (ví dụ: `http://192.168.10.50:3001`). |
 | **Máy trạm ở VLAN khác không kết nối được tới máy chủ** | Tường lửa Windows hoặc Router chặn luồng Inter-VLAN. | 1. Mở cổng 3001 và 3443 trên tường lửa máy chủ (xem mục 2.5).<br>2. Kiểm tra rule định tuyến giữa các VLAN trên Switch L3 / Firewall. |
 | **Không mở được camera quét mã QR trên điện thoại** | Trình duyệt di động (Chrome, Safari) bắt buộc phải có kết nối bảo mật HTTPS mới cấp quyền Camera. | Trên điện thoại, truy cập qua giao diện **HTTPS trên cổng 3443**: `https://<IP_MAY_CHU>:3443/scan`. Nếu trình duyệt cảnh báo chứng chỉ tự ký, bấm *Nâng cao (Advanced)* ➔ *Tiếp tục truy cập (Proceed)*. |
 | **Scanner Đa VLAN quét không thấy máy trạm** | Máy trạm Windows mặc định bật tường lửa chặn Ping (ICMP). | Không lo lắng: Scanner vẫn quét cổng mở (135, 445, 3389). Nếu có cổng mở, thiết bị vẫn được nhận diện là Windows Workstation. Đối với máy trạm, phương án tối ưu nhất vẫn là triển khai **Agent qua GPO**. |

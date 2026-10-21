@@ -111,7 +111,7 @@ export async function GET(request: NextRequest) {
     };
 
     const subject = template?.subject || `[Thông báo] ${guide.name}`;
-    const bodyHtml = template?.bodyHtml || `<p>Xin chào <strong>{{recipientName}}</strong>,</p><p>Đây là thông báo từ hệ thống SIMPLY IT.</p>`;
+    const bodyHtml = template?.bodyHtml || `<p>Xin chào <strong>{{recipientName}}</strong>,</p><p>Đây là thông báo từ hệ thống QLTBIT.</p>`;
 
     // Build Word Document
     const tableRows: TableRow[] = [
@@ -165,7 +165,7 @@ export async function GET(request: NextRequest) {
           children: [
             // Header Title
             new Paragraph({
-              text: 'SIMPLY IT MANAGEMENT PLATFORM',
+              text: 'QLTBIT MANAGEMENT PLATFORM',
               heading: HeadingLevel.HEADING_3,
               alignment: AlignmentType.CENTER,
               spacing: { after: 100 },
@@ -245,7 +245,7 @@ export async function GET(request: NextRequest) {
             }),
             new Paragraph({
               children: [
-                new TextRun({ text: 'Hệ thống SIMPLY IT xin thông báo về sự kiện: ', size: 24 }),
+                new TextRun({ text: 'Hệ thống QLTBIT xin thông báo về sự kiện: ', size: 24 }),
                 new TextRun({ text: guide.name, bold: true, size: 24 }),
               ],
               spacing: { after: 200 },

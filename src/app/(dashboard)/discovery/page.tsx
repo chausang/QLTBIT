@@ -692,7 +692,7 @@ export default function DiscoveryPage() {
     setIsExportingExcel(true);
     try {
       const workbook = new ExcelJS.Workbook();
-      workbook.creator = 'Simply IT Asset Management';
+      workbook.creator = 'QLTBIT Asset Management';
       workbook.created = new Date();
 
       const sheet = workbook.addWorksheet('Thiết Bị Khám Phá Mạng', {
@@ -1801,7 +1801,7 @@ export default function DiscoveryPage() {
               <li>Mở <strong>Group Policy Management Console (gpmc.msc)</strong>.</li>
               <li>Tạo một GPO mới gán vào OU chứa các máy tính người dùng: <code>Computer Configuration &gt; Policies &gt; Windows Settings &gt; Scripts (Startup/Shutdown)</code>.</li>
               <li>Chạy trực tiếp file script hoặc cấu hình qua GPO khởi động máy tính với tham số <code>-ServerUrl &quot;{typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3001'}&quot;</code>.</li>
-              <li>Mỗi khi người dùng bật máy tính, thông số phần cứng và danh sách phần mềm sẽ tự động cập nhật về hệ thống Simply IT.</li>
+              <li>Mỗi khi người dùng bật máy tính, thông số phần cứng và danh sách phần mềm sẽ tự động cập nhật về hệ thống QLTBIT.</li>
             </ol>
           </div>
         </div>

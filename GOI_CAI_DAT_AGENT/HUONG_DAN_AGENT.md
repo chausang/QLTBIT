@@ -1,6 +1,6 @@
-# 🛡️ HƯỚNG DẪN CÀI ĐẶT & SỬ DỤNG AGENT MÁY TRẠM (SIMPLY IT)
+# 🛡️ HƯỚNG DẪN CÀI ĐẶT & SỬ DỤNG AGENT MÁY TRẠM (QLTBIT)
 
-> Bộ công cụ tự động thu thập cấu hình phần cứng & phần mềm trên máy trạm Windows, hoạt động định kỳ và phát hiện cảnh báo thay đổi linh kiện gửi về máy chủ SIMPLY IT trong mạng đa VLAN.
+> Bộ công cụ tự động thu thập cấu hình phần cứng & phần mềm trên máy trạm Windows, hoạt động định kỳ và phát hiện cảnh báo thay đổi linh kiện gửi về máy chủ QLTBIT trong mạng đa VLAN.
 
 ---
 
@@ -22,10 +22,10 @@
 2. Nhấp chuột phải vào file **`Install_Agent.bat`** ➔ Chọn **Run as administrator**.
 3. Khi được hỏi:
    ```text
-   Nhập địa chỉ máy chủ SIMPLY IT [Mặc định: http://192.168.1.100:3001]:
+   Nhập địa chỉ máy chủ QLTBIT [Mặc định: http://192.168.1.100:3001]:
    ```
    👉 Điền địa chỉ IP máy chủ thực tế của bạn (ví dụ: `http://192.168.10.50:3001`).
-4. Hệ thống sẽ tự động đăng ký một tác vụ chạy ngầm **Scheduled Task: `SimplyIT_Audit`** định kỳ **15 phút/lần**, chạy vô hình dưới quyền `NT AUTHORITY\SYSTEM`.
+4. Hệ thống sẽ tự động đăng ký một tác vụ chạy ngầm **Scheduled Task: `QLTBIT_Audit`** định kỳ **15 phút/lần**, chạy vô hình dưới quyền `NT AUTHORITY\SYSTEM`.
 
 ---
 
@@ -34,11 +34,11 @@
 Nếu công ty có hệ thống Domain Controller, bạn có thể triển khai tự động cho hàng trăm máy:
 
 1. Đặt file `agent.ps1` vào thư mục chia sẻ:
-   `\\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1`
+   `\\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1`
 2. Mở `gpmc.msc`, tạo GPO mới gắn vào OU Máy tính:
    * Đường dẫn: `Computer Configuration` ➔ `Policies` ➔ `Windows Settings` ➔ `Scripts` ➔ `Startup`
    * Thêm PowerShell Script:
-     * **Script Name:** `\\domain.com\sysvol\domain.com\scripts\SimplyIT\agent.ps1`
+     * **Script Name:** `\\domain.com\sysvol\domain.com\scripts\QLTBIT\agent.ps1`
      * **Script Parameters:** `-ServerUrl "http://192.168.10.50:3001" -Mode Install`
 3. Khi máy tính khởi động, Agent sẽ tự động cài đặt ngầm trong 3 giây.
 
@@ -46,6 +46,6 @@ Nếu công ty có hệ thống Domain Controller, bạn có thể triển khai 
 
 ## 🔍 3. Kiểm Tra & Giám Sát
 
-* **Kiểm tra File Log:** `C:\ProgramData\SimplyIT\SimplyIT-Agent.log`
-* **Kiểm tra Payload JSON gần nhất:** `C:\ProgramData\SimplyIT\SimplyIT-last-payload.json`
+* **Kiểm tra File Log:** `C:\ProgramData\QLTBIT\QLTBIT-Agent.log`
+* **Kiểm tra Payload JSON gần nhất:** `C:\ProgramData\QLTBIT\QLTBIT-last-payload.json`
 * **Gỡ bỏ Agent:** Chạy `Uninstall_Agent.bat` với quyền Administrator.
