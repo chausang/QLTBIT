@@ -175,25 +175,8 @@ Tương thích tối đa với thói quen làm việc hàng ngày:
 
 ---
 
-## 👨‍💻 5. TÁC GIẢ & HỖ TRỢ KỸ THUẬT
+## 🐙 HỖ TRỢ KỸ THUẬT & MÃ NGUỒN
 
-* 👤 **Tác giả sáng lập & phát triển**: **Tạ Trung Kiên**
-* 📧 **Email liên hệ**: `takien26@gmail.com`
-* 🐙 **Kho mã nguồn chính thức (GitHub)**: [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
-* 🤝 **Hỗ trợ & Hợp tác**: Nếu bạn cần tư vấn triển khai, tùy biến tính năng đặc thù cho doanh nghiệp hoặc đăng ký bản Enterprise, vui lòng gửi email cho tác giả để được hỗ trợ tận tình.
+* **Kho mã nguồn**: [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
+* **Báo cáo lỗi (Issue)**: [https://github.com/chausang/QLTBIT/issues](https://github.com/chausang/QLTBIT/issues)
 
----
-
-## ☕ 6. ỦNG HỘ / DONATE DUY TRÌ DỰ ÁN
-
-> **Lời ngỏ chân thành từ tác giả**:
-> *SIMPLY IT Community Edition* ra đời từ niềm đam mê công nghệ và sự thấu hiểu sâu sắc những khó khăn, áp lực hàng ngày của anh em làm nghề Quản trị hệ thống và IT Support tại Việt Nam. Dự án được chia sẻ hoàn toàn **miễn phí** với mong muốn mang lại một công cụ chuẩn mực, giúp công việc của bạn trở nên nhẹ nhàng, hiệu quả và chuyên nghiệp hơn.
->
-> Nếu bạn thấy phần mềm này hữu ích, giúp tiết kiệm thời gian, công sức và nâng cao hiệu quả công việc của bạn, hãy dành tặng tác giả một **ly cà phê ấm lòng** để tiếp thêm năng lượng nghiên cứu, bảo trì và phát triển thêm nhiều tính năng xuất sắc hơn nữa trong tương lai!
-
-| Quét mã VietQR chuyển khoản nhanh | Thông tin tài khoản ngân hàng |
-| :--- | :--- |
-| ![Mã VietQR Ủng Hộ](./donate_qr.png) | 🏦 **Ngân hàng**: **BIDV** (Ngân hàng TMCP Đầu tư và Phát triển Việt Nam)<br><br>💳 **Số tài khoản**: `2141876442`<br><br>👤 **Chủ tài khoản**: **TA TRUNG KIEN**<br><br>📝 **Nội dung chuyển khoản**: `Ung ho Simply IT` *(hoặc lời nhắn gửi tùy tâm)* |
-
----
-*Kính chúc Quý doanh nghiệp và Anh/Chị đồng nghiệp luôn vận hành hệ thống CNTT ổn định, an toàn và thành công rực rỡ!*

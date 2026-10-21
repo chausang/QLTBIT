@@ -98,25 +98,6 @@ Sau khi các container khởi động hoàn tất, truy cập hệ thống qua t
 
 ---
 
-## 📊 Bảng So Sánh Tính Năng (Feature Matrix)
-
-| Tính Năng / Feature | Phiên Bản Miễn Phí (Community) | Phiên Bản Nâng Cao (Enterprise) |
-| :--- | :---: | :---: |
-| Quản lý vòng đời thiết bị & In tem QR | ✅ Đầy đủ | ✅ Đầy đủ |
-| Quét mã QR kiểm kê bằng Camera điện thoại | ✅ Đầy đủ | ✅ Đầy đủ |
-| Cổng yêu cầu sự cố Helpdesk & SLA (P1 - P4) | ✅ Đầy đủ | ✅ Đầy đủ |
-| Quản lý bản quyền phần mềm & Hạn sử dụng | ✅ Đầy đủ | ✅ Đầy đủ |
-| Két sắt mật khẩu mã hóa AES-256 | ✅ Đầy đủ | ✅ Đầy đủ |
-| Hỗ trợ song ngữ Tiếng Việt & English | ✅ Đầy đủ | ✅ Đầy đủ |
-| Trợ lý ảo AI Copilot (Google Gemini BYOK) | ✅ Đầy đủ | ✅ Tích hợp sẵn Cloud Gateway |
-| Tự động gửi cảnh báo qua Telegram / Zalo / Teams | ❌ | ✅ Hỗ trợ |
-| Đăng nhập một lần Microsoft 365 (Azure AD SSO) | ❌ | ✅ Hỗ trợ |
-| Đồng bộ người dùng Active Directory / LDAP | ❌ | ✅ Hỗ trợ |
-| Sơ đồ mặt bằng khoa phòng & Tủ Rack trực quan | ❌ | ✅ Hỗ trợ |
-| Quét tự động mạng LAN nội bộ (Network Discovery) | ❌ | ✅ Hỗ trợ |
-
----
-
 ## 🛠️ Cài Đặt Thủ Công Môi Trường Phát Triển (Manual Setup)
 
 Nếu bạn muốn chạy trực tiếp mã nguồn bằng Node.js và PostgreSQL trên máy tính:
@@ -157,10 +138,6 @@ Mở trình duyệt tại địa chỉ: **`http://localhost:3001`** (hoặc bả
 
 Dự án QLTBIT được phát hành dưới giấy phép mã nguồn mở **[Apache License 2.0](LICENSE)**.
 
----
+## 📌 Nguồn Gốc & Tham Khảo (Credits)
 
-## 🤝 Thông Tin Dự Án & Tác Giả (Contact & Project Info)
-
-* **Repository:** [https://github.com/chausang/QLTBIT](https://github.com/chausang/QLTBIT)
-* **Tác giả / Quản trị dự án:** Châu Sang ([@chausang](https://github.com/chausang))
-* **Báo cáo lỗi & Đóng góp ý kiến (Issues):** [https://github.com/chausang/QLTBIT/issues](https://github.com/chausang/QLTBIT/issues)
+Mã nguồn tham khảo từ dự án [takien26/Simply-it-community: Phiên bản ITSM Free](https://github.com/takien26/Simply-it-community).

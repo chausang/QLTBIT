@@ -162,5 +162,4 @@ pm2 restart simply-it
 * **Trên Linux**: Chạy `fuser -k 3000/tcp` hoặc `pm2 restart simply-it`.
 
 ### 3. Cần hỗ trợ cập nhật?
-* 📧 Email hỗ trợ tác giả: **`takien26@gmail.com`**
 * 🐙 Báo cáo lỗi (Issue) trên GitHub: [https://github.com/chausang/QLTBIT/issues](https://github.com/chausang/QLTBIT/issues)

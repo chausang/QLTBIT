@@ -1,7 +1,7 @@
 {
-  "name": "simply-it-community",
+  "name": "qltbit",
   "version": "1.0.15",
-  "description": "Simply IT Community Edition (CE) - Open-Source IT Asset Management (ITAM) & Helpdesk System",
+  "description": "QLTBIT - Chương trình quản lý thiết bị trong bệnh viện & IT Asset Management (ITAM)",
   "license": "Apache-2.0",
   "private": false,
   "scripts": {

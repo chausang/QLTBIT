@@ -22,11 +22,11 @@ async function main() {
   const richUsers = [
     // --- IT LEADERSHIP & SPECIALISTS ---
     {
-      email: 'kien.ta-trung@company.local',
-      fullName: 'Tạ Trung Kiên',
+      email: 'sang.chau@company.local',
+      fullName: 'Châu Sang',
       position: 'Trưởng Ban CNTT / IT Lead',
       department: 'Ban Công Nghệ Thông Tin (IT / CNTT) / Ban Lãnh Đạo CNTT (CIO / IT Director)',
-      companyName: 'Tập đoàn Công nghệ Mẫu',
+      companyName: 'Bệnh viện Đa khoa Mẫu',
       phone: '0912345670',
       roleId: adminRole.id,
     },
@@ -198,8 +198,8 @@ async function main() {
   const allUsers = await prisma.user.findMany();
 
   const teamMappings: Record<string, string[]> = {
-    'IT-HELPDESK': ['minh.tran@company.local', 'tuan.vu@company.local', 'kien.ta-trung@company.local'],
-    'IT-APPLICATION': ['an.nguyen@company.local', 'kien.ta-trung@company.local'],
+    'IT-HELPDESK': ['minh.tran@company.local', 'tuan.vu@company.local', 'sang.chau@company.local'],
+    'IT-APPLICATION': ['an.nguyen@company.local', 'sang.chau@company.local'],
     'IT-NETWORK': ['tuan.vu@company.local', 'long.le@company.local'],
     'IT-SYSTEM': ['admin@company.com', 'sang.nguyen@company.local'],
     'IT-SECURITY': ['huy.pham@company.local', 'admin@company.com'],
@@ -219,7 +219,7 @@ async function main() {
             data: {
               teamId: team.id,
               userId: user.id,
-              role: email === 'kien.ta-trung@company.local' ? 'LEAD' : 'MEMBER',
+              role: email === 'sang.chau@company.local' ? 'LEAD' : 'MEMBER',
             },
           });
           console.log(`🔗 Linked ${user.fullName} to team ${team.name}`);

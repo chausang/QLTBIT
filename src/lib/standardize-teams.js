@@ -107,9 +107,9 @@ async function main() {
   // 3. Map members to teams
   const memberMappings = {
     'IT-ALL': itUsers.map((u) => u.id), // IT-ALL contains ALL IT users!
-    'IT-LEAD': ['Tạ Trung Kiên', 'System Admin'],
+    'IT-LEAD': ['Châu Sang', 'System Admin'],
     'IT-HELPDESK': ['Trần Văn Minh', 'Vũ Minh Tuấn'],
-    'IT-APPLICATION': ['Nguyễn Văn An', 'Tạ Trung Kiên'],
+    'IT-APPLICATION': ['Nguyễn Văn An', 'Châu Sang'],
     'IT-NETWORK': ['Vũ Minh Tuấn', 'Lê Hoàng Long'],
     'IT-SYSTEM': ['System Admin', 'Nguyễn Thành Sang (SANGNT)', 'SANGNT'],
     'IT-SECURITY': ['Phạm Quốc Huy', 'System Admin'],

@@ -6639,7 +6639,7 @@ var require_client = __commonJS({
           "value": "prisma-client-js"
         },
         "output": {
-          "value": "C:\\Users\\kien.ta-trung\\.gemini\\antigravity\\scratch\\simply-it-community\\node_modules\\@prisma\\client",
+          "value": "./node_modules/@prisma/client",
           "fromEnvVar": null
         },
         "config": {
@@ -6653,7 +6653,7 @@ var require_client = __commonJS({
           }
         ],
         "previewFeatures": [],
-        "sourceFilePath": "C:\\Users\\kien.ta-trung\\.gemini\\antigravity\\scratch\\simply-it-community\\prisma\\schema.prisma"
+        "sourceFilePath": "./prisma/schema.prisma"
       },
       "relativeEnvPaths": {
         "rootEnvPath": null,

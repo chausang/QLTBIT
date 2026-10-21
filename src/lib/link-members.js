@@ -6,8 +6,8 @@ async function run() {
   const teams = await prisma.supportTeam.findMany();
 
   const assignments = {
-    'IT-GROUP': ['Tạ Trung Kiên', 'System Admin'],
-    'IT-APPLICATION': ['Nguyễn Văn An', 'Tạ Trung Kiên'],
+    'IT-GROUP': ['Châu Sang', 'System Admin'],
+    'IT-APPLICATION': ['Nguyễn Văn An', 'Châu Sang'],
     'IT-NETWORK': ['Vũ Minh Tuấn', 'Lê Hoàng Long'],
     'IT-SYSTEM': ['System Admin', 'Nguyễn Thành Sang (SANGNT)'],
     'IT-HELPDESK': ['Trần Văn Minh', 'Vũ Minh Tuấn'],

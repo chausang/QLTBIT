@@ -49,10 +49,6 @@ async function main() {
     path.join(process.cwd(), 'public', 'uploads'),
   ];
 
-  const scratchUploads = 'C:\\Users\\kien.ta-trung\\.gemini\\antigravity\\scratch\\simply-it-community\\public\\uploads';
-  if (fs.existsSync(path.dirname(scratchUploads)) && !targetUploadsDirs.includes(scratchUploads)) {
-    targetUploadsDirs.push(scratchUploads);
-  }
 
   for (const dir of targetUploadsDirs) {
     if (!fs.existsSync(dir)) {
