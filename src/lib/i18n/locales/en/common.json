@@ -13,6 +13,7 @@
   "nav.assets_list": "Devices & Hardware",
   "nav.assets_audit": "Asset Audits",
   "nav.assets_scan": "Device Discovery",
+  "nav.network_topology": "Network Topology & Scanner",
   "nav.floor_maps": "2D Floor Maps",
   "nav.spare_parts": "Spare Parts Inventory",
   "nav.licenses": "Software Licenses",

@@ -13,6 +13,7 @@
   "nav.assets_list": "機器・ハードウェア",
   "nav.assets_audit": "資産棚卸し・監査",
   "nav.assets_scan": "ネットワーク検知",
+  "nav.network_topology": "ネットワーク構成図・検知",
   "nav.floor_maps": "2Dフロアマップ",
   "nav.spare_parts": "予備部品・パーツ在庫",
   "nav.licenses": "ソフトウェアライセンス",

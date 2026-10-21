@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { HealthOverviewTab } from '@/components/discovery/HealthOverviewTab';
 import { TamperAlertsTab } from '@/components/discovery/TamperAlertsTab';
+import { NetworkTopologyTab } from '@/components/discovery/NetworkTopologyTab';
 import { useQuickViewStore } from '@/lib/quick-view-store';
 import ExcelJS from 'exceljs';
 
@@ -198,7 +199,7 @@ export default function DiscoveryPage() {
     return () => window.removeEventListener('simply:license-updated', handleUpdate);
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'SCAN' | 'ALERTS' | 'HEALTH' | 'AI_ENRICH' | 'GUIDE'>('SCAN');
+  const [activeTab, setActiveTab] = useState<'SCAN' | 'TOPOLOGY' | 'ALERTS' | 'HEALTH' | 'AI_ENRICH' | 'GUIDE'>('SCAN');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -209,6 +210,8 @@ export default function DiscoveryPage() {
         setActiveTab('ALERTS');
       } else if (tabParam === 'HEALTH' || tabParam === 'health') {
         setActiveTab('HEALTH');
+      } else if (tabParam === 'TOPOLOGY' || tabParam === 'topology') {
+        setActiveTab('TOPOLOGY');
       }
     }
   }, []);
@@ -1001,6 +1004,22 @@ export default function DiscoveryPage() {
 
         <button
           type="button"
+          onClick={() => setActiveTab('TOPOLOGY')}
+          className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer ${
+            activeTab === 'TOPOLOGY'
+              ? 'bg-indigo-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+          }`}
+        >
+          <Network className="w-3.5 h-3.5" />
+          <span>{isEn ? '2. Network Topology & Suzieq' : '2. Quét & Sơ Đồ Mạng'}</span>
+          <span className="px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[9px] font-black">
+            L2/L3
+          </span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('ALERTS')}
           className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer ${
             activeTab === 'ALERTS'
@@ -1009,7 +1028,7 @@ export default function DiscoveryPage() {
           }`}
         >
           <AlertTriangle className={`w-3.5 h-3.5 ${activeTab === 'ALERTS' ? 'text-white' : 'text-rose-500'}`} />
-          <span>{isEn ? '2. Tamper Alerts & Audit Log' : '2. Cảnh Báo Tháo Linh Kiện & Nhật Ký'}</span>
+          <span>{isEn ? '3. Tamper Alerts & Audit Log' : '3. Cảnh Báo Tháo Linh Kiện & Nhật Ký'}</span>
           {agentReports.filter(a => a.hardwareChangeAlert || a.crackDetection?.hasSuspect || a.softwareChangeAlert).length > 0 && (
             <span className="px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[10px] font-black font-mono animate-pulse">
               {agentReports.filter(a => a.hardwareChangeAlert || a.crackDetection?.hasSuspect || a.softwareChangeAlert).length}
@@ -1027,7 +1046,7 @@ export default function DiscoveryPage() {
           }`}
         >
           <Activity className="w-3.5 h-3.5" />
-          <span>{isEn ? '3. IT Health Fleet Monitor' : '3. Giám Sát Sức Khỏe IT Health'}</span>
+          <span>{isEn ? '4. IT Health Fleet Monitor' : '4. Giám Sát Sức Khỏe IT Health'}</span>
         </button>
 
         <button
@@ -1040,7 +1059,7 @@ export default function DiscoveryPage() {
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-          <span>{isEn ? '4. AI Spec Lookup' : '4. Tra Cứu Thông Số Model (AI)'}</span>
+          <span>{isEn ? '5. AI Spec Lookup' : '5. Tra Cứu Thông Số Model (AI)'}</span>
         </button>
 
         <button
@@ -1053,7 +1072,7 @@ export default function DiscoveryPage() {
           }`}
         >
           <Terminal className="w-3.5 h-3.5" />
-          <span>{isEn ? '5. PowerShell & Deployment Guide' : '5. Script PowerShell & Hướng Dẫn'}</span>
+          <span>{isEn ? '6. PowerShell & Deployment Guide' : '6. Script PowerShell & Hướng Dẫn'}</span>
         </button>
       </div>
 
@@ -1573,6 +1592,13 @@ export default function DiscoveryPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 2: NETWORK TOPOLOGY & SUZIEQ ENGINE */}
+      {/* ======================================================== */}
+      {activeTab === 'TOPOLOGY' && (
+        <NetworkTopologyTab />
       )}
 
       {/* ======================================================== */}

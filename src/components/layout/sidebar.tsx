@@ -38,6 +38,7 @@ import {
   Map,
   Wifi,
   ScanLine,
+  Network,
   UserCheck,
   Trash2,
 } from 'lucide-react';
@@ -339,6 +340,7 @@ export function Sidebar({
         { label: t('nav.assets_minutes', 'Biên bản & Đề nghị thiết bị'), href: '/minutes', icon: FileCheck, permission: 'assets.view' },
         { label: t('nav.assets_audit', 'Kiểm kê Tài sản'), href: '/assets/audit', icon: ClipboardCheck, permission: 'assets.view' },
         { label: t('nav.assets_scan', 'Scan Thiết bị / Quét LAN'), href: '/discovery', icon: ScanLine, permission: 'assets.view' },
+        { label: t('nav.network_topology', 'Quét & Sơ đồ Mạng'), href: '/discovery?tab=TOPOLOGY', icon: Network, permission: 'assets.view' },
         { label: t('nav.tamper_alerts', 'Cảnh Báo Linh Kiện & Nhật Ký'), href: '/discovery?tab=ALERTS', icon: AlertTriangle, permission: 'assets.view' },
         { label: t('nav.floor_maps', 'Sơ đồ Mặt bằng 2D'), href: '/floor-maps', icon: Map, permission: 'assets.view' },
         { label: t('nav.spare_parts', 'Kho Phụ tùng & Linh kiện'), href: '/spare-parts', icon: Boxes, permission: 'assets.view' },
